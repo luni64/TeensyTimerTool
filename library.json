@@ -1,0 +1,21 @@
+{
+  "name": "TeensyTimerTool",
+  "keywords": "teensy, teensy4.0, timer, quad, gpt",
+  "description": "Generic interface to T4.0 timers",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/luni64/TeensyTimerTool"
+  },
+  "authors":
+  {
+    "name": "Lutz Niggl",
+    "email": "lutz.niggl@lunoptics.com",
+    "url": "https://github.com/luni64",
+    "maintainer": true
+  },
+  "homepage": "https://github.com/luni64/TeensyTimerTool",
+  "version": "0.0.1",
+  "frameworks": "arduino",
+  "platforms": "Teensy"
+}
