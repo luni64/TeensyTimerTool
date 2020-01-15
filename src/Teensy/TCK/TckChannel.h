@@ -2,7 +2,7 @@
 
 #include "../../ITimerChannel.h"
 #include "../../types.h"
-#include "Arduino.h"
+//#include "Arduino.h"
 
 namespace TeensyTimerTool
 {
@@ -16,8 +16,6 @@ namespace TeensyTimerTool
 
         inline void begin(callback_t cb, unsigned period, bool periodic)
         {
-            Serial.println("begin");
-
             triggered = false;
             this->periodic = periodic;
             this->period = period * (F_CPU / 1'000'000);
@@ -28,8 +26,6 @@ namespace TeensyTimerTool
 
         inline void start()
         {
-            Serial.println("start");
-
             this->startCNT = ARM_DWT_CYCCNT;
             this->triggered = true;
         }

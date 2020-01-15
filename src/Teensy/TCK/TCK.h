@@ -24,7 +24,7 @@ namespace TeensyTimerTool
 
     ITimerChannel* TCK_t::getTimer()
     {
-        Serial.printf("TCK getTimer()\n");
+        //Serial.printf("TCK getTimer()\n");
 
         if (!isInitialized)
         {
@@ -61,16 +61,14 @@ namespace TeensyTimerTool
     }
 
     void TCK_t::tick()
-    {
-        digitalWriteFast(12,HIGH);
+    {        
         for(unsigned i = 0; i < maxTckChannels; i++)
         {
             if (channels[i] != nullptr )
             {
                 channels[i]->tick();
             }
-        }
-        digitalWriteFast(12,LOW);
+        }       
     }
 
 
