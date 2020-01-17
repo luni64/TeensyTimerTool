@@ -1,5 +1,6 @@
-#include "timer.h"
-#include "config.h"
+#include "TeensyTimerTool.h"
+//#include "timer.h"
+//#include "config.h"
 
 namespace TeensyTimerTool
 {
@@ -26,7 +27,7 @@ namespace TeensyTimerTool
             {
                 for (unsigned i = 0; timerChannel == nullptr && i < timerCnt; i++)
                 {
-                    timerChannel = allowedTimers[i]();
+                    timerChannel = timerPool[i]();
                 }
             }
         }

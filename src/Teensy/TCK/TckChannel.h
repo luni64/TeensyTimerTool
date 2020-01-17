@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../../ITimerChannel.h"
-#include "../../types.h"
-//#include "Arduino.h"
 
 namespace TeensyTimerTool
 {

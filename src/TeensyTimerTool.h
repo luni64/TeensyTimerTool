@@ -1,36 +1,39 @@
 #pragma once
 
-#include "errors.h"
-#include "timer.h"
+#include "boardDef.h"
 
 //================================================
 // Board specifics
 
-#if defined(__MKL26Z64__) && defined(TEENSYDUINO)
+#if defined(T_LC)
 
-#elif defined(__MK20DX128__) && defined(TEENSYDUINO)
+#elif defined(T3_1)
 
-#elif defined (__MK20DX256__) && defined(TEENSYDUINO)
+#elif defined (T3_2)    
+    #define HAS_TCK 20
+    #include "errors.h"
+    #include "timer.h"
+    #include "kinetis.h"
+    #include "Teensy/TCK/TCK.h"
 
-#elif defined (__MK64FX512__) && defined(TEENSYDUINO)
+#elif defined (T3_5)
 
-#elif defined (__MK66FX1M0__) && defined(TEENSYDUINO)
-    #define T3_6
+#elif defined (T3_6)    
     #define HAS_FTM
 
-#elif defined(__IMXRT1062__) && defined(TEENSYDUINO)
-    #define T4_0
+#elif defined(T4_0)    
     #define HAS_TMR 4
     #define HAS_GPT 2
     #define HAS_TCK 10
-    #include "Teensy/TCK/TCK.h"
-    #include "Teensy/GPT/GPT.h"     
-    #include "Teensy/TMR/TMR.h"    
+    #include "errors.h"
+    #include "timer.h"
     #include <imxrt.h>
+    #include "Teensy/TCK/TCK.h"
+    #include "Teensy/GPT/GPT.h"
+    #include "Teensy/TMR/TMR.h"
 
 #else
     #error "Board not supported"
 #endif
-
 
 #include "config.h"
