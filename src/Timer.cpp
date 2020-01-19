@@ -36,7 +36,7 @@ namespace TeensyTimerTool
         timerChannel->begin(cb, reload, oneShot);
         if (oneShot) // naming bug, should be periodic
             timerChannel->start();
-            
+
         return error::OK;
     }
 

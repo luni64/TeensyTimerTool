@@ -1,7 +1,6 @@
 #pragma once
 
 #include "../../ITimerChannel.h"
-#include "imxrt.h"
 
 namespace TeensyTimerTool
 {
@@ -42,10 +41,10 @@ public:
         regs->COMP1 = reload;
         regs->CMPLD1 = reload;
         regs->CNTR = 0x0000;
-        
+
         regs->CSCTRL &= ~TMR_CSCTRL_TCF1;
         regs->CSCTRL |= TMR_CSCTRL_TCF1EN;
-       
+
         regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(0b1111) | TMR_CTRL_ONCE | TMR_CTRL_LENGTH;
     }
 

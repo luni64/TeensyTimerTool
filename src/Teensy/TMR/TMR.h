@@ -2,9 +2,6 @@
 
 #include "TmrChannel.h"
 
-//#include <Arduino.h>
-//#include <cstdint>
-
 namespace TeensyTimerTool
 {
     template <unsigned moduleNr>
@@ -49,7 +46,7 @@ namespace TeensyTimerTool
             return new TmrChannel(pCH0, &callbacks[0]);
         }
 
-        for (unsigned chNr = 0; chNr < 4; chNr++) 
+        for (unsigned chNr = 0; chNr < 4; chNr++)
         {
             IMXRT_TMR_CH_t* pCh = &pTMR->CH[chNr];
             if (pCh->CTRL == 0x0000)
@@ -61,7 +58,7 @@ namespace TeensyTimerTool
         return nullptr;
     }
 
-    template <unsigned m> 
+    template <unsigned m>
     void TMR_t<m>::isr()
     {
         // no loop to gain some time by avoiding indirections and pointer calculations
@@ -87,7 +84,7 @@ namespace TeensyTimerTool
         {
             pCH3->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[3]();
-        }        
+        }
     }
 
     template <unsigned m>

@@ -1,7 +1,8 @@
-#include "../../TeensyTimerTool.h"
+#include "../../boardDef.h"
 
 #if defined(HAS_TCK)
 
+#include "TCK.h"
 namespace TeensyTimerTool
 {
     bool TCK_t::isInitialized = false;

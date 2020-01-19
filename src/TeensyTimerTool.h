@@ -7,27 +7,38 @@
 
 #if defined(T_LC)
 
-#elif defined(T3_1)
-
-#elif defined (T3_2)    
-    #define HAS_TCK 20
-    #include "errors.h"
-    #include "timer.h"
+#elif defined(T3_0)
     #include "kinetis.h"
+    #include "timer.h"
+    #include "errors.h"
     #include "Teensy/TCK/TCK.h"
+    #include "Teensy/FTM/FTM.h"
+
+#elif defined(T3_1) || defined (T3_2)
+    #include "kinetis.h"
+    #include "timer.h"
+    #include "errors.h"
+    #include "Teensy/TCK/TCK.h"
+    #include "Teensy/FTM/FTM.h"
 
 #elif defined (T3_5)
-
-#elif defined (T3_6)    
-    #define HAS_FTM
-
-#elif defined(T4_0)    
-    #define HAS_TMR 4
-    #define HAS_GPT 2
-    #define HAS_TCK 10
-    #include "errors.h"
+    #include "kinetis.h"
     #include "timer.h"
+    #include "errors.h"
+    #include "Teensy/TCK/TCK.h"
+    #include "Teensy/FTM/FTM.h"
+
+#elif defined (T3_6)
+    #include "kinetis.h"
+    #include "timer.h"
+    #include "errors.h"
+    #include "Teensy/TCK/TCK.h"
+    #include "Teensy/FTM/FTM.h"
+
+#elif defined(T4_0)
     #include <imxrt.h>
+    #include "timer.h"
+    #include "errors.h"
     #include "Teensy/TCK/TCK.h"
     #include "Teensy/GPT/GPT.h"
     #include "Teensy/TMR/TMR.h"

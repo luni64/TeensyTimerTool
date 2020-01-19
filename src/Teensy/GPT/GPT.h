@@ -1,9 +1,6 @@
 #pragma once
 
 #include "GPTchannel.h"
-#include "GPTmap.h"
-#include <Arduino.h>
-#include "../../config.h"
 
 namespace TeensyTimerTool
 {

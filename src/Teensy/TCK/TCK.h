@@ -1,8 +1,8 @@
 #pragma once
 
+#include "Arduino.h"
 #include "TckChannel.h"
-#include <Arduino.h>
-#include <cstdint>
+
 
 namespace TeensyTimerTool
 {
@@ -16,7 +16,7 @@ namespace TeensyTimerTool
         static inline void tick();
 
      protected:
-        static bool isInitialized;       
+        static bool isInitialized;
         static TckChannel* channels[maxTckChannels];
     };
 
@@ -28,6 +28,10 @@ namespace TeensyTimerTool
 
         if (!isInitialized)
         {
+            // enable the cycle counter
+            ARM_DEMCR |= ARM_DEMCR_TRCENA;
+            ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
+
             for (unsigned chNr = 0; chNr < maxTckChannels; chNr++)
             {
                 channels[chNr] = nullptr;
@@ -39,7 +43,7 @@ namespace TeensyTimerTool
         {
             if (channels[chNr] == nullptr)
             {
-                channels[chNr] = new  TckChannel();
+                channels[chNr] = new TckChannel();
                 return channels[chNr];
             }
         }
@@ -61,16 +65,15 @@ namespace TeensyTimerTool
     }
 
     void TCK_t::tick()
-    {        
-        for(unsigned i = 0; i < maxTckChannels; i++)
+    {
+        for (unsigned i = 0; i < maxTckChannels; i++)
         {
-            if (channels[i] != nullptr )
+            if (channels[i] != nullptr)
             {
                 channels[i]->tick();
             }
-        }       
+        }
     }
-
 
     constexpr TimerGenerator* TCK = TCK_t::getTimer;
 

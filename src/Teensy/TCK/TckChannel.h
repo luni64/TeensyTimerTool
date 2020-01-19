@@ -19,7 +19,7 @@ namespace TeensyTimerTool
             this->period = period * (F_CPU / 1'000'000);
             this->callback = cb;
 
-            startCNT = ARM_DWT_CYCCNT;            
+            startCNT = ARM_DWT_CYCCNT;
         }
 
         inline void start()
@@ -59,7 +59,7 @@ namespace TeensyTimerTool
 
     void TckChannel::tick()
     {
-        static bool lock = false;       
+        static bool lock = false;
 
         if (!lock && period != 0 && triggered && (ARM_DWT_CYCCNT - startCNT) >= period)
         {
@@ -68,7 +68,7 @@ namespace TeensyTimerTool
             triggered = periodic; // i.e., stays triggerd if periodic, stops if oneShot
             callback();
             lock = false;
-        }        
+        }
     }
 
     void TckChannel::setPeriod(uint32_t microSeconds)

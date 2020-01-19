@@ -1,3 +1,5 @@
+#ifdef ESP32
+
 #include "../../TeensyTimerTool.h"
 
 #if defined(HAS_TCK) and defined(ESP32)
@@ -9,5 +11,7 @@ namespace TeensyTimerTool
 }
 
 void yield() { TeensyTimerTool::TCK_t::tick(); }
+
+#endif
 
 #endif

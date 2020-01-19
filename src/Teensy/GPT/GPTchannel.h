@@ -1,8 +1,7 @@
 #pragma once
 
+ #include "GPTmap.h"
 #include "../../ITimerChannel.h"
-#include "../../types.h"
-#include "GPTmap.h"
 
 namespace TeensyTimerTool
 {

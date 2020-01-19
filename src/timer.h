@@ -1,5 +1,6 @@
 #pragma once
 
+#include "types.h"
 #include "ITimerChannel.h"
 
 namespace TeensyTimerTool
@@ -32,7 +33,7 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION =======================================================
 
-    void Timer::trigger(uint32_t delay)
+    void Timer::trigger(const uint32_t delay)
     {
         timerChannel->trigger(delay);
     }
