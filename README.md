@@ -4,6 +4,8 @@ TeensyTimerTool is a library, providing an easy to use generic interface to the 
 The library currently only supports T4.0 boards.
 You can either choose the next free timer from a pool or specify exactly which hard- or software timer module you want to use. 
 
+See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the corresponding thread in the PJRC forum. 
+
 ## Basic Usage
 
 ### Periodic Timer
