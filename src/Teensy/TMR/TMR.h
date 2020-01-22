@@ -85,6 +85,7 @@ namespace TeensyTimerTool
             pCH3->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[3]();
         }
+        asm volatile("dsb"); //wait until register changes propagated through the cache
     }
 
     template <unsigned m>
