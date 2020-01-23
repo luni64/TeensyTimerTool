@@ -1,6 +1,5 @@
+#include "timer.h"
 #include "TeensyTimerTool.h"
-//#include "timer.h"
-//#include "config.h"
 
 namespace TeensyTimerTool
 {
@@ -10,19 +9,17 @@ namespace TeensyTimerTool
         this->timerChannel = nullptr;
     }
 
-    error Timer::begin(callback_t cb, uint32_t reload, bool oneShot)
+    errorCode Timer::begin(callback_t callback, uint32_t reload, bool periodic)
     {
-
-        if (cb == nullptr)
-        {
-            return postError(error::argument);
-        }
-
+        if (callback == nullptr) return postError(errorCode::callback);
+        if (periodic && reload == 0) return postError(errorCode::reload);
+       
         if (timerChannel == nullptr)
         {
             if (timerGenerator != nullptr) // use timer passed in during construction
             {
                 timerChannel = timerGenerator();
+                if (timerChannel == nullptr) return postError(errorCode::noFreeChannel);
             } else //find the next free timer
             {
                 for (unsigned i = 0; timerChannel == nullptr && i < timerCnt; i++)
@@ -30,26 +27,25 @@ namespace TeensyTimerTool
                     timerChannel = timerPool[i]();
                 }
             }
+            if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
         }
-        if (timerChannel == nullptr) return postError(error::noFreeChannel);
 
-        timerChannel->begin(cb, reload, oneShot);
-        if (oneShot) // naming bug, should be periodic
-            timerChannel->start();
+        timerChannel->begin(callback, reload, periodic);
+        if (periodic) timerChannel->start();
 
-        return error::OK;
+        return errorCode::OK;
     }
 
-    void Timer::attachErrFunc(errorFunc_t ef)
+    void Timer::attachErrFunc(errorFunc_t _errFunc)
     {
-        errFunc = ef;
+        errFunc = _errFunc;
     }
 
-    error Timer::postError(error e)
+    errorCode Timer::postError(errorCode e)
     {
-        if (errFunc != nullptr) errFunc(e);
+        if (errFunc != nullptr) (errFunc)(e);
         return e;
     }
 
     errorFunc_t Timer::errFunc = nullptr;
-}
+} 

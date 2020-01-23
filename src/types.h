@@ -1,7 +1,7 @@
 #pragma once
 
 //#include "TeensyTimerTool.h"
-#include "errors.h"
+#include "ErrorHandling/ErrorCodes.h"
 
 
 
@@ -17,7 +17,7 @@ namespace TeensyTimerTool
         using errorFunc_t = void (*)(error);
     #else
         using callback_t = std::function<void(void)>;
-        using errorFunc_t = std::function<void(error)>;
+        using errorFunc_t = std::function<void(errorCode)>;
     #endif
 
     struct ITimerChannel;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "ErrorHandling/ErrorCodes.h"
 #include "ITimerChannel.h"
 
 namespace TeensyTimerTool
@@ -10,8 +11,8 @@ namespace TeensyTimerTool
      public:
         Timer(TimerGenerator* gen = nullptr);
 
-        inline error beginPeriodic(callback_t cb, uint32_t period) { return begin(cb, period, true); }
-        inline error beginOneShot(callback_t cb) { return begin(cb, 0, false); }
+        inline errorCode beginPeriodic(callback_t cb, uint32_t period) { return begin(cb, period, true); }
+        inline errorCode beginOneShot(callback_t cb) { return begin(cb, 0, false); }
         inline void trigger(uint32_t delay);
         inline void setPeriod(uint32_t microSeconds);
         inline uint32_t getPeriod();
@@ -24,11 +25,11 @@ namespace TeensyTimerTool
         ITimerChannel* timerChannel;
 
      protected:
-        error begin(callback_t cb, uint32_t period, bool periodic);
-        error postError(error);
+         errorCode begin(callback_t cb, uint32_t period, bool periodic);
+         errorCode postError(errorCode);
 
-        TimerGenerator* timerGenerator;
-        static errorFunc_t errFunc;
+         TimerGenerator *timerGenerator;
+         static errorFunc_t errFunc;
     };
 
     // IMPLEMENTATION =======================================================

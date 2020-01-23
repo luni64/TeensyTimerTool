@@ -1,5 +1,7 @@
 #if defined(__MKL26Z64__) && defined(TEENSYDUINO)
 #define TLC
+#define HAS_TCK 20
+#include "kinetis.h"
 
 #elif defined(__MK20DX128__) && defined(TEENSYDUINO)
 #define T3_0

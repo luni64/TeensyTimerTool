@@ -16,7 +16,7 @@ protected:
     static callback_t callback;
     static GptChannel *channel;
 
-    // the following is caculated at compile time
+    // the following is calculated at compile time
     static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;
     static constexpr IMXRT_GPT_t *pGPT = (IMXRT_GPT_t *)(moduleNr == 0 ? &IMXRT_GPT1 : &IMXRT_GPT2);
     static_assert(moduleNr < 2, "Wrong GPT Number");

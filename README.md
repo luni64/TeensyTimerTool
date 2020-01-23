@@ -1,7 +1,7 @@
 # TeensyTimerTool
 
 TeensyTimerTool is a library, providing an easy to use generic interface to the hardware timers of the PJRC Teensy boards.  Additionally it provides up to 20 highly efficient software timers with the same interface. All timers can be used in periodic and one-shot mode. 
-The library currently only supports T4.0 boards.
+The library currently supports T3.x and T4.0 boards.
 You can either choose the next free timer from a pool or specify exactly which hard- or software timer module you want to use. 
 
 See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the corresponding thread in the PJRC forum. 
@@ -71,8 +71,8 @@ The following table shows available timers for the Teensy boards. Entries show m
 |TMR1...TMR4 |QUAD Timer            |16bit| 4x4  |-     | -    | -    | -    |
 |GPT1...GPT2 |General Purpose Timer |32bit| 2x1  |  -   | -    | -    | -    |
 |PIT1...PITn |Periodic Timer        |32bit|(4x1) |(4x1) |(4x1) |(4x1) |(2x1) |
-|FTM1...FTMn |Flex Timer            |16bit| -    |  ?   |   ?  | ?    | ?    |
-|TCK         |Tick-Timer            |32bit| 1x20 |(1x20)|(1x20)|(1x20)|(1x20)|
+|FTM1...FTMn |Flex Timer            |16bit| -    |  20  |  20  | 12   |  -   |
+|TCK         |Tick-Timer            |32bit| 1x20 | 1x20 | 1x20 | 1x20 | 1x20 |
 
 
 
@@ -193,8 +193,21 @@ void loop()
 }
 ```
 
-### Timer Embedded in Class
-You can also define a class which embeds one or more timers and use a non static member function as callback. The following example shows a *Blinker* class which uses a timer to periodically toggles a pin in the background. The somehow ugly syntax of attaching the member function as callback is explained [here](https://stackoverflow.com/a/7582576/1842762)
+### How to Embed a Timer and its Callback in a Class
+Embedding a timer and its callback function in a class can attractive if you want to hide implementation details from the users of the class. However, setting this up can be quite tedious if the timer expects the usual pointer to a void function as callback. The reason for the complicaton is, that every member function carries a pointer to the object as a hidden and auto generated first parameter. Thus, the signature of a (not static) member function can never match the required void(*f)() and you'll get errors if you try to attach it as callback. 
+
+Since the TeensyTimerTool timers accept a ```std::function<void>()``` argument as callback, attaching member functions is straight forward. Basically you have the following two options:
+- Simply attach a lambda which captures the 'this' pointer and uses it to call the member. Here an example for this method:
+```c++
+    timer.beginOneShot([this] {this->myMemberFunction();});  
+```
+- Use std::bind to bind the hidden first parameter of the member to 'this' as shown below. The somehow ugly syntax is explained [here](https://stackoverflow.com/a/7582576/1842762)
+```c++
+    timer.beginOneShot(std::bind(&MyClass::myMemberFunction, this)); 
+```
+
+The following working example shows a *Blinker* class which uses an embedded timer to periodically toggle a pin in the background. 
+You can generate as many Blinker objects as you like (as long as you don't run out of timers). They will do their work autonomously, the user does not need to know anything about the details. 
 
 ```c++
 #include "TeensyTimerTool.h"
@@ -206,38 +219,39 @@ public:
     Blinker(unsigned pin, unsigned period)
     {
         this->pin = pin;
-        this->period = period;        
+        this->period = period;
     }
 
     void begin()
     {
-        pinMode(pin,OUTPUT);
-        timer.beginPeriodic(std::bind(&Blinker::blink, this), period);
+        pinMode(pin, OUTPUT);
+        timer.beginPeriodic([this] {this->blink();}, period );  //  using a lambda
+       // timer.beginPeriodic(std::bind(&Blinker::blink, this), period); // using std::bind
     }
 
     void blink() // callback function
     {
-        digitalWriteFast(pin, !digitalReadFast(pin)); // toggle pin
+        digitalWriteFast(pin, !digitalReadFast(pin)); 
     }
 
 protected:
-    Timer timer;  
+    Timer timer;
     unsigned pin, period;
 };
 
 //==============================================================
 
-Blinker b1(1, 100'000);  // blinks on pin 1 with period 100ms
-Blinker b2(2, 50'000);   // blinks on pin 2 with period  50ms
+Blinker b1(1, 100'000); // blinks on pin 1 with period 100ms
+Blinker b2(2, 50'000);  // blinks on pin 2 with period  50ms
 
 void setup()
 {
     b1.begin();
-    b2.begin();   
+    b2.begin();
 }
 
 void loop()
-{   
+{
 }
 ```
 
