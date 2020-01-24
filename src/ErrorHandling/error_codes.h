@@ -2,11 +2,11 @@
 
 namespace TeensyTimerTool
 {
-    enum class errorCode 
-    {        
+    enum class errorCode
+    {
         OK =                 0,
 
-        // Warnings 
+        // Warnings
         periodOverflow=    -10,
 
         //General errors
@@ -17,19 +17,19 @@ namespace TeensyTimerTool
         noFreeChannel =    104,
 
         // GTP Errors
-        GTP_err =          200,      
+        GTP_err =          200,
         GTP_err2 =         201,
 
         //TMR Errors
-        TMR_err =          300,      
+        TMR_err =          300,
         TMR_err2 =         301,
 
         //FTM Errors
-        FTM_err =          400,      
+        FTM_err =          400,
         FTM_err2 =         401,
 
         //TCK Errors
-        TCK_err =          900,      
+        TCK_err =          900,
         TCK_err2 =         901,
     };
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "types.h"
-#include "ErrorHandling/ErrorCodes.h"
+#include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
 
 namespace TeensyTimerTool
