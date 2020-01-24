@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TmrChannel.h"
+#include "TMRchannel.h"
 
 namespace TeensyTimerTool
 {
