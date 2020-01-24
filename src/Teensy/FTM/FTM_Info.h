@@ -83,20 +83,20 @@ namespace TeensyTimerTool
 
         static constexpr uintptr_t FTM_BaseAdr[] // can't use defines from kinetis.h since, depending on board, not all are always defined.
         {
-            0x40038000, // FTM0
-            0x40039000, // FTM1
-            0x400B8000, // FTM2
-            0x400B9000, // FTM3
+            0x4003'8000, // FTM0
+            0x4003'9000, // FTM1
+            0x400B'8000, // FTM2
+            0x400B'9000, // FTM3
         };
 
         static constexpr unsigned  FTM_Prescale = // prescale value to roughly get 1µs per tick
-            F_BUS > 120000000 ? 0b111 :
-            F_BUS > 60000000 ? 0b110 :
-            F_BUS > 30000000 ? 0b101 :
-            F_BUS > 15000000 ? 0b100 :
-            F_BUS> 8000000 ? 0b011 :
-            F_BUS> 4000000 ? 0b010 :
-            F_BUS> 2000000 ? 0b001 : 0b000;
+            F_BUS > 120'000'000 ? 0b111 :
+            F_BUS >  60'000'000 ? 0b110 :
+            F_BUS >  30'000'000 ? 0b101 :
+            F_BUS >  15'000'000 ? 0b100 :
+            F_BUS >   8'000'000 ? 0b011 :
+            F_BUS >   4'000'000 ? 0b010 :
+            F_BUS >   2'000'000 ? 0b001 : 0b000;
 
       public:
         static constexpr uintptr_t    baseAdr = FTM_BaseAdr[module];
