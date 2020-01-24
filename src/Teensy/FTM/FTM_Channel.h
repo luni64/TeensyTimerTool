@@ -31,8 +31,7 @@ namespace TeensyTimerTool
         : ITimerChannel(nullptr)
     {
         this->regs = regs;
-        this->ci = channelInfo;
-        Serial.printf("new chn %p\n", ci->chRegs);
+        this->ci = channelInfo;       
     }
 
     void FTM_Channel::begin(callback_t callback, unsigned tcnt, bool periodic)
