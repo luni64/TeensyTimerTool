@@ -255,6 +255,92 @@ void loop()
 }
 ```
 
+## Error Handling
+
+Things can go wrong in programming. E.g. assume that you try to acquire three channels of  an FTM1 module which only provides two channels
+```c++
+Timer t1(FTM1), t2(FTM1), t3(FTM1)
+
+void setup()
+{
+    t1.beginOneShot(callback1);
+    t2.beginOneShot(callback2);
+    t3.beginOneShot(callback3);
+}   
+...
+```
+This will lead to a runtime error when you try to 'begin' t3 in the last line. TeensyTimerTool won't crash on it but the t3 will never work of course. 
+
+So, it is a good idea to check if the acquisition of the timers didn't produce any error. Here an example showing how this can be done. In case of an error a ```panic``` function will be called which simple prints out the error and goes into an endless fast blink mode to signal the problem. 
+
+```c++
+Timer t1(FTM1), t2(FTM1), t3(FTM1)
+
+void setup()
+{  
+    ...
+    errorCode err;
+    err = t1.beginOneShot(callback1);
+    if (err != errorCode::OK)
+    {
+        panic(err);
+    }
+
+    err = t2.beginOneShot(callback2);
+    if (err != errorCode::OK)
+    {
+        panic(err);
+    }
+    ...
+}   
+
+
+void panic(errorCode err)  // print out error code, stop everything and do a fast blink
+{
+    Serial.printf("Error %d\n", err);    
+    while(1)  
+    {
+        digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
+        delay(50);
+    }
+}
+...
+```
+All error codes can be found in the file 'ErrorHandling/ErrorCodes.h'
+
+Although this works it is quite tedious to always check things for errors. To make error checking more easy you can attach an error handler to the library. To do this you need to call ```attachErrFunc``` as shown in the example below. Now, TeensyTimerTool automatically calls the attached error function whenever something goes wrong. 
+
+```c++
+Timer t1(FTM1), t2(FTM1), t3(FTM1)
+
+void setup()
+{
+    Timer::attachErrFunc(panic); 
+
+    while(!Serial);
+    pinMode(LED_BUILTIN, OUTPUT);
+    
+    t1.beginOneShot(callback1);
+    t2.beginOneShot(callback2);    
+}
+
+
+void panic(errorCode err)  // print out error code, stop everything and do a fast blink
+{
+    Serial.printf("Error %d\n", err);    
+    while(1)  
+    {
+        digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
+        delay(50);
+    }
+}
+...
+```
+
+
+
+
+
 
 ## Configuration
 tbd
