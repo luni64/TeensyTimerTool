@@ -1,26 +1,26 @@
 # TeensyTimerTool
 
-TeensyTimerTool is a library, providing an easy to use generic interface to the hardware timers of the PJRC Teensy boards.  Additionally it provides up to 20 highly efficient software timers with the same interface. All timers can be used in periodic and one-shot mode. 
+TeensyTimerTool is a library, providing an easy to use generic interface to the hardware timers of the PJRC Teensy boards.  Additionally it provides up to 20 highly efficient software timers with the same interface. All timers can be used in periodic and one-shot mode.
 The library currently supports T3.x and T4.0 boards.
-You can either choose the next free timer from a pool or specify exactly which hard- or software timer module you want to use. 
+You can either choose the next free timer from a pool or specify exactly which hard- or software timer module you want to use.
 
-See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the corresponding thread in the PJRC forum. 
+See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the corresponding thread in the PJRC forum.
 
 ## Basic Usage
 
 ### Periodic Timer
-The following sketch shows the basic usage of TeensyTimerTool. It allocates the next free timer from a pool of available timers and sets it up to periodically call the callback function every 250ms. 
+The following sketch shows the basic usage of TeensyTimerTool. It allocates the next free timer from a pool of available timers and sets it up to periodically call the callback function every 250ms.
 
 ```c++
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-Timer t1; 
+Timer t1;
 
 void setup()
 {
-    pinMode(LED_BUILTIN,OUTPUT);       
-    t1.beginPeriodic(callback, 250'000); // 250ms       
+    pinMode(LED_BUILTIN,OUTPUT);
+    t1.beginPeriodic(callback, 250'000); // 250ms
 }
 
 void loop(){/*nothing*/}
@@ -28,37 +28,37 @@ void loop(){/*nothing*/}
 
 void callback() // toggle the LED
 {
-    digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));    
+    digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
 }
 ```
 
 ### One Shot Timer
-You can use the timer in one-shot mode by calling ```beginOneShot()``` instead of ```beginPeriodic()```. A one shot timer can be started by the ```trigger(unsigned delay)``` function which expects the delay time in microseconds. In ```loop()``` the LED is switched on every 500ms. After switching it on the one-shot timer is triggered to switch it off 10ms later. 
+You can use the timer in one-shot mode by calling ```beginOneShot()``` instead of ```beginPeriodic()```. A one shot timer can be started by the ```trigger(unsigned delay)``` function which expects the delay time in microseconds. In ```loop()``` the LED is switched on every 500ms. After switching it on the one-shot timer is triggered to switch it off 10ms later.
 
 
 ```c++
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-Timer t1; 
+Timer t1;
 
-void setup() 
+void setup()
 {
-    pinMode(LED_BUILTIN,OUTPUT);   
-    t1.beginOneShot(callback); 
+    pinMode(LED_BUILTIN,OUTPUT);
+    t1.beginOneShot(callback);
 }
 
 void loop()
-{   
-    digitalWriteFast(LED_BUILTIN, HIGH); 
+{
+    digitalWriteFast(LED_BUILTIN, HIGH);
     t1.trigger(10'000); // trigger the timer with 10ms delay
 
     delay(500);
-} 
+}
 
 void callback() // switch off LED
 {
-    digitalWriteFast(LED_BUILTIN, LOW);  
+    digitalWriteFast(LED_BUILTIN, LOW);
 }
 ```
 
@@ -81,18 +81,18 @@ The general purpose timer module (GPT) is a 32bit timer module with one timer ch
 
 ```c++
 // allocate two timers using GPT1 and GPT2 respectively
-Timer t1(GPT1); 
+Timer t1(GPT1);
 Timer t2(GPT2);
 ```
 
 ### QUAD Timer (TMR)
-The QUAD modules (TMR) are 16 bit timer modules with 4 timer channels per module. 
-Teensy 4.0 controller has four TMR modules (TMR1 ... TMR4). The Teensyduino core uses TMR1-TMR3 for generating PWM signals. Using one of those will disable the PMW capability of the corresponding pins. 
+The QUAD modules (TMR) are 16 bit timer modules with 4 timer channels per module.
+Teensy 4.0 controller has four TMR modules (TMR1 ... TMR4). The Teensyduino core uses TMR1-TMR3 for generating PWM signals. Using one of those will disable the PMW capability of the corresponding pins.
 
 ```c++
 Timer t1(TMR1);  // first free channel of TMR1
 Timer t2(TMR1);  // next free channel of TMR1 (up to 4)
-Timer t3(TMR3);  // first free channel of TMR3 
+Timer t3(TMR3);  // first free channel of TMR3
 ...
 ```
 
@@ -100,8 +100,8 @@ Timer t3(TMR3);  // first free channel of TMR3
 Not yet implemented
 
 ### Tick Timer (TCK)
-The tick timer is a 32bit software timer. Instead of using one of the built in hardware timer modules it relies on calling a *tick* function as often as possible.  That function checks the cycle counter to determine if the callback function needs to be called. 
-Calling the *tick* function is automatically handled by TeensyTimerTool in the ```yield()``` function (this will be optional later). Thus, you can use the tick timer in exactly the same way as the hardware timers. 
+The tick timer is a 32bit software timer. Instead of using one of the built in hardware timer modules it relies on calling a *tick* function as often as possible.  That function checks the cycle counter to determine if the callback function needs to be called.
+Calling the *tick* function is automatically handled by TeensyTimerTool in the ```yield()``` function (this will be optional later). Thus, you can use the tick timer in exactly the same way as the hardware timers.
 ```c++
 Timer t1(TCK), t2(TCK), t3(TCK); // three tick timers
 
@@ -117,7 +117,7 @@ void setup()
 - Since the tick timers don't need any hardware resources, you can allocate as many timers you need. However, to allow static memory allocation TeensyTimerTool currently limits the number of tick timers to 20 (that will be settable later).
 - Due to the weak coupling of peripheral to the ARM core the hardware timers of the Teensy 4.0 are not very efficient. (e.g. [https://forum.pjrc.com/threads/57959-Teensy-4-IntervalTimer-Max-Speed](https://forum.pjrc.com/threads/57959-Teensy-4-IntervalTimer-Max-Speed?p=218577&viewfull=1#post218577)). Given the very fast ARM core of the T4.0 controller the tick timers can be more effective and faster than the hardware timers on this board.
 
-**Caveats:**   
+**Caveats:**
 - The tick timers only work if TeensyTimerTool can call the *tick* function with a high frequency. This means if you can not avoid long blocking tasks the tick timers might not work for you. (Please note: ```delay()``` or other functions calling ```yield()``` in the background are perfectly fine to use.)
 
 
@@ -132,23 +132,23 @@ By default, TeensyTimerTool uses callbacks of type std::function. This allows th
 In case you prefer a plain vanilla function pointer interface you can configure TeensyTimerTool accordingly.
 
 ### Traditional callbacks
-As usual you can simply attach a pointer to a parameter less void function. 
+As usual you can simply attach a pointer to a parameter less void function.
 ```c++
-Timer t1; 
+Timer t1;
 
 void plainOldCallback()
-{ 
-  // do something 
+{
+  // do something
 }
 
 void setup()
-{    
+{
     t1.beginPeriodic(plainOldCallback, 1000);
 }
 ```
 
 ### Using Funktors as callback
-[Funktors](https://stackoverflow.com/questions/356950/what-are-c-functors-and-their-uses) are classes with an overridden function call operator and can be used as callback objects. The overridden *operator()* will be used as callback. The following example shows a funktor which generates a pulse with adjustable pulse width. 
+[Funktors](https://stackoverflow.com/questions/356950/what-are-c-functors-and-their-uses) are classes with an overridden function call operator and can be used as callback objects. The overridden *operator()* will be used as callback. The following example shows a funktor which generates a pulse with adjustable pulse width.
 ```c++
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
@@ -158,7 +158,7 @@ class PulseGenerator
 public:
     PulseGenerator(unsigned _pin, unsigned _pulseLength)
         : pin(_pin), pulseLength(_pulseLength)
-    {        
+    {
     }
 
     inline void operator()()
@@ -186,28 +186,28 @@ void setup()
 }
 
 void loop()
-{    
-    t1.trigger(1'000); 
+{
+    t1.trigger(1'000);
     t2.trigger(500);
     delay(10);
 }
 ```
 
 ### How to Embed a Timer and its Callback in a Class
-Embedding a timer and its callback function in a class can attractive if you want to hide implementation details from the users of the class. However, setting this up can be quite tedious if the timer expects the usual pointer to a void function as callback. The reason for the complicaton is, that every member function carries a pointer to the object as a hidden and auto generated first parameter. Thus, the signature of a (not static) member function can never match the required void(*f)() and you'll get errors if you try to attach it as callback. 
+Embedding a timer and its callback function in a class can attractive if you want to hide implementation details from the users of the class. However, setting this up can be quite tedious if the timer expects the usual pointer to a void function as callback. The reason for the complicaton is, that every member function carries a pointer to the object as a hidden and auto generated first parameter. Thus, the signature of a (not static) member function can never match the required void(*f)() and you'll get errors if you try to attach it as callback.
 
 Since the TeensyTimerTool timers accept a ```std::function<void>()``` argument as callback, attaching member functions is straight forward. Basically you have the following two options:
 - Simply attach a lambda which captures the 'this' pointer and uses it to call the member. Here an example for this method:
 ```c++
-    timer.beginOneShot([this] {this->myMemberFunction();});  
+    timer.beginOneShot([this] {this->myMemberFunction();});
 ```
 - Use std::bind to bind the hidden first parameter of the member to 'this' as shown below. The somehow ugly syntax is explained [here](https://stackoverflow.com/a/7582576/1842762)
 ```c++
-    timer.beginOneShot(std::bind(&MyClass::myMemberFunction, this)); 
+    timer.beginOneShot(std::bind(&MyClass::myMemberFunction, this));
 ```
 
-The following working example shows a *Blinker* class which uses an embedded timer to periodically toggle a pin in the background. 
-You can generate as many Blinker objects as you like (as long as you don't run out of timers). They will do their work autonomously, the user does not need to know anything about the details. 
+The following working example shows a *Blinker* class which uses an embedded timer to periodically toggle a pin in the background.
+You can generate as many Blinker objects as you like (as long as you don't run out of timers). They will do their work autonomously, the user does not need to know anything about the details.
 
 ```c++
 #include "TeensyTimerTool.h"
@@ -231,7 +231,7 @@ public:
 
     void blink() // callback function
     {
-        digitalWriteFast(pin, !digitalReadFast(pin)); 
+        digitalWriteFast(pin, !digitalReadFast(pin));
     }
 
 protected:
@@ -266,18 +266,18 @@ void setup()
     t1.beginOneShot(callback1);
     t2.beginOneShot(callback2);
     t3.beginOneShot(callback3);
-}   
+}
 ...
 ```
-This will lead to a runtime error when you try to 'begin' t3 in the last line. TeensyTimerTool won't crash on it but the t3 will never work of course. 
+This will lead to a runtime error when you try to 'begin' t3 in the last line. TeensyTimerTool won't crash on it but the t3 will never work of course.
 
-So, it is a good idea to check if the acquisition of the timers didn't produce any error. Here an example showing how this can be done. In case of an error a ```panic``` function will be called which simple prints out the error and goes into an endless fast blink mode to signal the problem. 
+So, it is a good idea to check if the acquisition of the timers didn't produce any error. Here an example showing how this can be done. In case of an error a ```panic``` function will be called which simple prints out the error and goes into an endless fast blink mode to signal the problem.
 
 ```c++
 Timer t1(FTM1), t2(FTM1), t3(FTM1)
 
 void setup()
-{  
+{
     ...
     errorCode err;
     err = t1.beginOneShot(callback1);
@@ -292,13 +292,13 @@ void setup()
         panic(err);
     }
     ...
-}   
+}
 
 
 void panic(errorCode err)  // print out error code, stop everything and do a fast blink
 {
-    Serial.printf("Error %d\n", err);    
-    while(1)  
+    Serial.printf("Error %d\n", err);
+    while(1)
     {
         digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
         delay(50);
@@ -308,27 +308,27 @@ void panic(errorCode err)  // print out error code, stop everything and do a fas
 ```
 All error codes can be found in the file 'ErrorHandling/ErrorCodes.h'
 
-Although this works it is quite tedious to always check things for errors. To make error checking more easy you can attach an error handler to the library. To do this you need to call ```attachErrFunc``` as shown in the example below. Now, TeensyTimerTool automatically calls the attached error function whenever something goes wrong. 
+Although this works it is quite tedious to always check things for errors. To make error checking more easy you can attach an error handler to the library. To do this you need to call ```attachErrFunc``` as shown in the example below. Now, TeensyTimerTool automatically calls the attached error function whenever something goes wrong.
 
 ```c++
 Timer t1(FTM1), t2(FTM1), t3(FTM1)
 
 void setup()
 {
-    Timer::attachErrFunc(panic); 
+    Timer::attachErrFunc(panic);
 
     while(!Serial);
     pinMode(LED_BUILTIN, OUTPUT);
-    
+
     t1.beginOneShot(callback1);
-    t2.beginOneShot(callback2);    
+    t2.beginOneShot(callback2);
 }
 
 
 void panic(errorCode err)  // print out error code, stop everything and do a fast blink
 {
-    Serial.printf("Error %d\n", err);    
-    while(1)  
+    Serial.printf("Error %d\n", err);
+    while(1)
     {
         digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
         delay(50);
@@ -337,9 +337,34 @@ void panic(errorCode err)  // print out error code, stop everything and do a fas
 ...
 ```
 
+### Built in Error Handler
+TeensyTimerTool provides a standard error handler which prints out the error number and the corresponding error message. The constructor of the error handler expects a Stream reference (e.g. Serial or Serial1...) which is used for the printing.
+
+- In case of a **warning** the information is printed  and the error handler returns control to the calling code.
+
+- In case of an **error** the error handler prints the message and enters a endless 50ms blink loop on LED_BUILTIN.
+
+**WARNING:**
+The constructor of the error handler sets the pin mode of LED_BUILTIN to OUTPUT and blinks on that pin in case of an error. **Do not use the standard error handler if you have something connected on pin LED_BUILTIN.**
 
 
+Here a quick example showing how to use the built in standard error handler for printing on Serial.
 
+```c++
+Timer t1(FTM1), t2(FTM1), t3(FTM1)
+
+void setup()
+{
+    Timer::attachErrFunc(ErrorHandler(Serial));
+
+    while(!Serial);
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    t1.beginOneShot(callback1);
+    t2.beginOneShot(callback2);
+}
+...
+```
 
 
 ## Configuration
