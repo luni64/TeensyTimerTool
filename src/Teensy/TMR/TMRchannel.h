@@ -14,9 +14,7 @@ public:
     {
         double t = tcnt * (150.0 / 128.0);
         uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t - 1;
-        reload = tcnt;
-        Serial.println(reload);
-
+        
         regs->CTRL = 0x0000;
         regs->LOAD = 0x0000;
         regs->COMP1 = reload;
@@ -30,14 +28,14 @@ public:
             regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(0b1111) | TMR_CTRL_ONCE | TMR_CTRL_LENGTH;
 
         else
-            regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(0b1111) | TMR_CTRL_LENGTH;            
+            regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(0b1111) | TMR_CTRL_LENGTH;
     }
 
     inline void trigger(uint32_t tcnt) // quick and dirty, should be optimized
     {
         double t = tcnt * (150.0 / 128.0);
         uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
-        
+
         regs->CTRL = 0x0000;
         regs->LOAD = 0x0000;
         regs->COMP1 = reload;
