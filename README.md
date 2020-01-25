@@ -1,15 +1,41 @@
 # TeensyTimerTool
 
-TeensyTimerTool is a library, providing an easy to use generic interface to the hardware timers of the PJRC Teensy boards.  Additionally it provides up to 20 highly efficient software timers with the same interface. All timers can be used in periodic and one-shot mode.
-The library currently supports T3.x and T4.0 boards.
-You can either choose the next free timer from a pool or specify exactly which hard- or software timer module you want to use.
+TeensyTimerTool is a library that provides a generic, easy to use interface to the hardware timers of the PJRC Teensy boards.  In addition, it provides up to 20 highly efficient software timers that use the same interface. All timers can be used in periodic and one-shot mode. Currently the library supports the ARM T3.X and T4.0 boards.
+You can either pick a free timer from a pool or specify exactly which of the available hardware or software timer modules you want to use.
 
 See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the corresponding thread in the PJRC forum.
 
-## Basic Usage
+<!-- vscode-markdown-toc -->
+* [Basic Usage](#BasicUsage)
+	* [Periodic Timer](#PeriodicTimer)
+	* [One-Shot Timer](#One-ShotTimer)
+* [Supported Timers](#SupportedTimers)
+	* [GPT - General Purpose Timer](#GPT-GeneralPurposeTimer)
+	* [TMR aka QUAD Timer](#TMRakaQUADTimer)
+	* [PIT - Periodic Timer](#PIT-PeriodicTimer)
+	* [TCK - Tick Timer](#TCK-TickTimer)
+* [Callback Functions](#CallbackFunctions)
+	* [Traditional Callbacks](#TraditionalCallbacks)
+	* [Functors as Callback Objects](#FunctorsasCallbackObjects)
+	* [Lambda Expressions and Callbacks with Context](#LambdaExpressionsandCallbackswithContext)
+	* [How to Embed a Timer and its Callback in a Class](#HowtoEmbedaTimeranditsCallbackinaClass)
+* [Error Handling](#ErrorHandling)
+	* [Manually Check for Errors](#ManuallyCheckforErrors)
+	* [Using an Error Handling Callback](#UsinganErrorHandlingCallback)
+	* [Using the Built in Error Handler](#UsingtheBuiltinErrorHandler)
+* [Configuration](#Configuration)
 
-### Periodic Timer
-The following sketch shows the basic usage of TeensyTimerTool. It allocates the next free timer from a pool of available timers and sets it up to periodically call the callback function every 250ms.
+<!-- vscode-markdown-toc-config
+	numbering=false
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
+
+
+## <a name='BasicUsage'></a>Basic Usage
+
+### <a name='PeriodicTimer'></a>Periodic Timer
+The following sketch shows the basic use of the TeensyTimerTool. It picks the next free timer from a pool of available timers and sets it so that the callback function is called periodically every 250ms.
 
 ```c++
 #include "TeensyTimerTool.h"
@@ -32,8 +58,10 @@ void callback() // toggle the LED
 }
 ```
 
-### One Shot Timer
-You can use the timer in one-shot mode by calling ```beginOneShot()``` instead of ```beginPeriodic()```. A one shot timer can be started by the ```trigger(unsigned delay)``` function which expects the delay time in microseconds. In ```loop()``` the LED is switched on every 500ms. After switching it on the one-shot timer is triggered to switch it off 10ms later.
+### <a name='One-ShotTimer'></a>One-Shot Timer
+To use the timer in one-shot mode, simply replace ``beginPeriodic`` with ``beginOneShot``. After starting a one-shot-timer with its ``trigger`` function the callback is called once after the delay time has expired.
+
+The example below defines a one-shot timer whose callback simply switches off the board LED. In ``loop()``  the LED is switched on every 500ms. Immediately afterwards the timer is triggered with a delay time of 10ms so that the LED flashes briefly every 500ms.
 
 
 ```c++
@@ -62,7 +90,7 @@ void callback() // switch off LED
 }
 ```
 
-## Supported Timers
+## <a name='SupportedTimers'></a>Supported Timers
 
 The following table shows available timers for the Teensy boards. Entries show m x c where m is the number of modules and c is the number of channels per module. Modules with entries in parentheses are not yet implemented. Modules for entries with dashes are not available for the board. Details can be found in the corresponding processor [datasheets](https://www.pjrc.com/teensy/datasheets.html)
 
@@ -76,7 +104,7 @@ The following table shows available timers for the Teensy boards. Entries show m
 
 
 
-### General Purpose Timer (GPT)
+### <a name='GPT-GeneralPurposeTimer'></a>GPT - General Purpose Timer
 The general purpose timer module (GPT) is a 32bit timer module with one timer channel. The controller of the T4.0 boards (IMXRT1062) implements two of those timer modules (GPT1 and GPT2). Currently the GPT modules are not used by the Teensyduino core libraries.
 
 ```c++
@@ -85,7 +113,7 @@ Timer t1(GPT1);
 Timer t2(GPT2);
 ```
 
-### QUAD Timer (TMR)
+### <a name='TMRakaQUADTimer'></a>TMR aka QUAD Timer
 The QUAD modules (TMR) are 16 bit timer modules with 4 timer channels per module.
 Teensy 4.0 controller has four TMR modules (TMR1 ... TMR4). The Teensyduino core uses TMR1-TMR3 for generating PWM signals. Using one of those will disable the PMW capability of the corresponding pins.
 
@@ -96,10 +124,10 @@ Timer t3(TMR3);  // first free channel of TMR3
 ...
 ```
 
-### Periodic Timer (PIT)
+### <a name='PIT-PeriodicTimer'></a>PIT - Periodic Timer
 Not yet implemented
 
-### Tick Timer (TCK)
+### <a name='TCK-TickTimer'></a>TCK - Tick Timer
 The tick timer is a 32bit software timer. Instead of using one of the built in hardware timer modules it relies on calling a *tick* function as often as possible.  That function checks the cycle counter to determine if the callback function needs to be called.
 Calling the *tick* function is automatically handled by TeensyTimerTool in the ```yield()``` function (this will be optional later). Thus, you can use the tick timer in exactly the same way as the hardware timers.
 ```c++
@@ -122,16 +150,16 @@ void setup()
 
 
 
-## Callback functions
+## <a name='CallbackFunctions'></a>Callback Functions
 By default, TeensyTimerTool uses callbacks of type std::function. This allows the user to attach pretty much all callable objects to a timer. Callable objects include e.g.
 - Traditional callbacks, i.e. pointers to void functions
-- Funktors as callback objects
+- Functors as callback objects
 - Static and non static member functions
 - Lambdas
 
 In case you prefer a plain vanilla function pointer interface you can configure TeensyTimerTool accordingly.
 
-### Traditional callbacks
+### <a name='TraditionalCallbacks'></a>Traditional Callbacks
 As usual you can simply attach a pointer to a parameter less void function.
 ```c++
 Timer t1;
@@ -147,8 +175,8 @@ void setup()
 }
 ```
 
-### Using Funktors as callback
-[Funktors](https://stackoverflow.com/questions/356950/what-are-c-functors-and-their-uses) are classes with an overridden function call operator and can be used as callback objects. The overridden *operator()* will be used as callback. The following example shows a funktor which generates a pulse with adjustable pulse width.
+### <a name='FunctorsasCallbackObjects'></a>Functors as Callback Objects
+[Functors](https://stackoverflow.com/questions/356950/what-are-c-functors-and-their-uses) are classes with an overridden function call operator and can be used as callback objects. The overridden *operator()* will be used as callback. The following example shows a functor which generates a pulse with adjustable pulse width.
 ```c++
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
@@ -193,7 +221,128 @@ void loop()
 }
 ```
 
-### How to Embed a Timer and its Callback in a Class
+### <a name='LambdaExpressionsandCallbackswithContext'></a>Lambda Expressions and Callbacks with Context
+
+Using lambda expressions as callbacks allows for some interesting use cases. If you are not familiar with lambdas, here a nice write up from Sandor Dago http://sandordargo.com/blog/2018/12/19/c++-lambda-expressions.
+
+Let's start with a simple example:
+
+```c++
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+Timer t1;
+
+void setup()
+{
+    while(!Serial);
+
+    t1.beginOneShot([] { Serial.printf("I'm called at %d ms\n", millis()); });
+
+    Serial.printf("Triggered at  %d ms\n", millis());
+    t1.trigger(100'000); // 100ms
+}
+
+void loop(){}
+```
+Output:
+```
+Triggered at  384 ms
+I'm called at 484 ms
+```
+
+As you see, there is no need to create a dedicated callback function. You can directly define it as a lambda expression in the call to beginOneShot. That's nice, but not very exciting.
+
+It gets more interesting when you need to pass context to a callback function:
+
+```c++
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+elapsedMillis stopwatch;
+Timer t1, t2, t3;
+
+void callbackWithContext(unsigned pin)
+{
+    int callTime = stopwatch;
+    Serial.printf("Do something with pin %u (%u ms)\n", pin, callTime);
+}
+
+void setup()
+{
+    while(!Serial);
+
+     t1.beginOneShot([] { callbackWithContext(1); });
+     t2.beginOneShot([] { callbackWithContext(2); });
+     t3.beginOneShot([] { callbackWithContext(3); });
+
+     stopwatch = 0;
+
+     t1.trigger(20'000);
+     t2.trigger(5'000);
+     t3.trigger(50'000);
+}
+
+void loop()
+{
+}
+```
+Output:
+```
+Do something with pin 2 (5 ms)
+Do something with pin 1 (20 ms)
+Do something with pin 3 (50 ms)
+```
+It is quite tedious to achieve the same with traditional function pointer callbacks.
+
+A interesting use of this pattern is to call non static member functions. To demonstrate this let's assume you want to write a class which is supposed to blink on a specific pin. It takes the pin number in the constructor and toggles the pin whenever you call its blink function.
+```c++
+class Blinker
+{
+ public:
+    Blinker(unsigned _pin)
+    {
+        pin = _pin;
+        pinMode(pin, OUTPUT);
+    }
+
+    void blink() const
+    {
+        digitalWriteFast(pin, !digitalReadFast(pin));
+    }
+
+    protected:
+       unsigned pin;
+};
+```
+
+Then, simply use a lambda expression to call the blink member functions from the lambda callback of a timer object.
+
+```c++
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+// copy Bliker class definition here or use separate .h file
+
+Timer t1, t2, t3;
+
+Blinker b1(1);           // blinks on pin 1
+Blinker b2(7);           // blinks on pin 7
+Blinker b3(LED_BUILTIN); // blinks the built in LED
+
+void setup()
+{
+    t1.beginPeriodic([] { b1.blink(); }, 1'000);
+    t2.beginPeriodic([] { b2.blink(); }, 2'000);
+    t3.beginPeriodic([] { b3.blink(); }, 50'000);
+}
+
+void loop() {}
+```
+
+
+
+### <a name='HowtoEmbedaTimeranditsCallbackinaClass'></a>How to Embed a Timer and its Callback in a Class
 Embedding a timer and its callback function in a class can attractive if you want to hide implementation details from the users of the class. However, setting this up can be quite tedious if the timer expects the usual pointer to a void function as callback. The reason for the complicaton is, that every member function carries a pointer to the object as a hidden and auto generated first parameter. Thus, the signature of a (not static) member function can never match the required void(*f)() and you'll get errors if you try to attach it as callback.
 
 Since the TeensyTimerTool timers accept a ```std::function<void>()``` argument as callback, attaching member functions is straight forward. Basically you have the following two options:
@@ -255,7 +404,7 @@ void loop()
 }
 ```
 
-## Error Handling
+## <a name='ErrorHandling'></a>Error Handling
 
 Things can go wrong in programming. E.g. assume that you try to acquire three channels of  an FTM1 module which only provides two channels
 ```c++
@@ -269,9 +418,11 @@ void setup()
 }
 ...
 ```
-This will lead to a runtime error when you try to 'begin' t3 in the last line. TeensyTimerTool won't crash on it but the t3 will never work of course.
+This will lead to a runtime error when you try to initialize t3 in the last line. TeensyTimerTool won't crash on it but t3 will never work of course.
 
-So, it is a good idea to check if the acquisition of the timers didn't produce any error. Here an example showing how this can be done. In case of an error a ```panic``` function will be called which simple prints out the error and goes into an endless fast blink mode to signal the problem.
+### <a name='ManuallyCheckforErrors'></a>Manually Check for Errors
+
+So, it is a good idea to check if the acquisition of a timer didn't produce an error. Here an example showing how this can be done. In case of an error a ```panic``` function will be called which simply prints out the error and enters an endless, fast blink loop to signal a problem.
 
 ```c++
 Timer t1(FTM1), t2(FTM1), t3(FTM1)
@@ -306,9 +457,11 @@ void panic(errorCode err)  // print out error code, stop everything and do a fas
 }
 ...
 ```
-All error codes can be found in the file 'ErrorHandling/ErrorCodes.h'
+All defined error codes can be found in the file 'ErrorHandling/error_codes.h'
 
-Although this works it is quite tedious to always check things for errors. To make error checking more easy you can attach an error handler to the library. To do this you need to call ```attachErrFunc``` as shown in the example below. Now, TeensyTimerTool automatically calls the attached error function whenever something goes wrong.
+### <a name='UsinganErrorHandlingCallback'></a>Using an Error Handling Callback
+
+Although the  example above works perfectly, it is quite tedious to always check things for possible errors. To make error handling more convenient you can attach an error handler function to the library. You first need to initialize it by calling  ```attachErrFunc``` as shown in the example below. Now, TeensyTimerTool automatically calls the attached error function whenever something goes wrong.
 
 ```c++
 Timer t1(FTM1), t2(FTM1), t3(FTM1)
@@ -337,8 +490,8 @@ void panic(errorCode err)  // print out error code, stop everything and do a fas
 ...
 ```
 
-### Built in Error Handler
-TeensyTimerTool provides a standard error handler which prints out the error number and the corresponding error message. The constructor of the error handler expects a Stream reference (e.g. Serial or Serial1...) which is used for the printing.
+### <a name='UsingtheBuiltinErrorHandler'></a>Using the Built in Error Handler
+TeensyTimerTool provides a standard error handler which prints out the error number and the corresponding error message. The constructor of the error handler expects a Stream reference (e.g. Serial or Serial1...) on which the messages are printed.
 
 - In case of a **warning** the information is printed  and the error handler returns control to the calling code.
 
@@ -366,7 +519,12 @@ void setup()
 ...
 ```
 
+Output:
+```
+Error: 104: Timer module has no free channel
+```
 
-## Configuration
+
+## <a name='Configuration'></a>Configuration
 tbd
 
