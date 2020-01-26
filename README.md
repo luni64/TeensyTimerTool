@@ -18,7 +18,7 @@ See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the
 	* [Traditional Callbacks](#TraditionalCallbacks)
 	* [Functors as Callback Objects](#FunctorsasCallbackObjects)
 	* [Lambda Expressions and Callbacks with Context](#LambdaExpressionsandCallbackswithContext)
-	* [How to Embed a Timer and its Callback in a Class](#HowtoEmbedaTimeranditsCallbackinaClass)
+	* [How to Encapsulate a Timer and its Callback in a Class](#HowtoEncapsulateaTimeranditsCallbackinaClass)
 * [Error Handling](#ErrorHandling)
 	* [Manually Check for Errors](#ManuallyCheckforErrors)
 	* [Using an Error Handling Callback](#UsinganErrorHandlingCallback)
@@ -322,7 +322,7 @@ Then, simply use a lambda expression to call the blink member functions from the
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-// copy Bliker class definition here or use separate .h file
+// copy Blinker class definition here or use separate .h file
 
 Timer t1, t2, t3;
 
@@ -340,73 +340,65 @@ void setup()
 void loop() {}
 ```
 
+### <a name='HowtoEncapsulateaTimeranditsCallbackinaClass'></a>How to Encapsulate a Timer and its Callback in a Class
 
+Looking at the previous example the timers are clearly an implementation detail of the Blinker class and don't need to be known outside the class. So, lets try to get rid of the globally defined timers and their initialization in setup().
 
-### <a name='HowtoEmbedaTimeranditsCallbackinaClass'></a>How to Embed a Timer and its Callback in a Class
-Embedding a timer and its callback function in a class can attractive if you want to hide implementation details from the users of the class. However, setting this up can be quite tedious if the timer expects the usual pointer to a void function as callback. The reason for the complicaton is, that every member function carries a pointer to the object as a hidden and auto generated first parameter. Thus, the signature of a (not static) member function can never match the required void(*f)() and you'll get errors if you try to attach it as callback.
+First let's add the blinking period to the constructor and a timer to the protected region of the class. The really interesting part happens in begin(). Here we define a lambda which captures the *this* pointer and uses it to call our own blink() member function.
 
-Since the TeensyTimerTool timers accept a ```std::function<void>()``` argument as callback, attaching member functions is straight forward. Basically you have the following two options:
-- Simply attach a lambda which captures the 'this' pointer and uses it to call the member. Here an example for this method:
+In file *blinker.h*
 ```c++
-    timer.beginOneShot([this] {this->myMemberFunction();});
-```
-- Use std::bind to bind the hidden first parameter of the member to 'this' as shown below. The somehow ugly syntax is explained [here](https://stackoverflow.com/a/7582576/1842762)
-```c++
-    timer.beginOneShot(std::bind(&MyClass::myMemberFunction, this));
-```
-
-The following working example shows a *Blinker* class which uses an embedded timer to periodically toggle a pin in the background.
-You can generate as many Blinker objects as you like (as long as you don't run out of timers). They will do their work autonomously, the user does not need to know anything about the details.
-
-```c++
-#include "TeensyTimerTool.h"
-using namespace TeensyTimerTool;
+#pragma once
 
 class Blinker
 {
-public:
-    Blinker(unsigned pin, unsigned period)
+ public:
+    Blinker(unsigned _pin, unsigned _period) // add blink period to the constructor
     {
-        this->pin = pin;
-        this->period = period;
+        pin = _pin;
+        period = _period;
     }
 
-    void begin()
+    void begin()  // better not initalizie peripherals in constructors
     {
         pinMode(pin, OUTPUT);
-        timer.beginPeriodic([this] {this->blink();}, period );  //  using a lambda
-       // timer.beginPeriodic(std::bind(&Blinker::blink, this), period); // using std::bind
+        timer.beginPeriodic([this] { this->blink(); }, period);
     }
 
-    void blink() // callback function
+    void blink() const // this will be called by the timer
     {
         digitalWriteFast(pin, !digitalReadFast(pin));
     }
 
-protected:
-    Timer timer;
+ protected:
     unsigned pin, period;
+    Timer timer;
 };
+```
+The new Blinker class now completely encapsulates the timer and its callback which makes using it much easier. The user code does not need to know anything about timers, lambdas and other nerd stuff, it simple defines Blinker objects and uses them as usual.
 
-//==============================================================
+File *someSketch.ino*
+```c++
+#include "blinker.h"
 
-Blinker b1(1, 100'000); // blinks on pin 1 with period 100ms
-Blinker b2(2, 50'000);  // blinks on pin 2 with period  50ms
+Blinker b1(1, 1'000);            // blinks on pin 1, 1ms
+Blinker b2(7, 2'000);            // blinks on pin 7, 2ms
+Blinker b3(LED_BUILTIN, 50'000); // blinks the built in LED, 50ms
 
 void setup()
 {
     b1.begin();
     b2.begin();
+    b3.begin();
 }
 
-void loop()
-{
-}
+void loop() {}
 ```
 
 ## <a name='ErrorHandling'></a>Error Handling
 
-Things can go wrong in programming. E.g. assume that you try to acquire three channels of  an FTM1 module which only provides two channels
+Things can and will go wrong in programming. E.g. assume that you try to acquire three channels of  an FTM1 module which only provides two channels
+
 ```c++
 Timer t1(FTM1), t2(FTM1), t3(FTM1)
 
