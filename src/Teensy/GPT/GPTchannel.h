@@ -35,7 +35,8 @@ void GptChannel::begin(callback_t cb, unsigned micros, bool periodic)
     setCallback(cb);
     if (isPeriodic)
     {
-        double tmp = micros * (24.0 / 1.0);
+        uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);       
+        double tmp = micros * (pid_clock_mhz / 1.0);
         uint32_t reload = tmp > 0xFFFF'FFFF ? 0xFFFF'FFFF : (uint32_t)tmp;
         regs->SR = 0x3F;         // clear all interupt flags
         regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
@@ -53,7 +54,8 @@ GptChannel::~GptChannel()
 
 void GptChannel::trigger(uint32_t micros) //should be optimized somehow
 {
-    double tmp = micros * (24.0 / 1.0);
+    uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
+    double tmp = micros * (pid_clock_mhz / 1.0);
     uint32_t reload = tmp > 0xFFFF'FFFF ? 0xFFFF'FFFF : (uint32_t)tmp;
 
     regs->SR = 0x3F;         // clear all interupt flags

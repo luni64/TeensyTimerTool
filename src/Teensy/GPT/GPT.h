@@ -53,8 +53,9 @@ void GPT_t<tmoduleNr>::isr()
     if (!channel->isPeriodic)
         pGPT->CR &= ~GPT_CR_EN; // stop timer in one shot mode
 
-    callback();                 // we only enabled the OF1 interrupt-> no need to find out which interrupt was actually called
     pGPT->SR = 0x3F;            // reset all interrupt flags
+    callback();                 // we only enabled the OF1 interrupt-> no need to find out which interrupt was actually called
+    //pGPT->SR;                 // re-read flag to prevent re entering, takes very long, seems to work without? 
     asm volatile("dsb");        // wait until cache is empty
 }
 
