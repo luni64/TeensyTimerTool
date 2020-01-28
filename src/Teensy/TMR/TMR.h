@@ -16,23 +16,27 @@ namespace TeensyTimerTool
         static callback_t callbacks[4];
 
         // the following is calculated at compile time
-        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_QTIMER1 : moduleNr == 1 ? IRQ_QTIMER2 : moduleNr == 2 ? IRQ_QTIMER3 : IRQ_QTIMER4;
-        static constexpr IMXRT_TMR_t* pTMR = moduleNr == 0 ? &IMXRT_TMR1 : moduleNr == 1 ? &IMXRT_TMR2 : moduleNr == 2 ? &IMXRT_TMR3 : &IMXRT_TMR4;
-        static constexpr IMXRT_TMR_CH_t* pCH0 = &pTMR->CH[0];
-        static constexpr IMXRT_TMR_CH_t* pCH1 = &pTMR->CH[1];
-        static constexpr IMXRT_TMR_CH_t* pCH2 = &pTMR->CH[2];
-        static constexpr IMXRT_TMR_CH_t* pCH3 = &pTMR->CH[3];
+        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_QTIMER1 : moduleNr == 1 ? IRQ_QTIMER2 : moduleNr == 2 ? IRQ_QTIMER3 : IRQ_QTIMER4;       
+        static IMXRT_TMR_t* const pTMR;
+        static IMXRT_TMR_CH_t* const pCH0;
+        static IMXRT_TMR_CH_t* const pCH1;
+        static IMXRT_TMR_CH_t* const pCH2;
+        static IMXRT_TMR_CH_t* const pCH3;
 
         static_assert(moduleNr < 4, "Module number < 4 required");
     };
 
     // IMPLEMENTATION ==================================================================
 
+    template <unsigned moduleNr> IMXRT_TMR_t*    const TMR_t<moduleNr>::pTMR = moduleNr == 0 ? &IMXRT_TMR1 : moduleNr == 1 ? &IMXRT_TMR2 : moduleNr == 2 ? &IMXRT_TMR3 : &IMXRT_TMR4;
+    template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH0 = &pTMR->CH[0]; 
+    template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH1 = &pTMR->CH[1];
+    template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH2 = &pTMR->CH[2];
+    template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH3 = &pTMR->CH[3];
+
     template <unsigned moduleNr>
     ITimerChannel* TMR_t<moduleNr>::getTimer()
     {
-        //Serial.printf("getTimer(%d)\n", moduleNr);
-
         if (!isInitialized)
         {
             for (unsigned chNr = 0; chNr < 4; chNr++)
