@@ -293,7 +293,7 @@ Do something with pin 2 (5 ms)
 Do something with pin 1 (20 ms)
 Do something with pin 3 (50 ms)
 ```
-It is quite tedious to achieve the same with traditional function pointer callbacks.
+It would be quite tedious to achieve the same with traditional function pointer callbacks.
 
 A interesting use of this pattern is to call non static member functions. To demonstrate this let's assume you want to write a class which is supposed to blink on a specific pin. It takes the pin number in the constructor and toggles the pin whenever you call its blink function.
 ```c++
@@ -342,11 +342,15 @@ void loop() {}
 
 ### <a name='HowtoEncapsulateaTimeranditsCallbackinaClass'></a>How to Encapsulate a Timer and its Callback in a Class
 
-Looking at the previous example the timers are clearly an implementation detail of the Blinker class and don't need to be known outside the class. So, lets try to get rid of the globally defined timers and their initialization in setup().
+The Blinker class from the previous example can be improved further. Since the timers are only needed to call the blink functions it would be much more elegant to directly encapsulate them in the class. Then, the timers could be seen as an implementation detail of the Blinker class and don't need to be known outside the class at all. The same applies for the blinker function which can be hidden (protected / private) as well. 
 
-First let's add the blinking period to the constructor and a timer to the protected region of the class. The really interesting part happens in begin(). Here we define a lambda which captures the *this* pointer and uses it to call our own blink() member function.
+So, lets try to get rid of the globally defined timers and their initialization in setup().
+First move the blink function to the protected part of the class and add the timer as a member variable. The interesting part happens in beginPeriodic().
+ As callback to the timer we define a lambda expression which captures the *this* pointer and uses it to call our own blink() member function.
 
-In file *blinker.h*
+Here the complete code: 
+
+File *blinker.h*
 ```c++
 #pragma once
 
@@ -365,17 +369,16 @@ class Blinker
         timer.beginPeriodic([this] { this->blink(); }, period);
     }
 
+ protected:
     void blink() const // this will be called by the timer
     {
         digitalWriteFast(pin, !digitalReadFast(pin));
     }
 
- protected:
     unsigned pin, period;
     Timer timer;
 };
 ```
-The new Blinker class now completely encapsulates the timer and its callback which makes using it much easier. The user code does not need to know anything about timers, lambdas and other nerd stuff, it simple defines Blinker objects and uses them as usual.
 
 File *someSketch.ino*
 ```c++
@@ -394,6 +397,9 @@ void setup()
 
 void loop() {}
 ```
+
+The new Blinker class has a very clean public interface. It completely encapsulates the timer and its callback which makes using the class much easier. The user code can simply define some Blinker objects and and doesn't need to know anything about timers, lambdas and other nerdy stuff.
+
 
 ## <a name='ErrorHandling'></a>Error Handling
 
