@@ -1,6 +1,7 @@
 #pragma once
 
 #include "TMRchannel.h"
+#include "imxrt.h"
 
 namespace TeensyTimerTool
 {
@@ -8,7 +9,7 @@ namespace TeensyTimerTool
     class TMR_t
     {
      public:
-        static ITimerChannel* getTimer();
+        static ITimerChannel* getTimer(); 
 
      protected:
         static bool isInitialized;
@@ -97,10 +98,4 @@ namespace TeensyTimerTool
 
     template <unsigned m>
     callback_t TMR_t<m>::callbacks[4];
-
-    constexpr TimerGenerator* TMR1 = TMR_t<0>::getTimer;
-    constexpr TimerGenerator* TMR2 = TMR_t<1>::getTimer;
-    constexpr TimerGenerator* TMR3 = TMR_t<2>::getTimer;
-    constexpr TimerGenerator* TMR4 = TMR_t<3>::getTimer;
-
-} // namespace TeensyTimerTool
+}

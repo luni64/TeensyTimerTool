@@ -31,5 +31,5 @@ namespace TeensyTimerTool
         //TCK Errors
         TCK_err =          900,
         TCK_err2 =         901,
-    };
+    };   
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../ITimerChannel.h"
+#include "core_pins.h"
 
 namespace TeensyTimerTool
 {

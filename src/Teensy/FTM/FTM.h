@@ -31,9 +31,7 @@ namespace TeensyTimerTool
         {
             r->SC = FTM_SC_CLKS(0b00); // Disable clock
             r->MOD = 0xFFFF;           // Set full counter range
-            r->CNT = 0;
-
-            //Serial.printf("mode: %d\n",r->MODE);
+            r->CNT = 0;            
 
             for (unsigned chNr = 0; chNr < maxChannel; chNr++)
             {
@@ -67,7 +65,7 @@ namespace TeensyTimerTool
     {
         for (unsigned i = 0; i < maxChannel; i++)
         {
-            FTM_ChannelInfo* ci = &channelInfo[i];  // pre resolving the references turns out to be slightly faster
+            FTM_ChannelInfo* ci = &channelInfo[i]; // pre resolving the references turns out to be slightly faster
             FTM_CH_t* cr = ci->chRegs;
             if ((cr->SC & (FTM_CSC_CHIE | FTM_CSC_CHF)) == (FTM_CSC_CHIE | FTM_CSC_CHF)) // only handle if channel is active (CHIE set) and overflowed (CHF set)
             {
@@ -77,7 +75,7 @@ namespace TeensyTimerTool
                     cr->CV = r->CNT + ci->reload; // set compare value to 'reload' counts ahead of counter
                 } else
                 {
-                    cr->SC &= ~FTM_CSC_CHIE;      //disable interrupt in on shot mode
+                    cr->SC &= ~FTM_CSC_CHIE; //disable interrupt in on shot mode
                 }
                 ci->callback();
             }
@@ -89,26 +87,4 @@ namespace TeensyTimerTool
 
     template <unsigned m>
     bool FTM_t<m>::isInitialized = false;
-
-#if defined(T3_0)
-    constexpr TimerGenerator* FTM0 = FTM_t<0>::getTimer;
-    constexpr TimerGenerator* FTM1 = FTM_t<1>::getTimer;
-#elif defined(T3_1) || defined(T3_2)
-    constexpr TimerGenerator* FTM0 = FTM_t<0>::getTimer;
-    constexpr TimerGenerator* FTM1 = FTM_t<1>::getTimer;
-    constexpr TimerGenerator* FTM2 = FTM_t<2>::getTimer;
-#elif defined(T3_5)
-    constexpr TimerGenerator* FTM0 = FTM_t<0>::getTimer;
-    constexpr TimerGenerator* FTM1 = FTM_t<1>::getTimer;
-    constexpr TimerGenerator* FTM2 = FTM_t<2>::getTimer;
-    constexpr TimerGenerator* FTM3 = FTM_t<3>::getTimer;
-
-#elif defined(T3_6)
-    constexpr TimerGenerator* FTM0 = FTM_t<0>::getTimer;
-    constexpr TimerGenerator* FTM1 = FTM_t<1>::getTimer;
-    constexpr TimerGenerator* FTM2 = FTM_t<2>::getTimer;
-    constexpr TimerGenerator* FTM3 = FTM_t<3>::getTimer;
-    constexpr TimerGenerator* FTM4 = FTM_t<3>::getTimer;
-#endif
-
-} // namespace TeensyTimerTool
+}

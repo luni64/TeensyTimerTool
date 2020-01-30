@@ -1,8 +1,8 @@
 #pragma once
 
-#include "types.h"
 #include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
+#include "types.h"
 
 namespace TeensyTimerTool
 {
@@ -17,19 +17,21 @@ namespace TeensyTimerTool
         inline void setPeriod(uint32_t microSeconds);
         inline uint32_t getPeriod();
 
-        inline void start() { timerChannel->start(); }
-        inline void stop() { timerChannel->stop(); }
+        void start() { timerChannel->start(); }
+        void stop() { timerChannel->stop(); }        
+        
+        ITimerChannel* getChannel(){return timerChannel;}
 
         static void attachErrFunc(errorFunc_t);
 
-        ITimerChannel* timerChannel;
-
      protected:
-         errorCode begin(callback_t cb, uint32_t period, bool periodic);
-         errorCode postError(errorCode);
+        ITimerChannel* timerChannel;
+        errorCode begin(callback_t cb, uint32_t period, bool periodic);
+        
+        inline static errorCode postError(errorCode);
 
-         TimerGenerator *timerGenerator;
-         static errorFunc_t errFunc;
+        TimerGenerator* timerGenerator;
+        static errorFunc_t errFunc;
     };
 
     // IMPLEMENTATION =======================================================
@@ -43,6 +45,7 @@ namespace TeensyTimerTool
     {
         timerChannel->setPeriod(microseconds);
     }
+
     uint32_t Timer::getPeriod()
     {
         return timerChannel->getPeriod();

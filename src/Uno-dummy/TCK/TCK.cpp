@@ -1,4 +1,5 @@
-#include "../../TeensyTimerTool.h"
+//#include "../../TeensyTimerTool.h"
+#include "../../config.h"
 
 #if defined(HAS_TCK) and defined(UNO)
 

@@ -17,8 +17,7 @@ namespace TeensyTimerTool
         static GptChannel* channel;
 
         // the following is calculated at compile time
-        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;
-        //static constexpr IMXRT_GPT_t *pGPT = (IMXRT_GPT_t *)(moduleNr == 0 ? &IMXRT_GPT1 : &IMXRT_GPT2);
+        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;        
         static IMXRT_GPT_t* const pGPT;
         static_assert(moduleNr < 2, "Wrong GPT Number");
     };
@@ -70,8 +69,4 @@ namespace TeensyTimerTool
 
     template <unsigned m>
     GptChannel* GPT_t<m>::channel = nullptr;
-
-    constexpr TimerGenerator* GPT1 = GPT_t<0>::getTimer;
-constexpr TimerGenerator *GPT2 = GPT_t<1>::getTimer;
-
-} // namespace TeensyTimerTool
+}

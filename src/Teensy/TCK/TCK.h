@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Arduino.h"
 #include "TckChannel.h"
-
+#include "core_pins.h"
 
 namespace TeensyTimerTool
 {
@@ -24,8 +23,6 @@ namespace TeensyTimerTool
 
     ITimerChannel* TCK_t::getTimer()
     {
-        //Serial.printf("TCK getTimer()\n");
-
         if (!isInitialized)
         {
             // enable the cycle counter
@@ -73,8 +70,5 @@ namespace TeensyTimerTool
                 channels[i]->tick();
             }
         }
-    }
-
-    constexpr TimerGenerator* TCK = TCK_t::getTimer;
-
-} // namespace TeensyTimerTool
+    }  
+} 

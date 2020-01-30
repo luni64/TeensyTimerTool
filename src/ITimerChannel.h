@@ -31,8 +31,6 @@ namespace TeensyTimerTool
     void ITimerChannel::setCallback(callback_t cb)
     {
         *pCallback = cb;
-    }
-
-    using TimerGenerator = ITimerChannel*();  // void function returning pointer to ITimerChannel
+    }  
 
 } // namespace TeensyTimerTool

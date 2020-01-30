@@ -1,22 +1,26 @@
 #pragma once
-
 #include "ErrorHandling/error_codes.h"
+#include "config.h"
 
-#if not defined(PLAIN_CALLBACK)
+#if not defined(PLAIN_VANILLA_CALLBACKS)
+
     #include <functional>
-    inline void std::__throw_bad_function_call(){while(1){}} // do whatever you want to do instead of an exception
-#endif
+    inline void std::__throw_bad_function_call()
+    {
+        while (1) {} // do whatever you want to do instead of an exception
+    }
 
-namespace TeensyTimerTool
-{
-    #if defined(PLAIN_CALLBACK)
-        using callback_t = void (*)();
-        using errorFunc_t = void (*)(error);
-    #else
+    namespace TeensyTimerTool
+    {
         using callback_t = std::function<void(void)>;
         using errorFunc_t = std::function<void(errorCode)>;
-    #endif
-
-    struct ITimerChannel;
-    using TimerGenerator = ITimerChannel*();
-}
+        
+    }
+#else
+    namespace TeensyTimerTool
+    {
+        using callback_t = void (*)();
+        using errorFunc_t = void (*)();
+        
+    }
+#endif

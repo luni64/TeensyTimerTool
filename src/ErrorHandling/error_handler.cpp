@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #include "core_pins.h"
 
-namespace TeensyTimerTool
+namespace TeensyTimerTool 
 {
     ErrorHandler::ErrorHandler(Stream& s) : stream(s)
     {
@@ -53,4 +53,6 @@ namespace TeensyTimerTool
             delay(50);
         }
     }
+
+    
 }

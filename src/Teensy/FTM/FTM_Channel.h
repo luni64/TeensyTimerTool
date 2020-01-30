@@ -1,10 +1,9 @@
 #pragma once
 
 #include "../../ITimerChannel.h"
-//#include "Arduino.h"
+#include "Arduino.h"
 #include "FTM_ChannelInfo.h"
 #include "FTM_Info.h"
-
 
 namespace TeensyTimerTool
 {

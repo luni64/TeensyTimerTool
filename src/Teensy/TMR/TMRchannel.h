@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../ITimerChannel.h"
+#include "imxrt.h"
 
 namespace TeensyTimerTool
 {
@@ -49,6 +50,8 @@ public:
     }
 
     inline void setPeriod(uint32_t) {}
+
+    inline void setPrescaler(){};
 
 protected:
     IMXRT_TMR_CH_t *regs;
