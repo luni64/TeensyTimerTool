@@ -1,6 +1,6 @@
 #pragma once
 
-#include "TMRchannel.h"
+#include "TMRChannel.h"
 #include "imxrt.h"
 
 namespace TeensyTimerTool
@@ -48,7 +48,7 @@ namespace TeensyTimerTool
             attachInterruptVector(irq, isr); // start
             NVIC_ENABLE_IRQ(irq);
             isInitialized = true;
-            return new TmrChannel(pCH0, &callbacks[0]);
+            return new TMRChannel(pCH0, &callbacks[0]);
         }
 
         for (unsigned chNr = 0; chNr < 4; chNr++)
@@ -56,10 +56,9 @@ namespace TeensyTimerTool
             IMXRT_TMR_CH_t* pCh = &pTMR->CH[chNr];
             if (pCh->CTRL == 0x0000)
             {
-                return new TmrChannel(pCh, &callbacks[chNr]);
+                return new TMRChannel(pCh, &callbacks[chNr]);
             }
         }
-
         return nullptr;
     }
 
