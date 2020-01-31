@@ -30,7 +30,10 @@ namespace TeensyTimerTool
             if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
         }
 
-        timerChannel->begin(callback, reload, periodic);
+        errorCode err = timerChannel->begin(callback, reload, periodic); 
+        if(err != errorCode::OK) postError(err);
+
+
         if (periodic) timerChannel->start();
 
         return errorCode::OK;

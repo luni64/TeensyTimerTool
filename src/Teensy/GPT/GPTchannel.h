@@ -12,7 +12,7 @@ namespace TeensyTimerTool
         inline GptChannel(IMXRT_GPT_t*, callback_t*);
         inline virtual ~GptChannel();
 
-        inline void begin(callback_t cb, unsigned tcnt, bool periodic);
+        inline errorCode begin(callback_t cb, unsigned tcnt, bool periodic);
         inline void trigger(uint32_t);
         inline void setPeriod(uint32_t) {}
 
@@ -30,7 +30,7 @@ namespace TeensyTimerTool
     {
     }
 
-    void GptChannel::begin(callback_t cb, unsigned micros, bool periodic)
+    errorCode GptChannel::begin(callback_t cb, unsigned micros, bool periodic)
     {
         isPeriodic = periodic;
         setCallback(cb);
@@ -44,6 +44,7 @@ namespace TeensyTimerTool
             regs->OCR1 = reload - 1; // set overflow value
             regs->CR |= GPT_CR_EN;   // enable timer
         }
+        return errorCode::OK;
     }
 
     GptChannel::~GptChannel()

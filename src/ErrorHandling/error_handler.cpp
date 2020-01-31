@@ -21,7 +21,7 @@ namespace TeensyTimerTool
 
             // warnings
             case errorCode::periodOverflow:
-                txt = "Timer period too long, will be clamped to max";
+                txt = "Period overflow, set to maximum";
                 break;
 
             // general errors
@@ -42,11 +42,11 @@ namespace TeensyTimerTool
 
         if ((int)code < 0) // in case of warnings we return after printing
         {
-            stream.printf("Warning: %i: %s\n", -(int)code, txt);
+            stream.printf("(%i) Warning: %s\n", -(int)code, txt);
             return;
         }
 
-        stream.printf("Error: %i: %s\n", code, txt); // in case of errors we don't return
+        stream.printf("Error: (%i) %s\n", code, txt); // in case of errors we don't return
         while (true)
         {
             digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
