@@ -3,9 +3,9 @@
 #include "boardDef.h"
 namespace TeensyTimerTool
 {
-    //--------------------------------------------------------------------------------------------
-    // Timer pool defintion
-    // Add and sort as required
+//--------------------------------------------------------------------------------------------
+// Timer pool defintion
+// Add and sort as required
 
 #if defined(T4_0)
     TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
@@ -32,14 +32,14 @@ namespace TeensyTimerTool
     TimerGenerator* const timerPool[] = {TCK};
 #endif
     constexpr unsigned timerCnt = sizeof(timerPool) / sizeof(timerPool[0]);
-    
+
 //--------------------------------------------------------------------------------------------
 // Timer Settings
 //
 // Default settings for various timers
 
 // TMR:
-    constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128
+    constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, f=150MHz
 
 
 //--------------------------------------------------------------------------------------------

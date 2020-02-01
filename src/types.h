@@ -9,18 +9,22 @@
     {
         while (1) {} // do whatever you want to do instead of an exception
     }
-
     namespace TeensyTimerTool
     {
         using callback_t = std::function<void(void)>;
         using errorFunc_t = std::function<void(errorCode)>;
-        
+
+        extern void attachErrFunc(errorFunc_t);
+        extern errorCode postError(errorCode);
     }
 #else
     namespace TeensyTimerTool
     {
         using callback_t = void (*)();
         using errorFunc_t = void (*)();
-        
+
+        extern void attachErrFunc(errorFunc_t);
+        extern errorCode postError(errorCode);
     }
 #endif
+

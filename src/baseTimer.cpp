@@ -3,6 +3,8 @@
 
 namespace TeensyTimerTool
 {
+
+
     BaseTimer::BaseTimer(TimerGenerator* generator, bool periodic)
         : timerGenerator(generator)
     {
@@ -11,11 +13,9 @@ namespace TeensyTimerTool
         this->isPeriodic = periodic;
     }
 
-    errorCode BaseTimer::postError(errorCode e)
-    {
-        if (errFunc != nullptr) errFunc(e);
-        return e;
-    }
 
-    errorFunc_t BaseTimer::errFunc = nullptr;
+
+
+
+
 }

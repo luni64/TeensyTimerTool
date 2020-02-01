@@ -8,9 +8,4 @@ namespace TeensyTimerTool
     :BaseTimer(generator, true)
     {
     }
-
-    void Timer::attachErrFunc(errorFunc_t _errFunc)
-    {
-        errFunc = _errFunc;
-    }
 }

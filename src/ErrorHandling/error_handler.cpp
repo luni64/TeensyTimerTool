@@ -57,5 +57,17 @@ namespace TeensyTimerTool
         }
     }
 
+    errorFunc_t errFunc;
+
+    errorCode postError(errorCode e)
+    {
+        if (errFunc != nullptr) errFunc(e);
+        return e;
+    }
+
+    void attachErrFunc(errorFunc_t _errFunc)
+    {
+        errFunc = _errFunc;
+    }
 
 }

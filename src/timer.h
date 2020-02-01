@@ -24,7 +24,7 @@ namespace TeensyTimerTool
         }
         inline void trigger(uint32_t delay);
 
-        static void attachErrFunc(errorFunc_t);
+        
     };
 
     // IMPLEMENTATION =======================================================

@@ -20,9 +20,9 @@ namespace TeensyTimerTool
         TimerGenerator* timerGenerator;
         ITimerChannel* timerChannel;
         bool isPeriodic;
-        static errorCode postError(errorCode);
-        static errorFunc_t errFunc;
     };
+
+
 
     // INLINE IMPLEMENTATION ====================================
 
