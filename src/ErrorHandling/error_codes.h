@@ -15,6 +15,7 @@ namespace TeensyTimerTool
         reload=            102,
         noFreeModule =     103,
         noFreeChannel =    104,
+        notImplemented=    105,
 
         // GTP Errors
         GTP_err =          200,
@@ -31,5 +32,5 @@ namespace TeensyTimerTool
         //TCK Errors
         TCK_err =          900,
         TCK_err2 =         901,
-    };   
+    };
 }

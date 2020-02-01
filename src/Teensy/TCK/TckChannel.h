@@ -106,9 +106,10 @@ namespace TeensyTimerTool
             this->triggered = true;
         }
 
-        inline void stop()
+        inline errorCode stop()
         {
             this->triggered = false;
+            return errorCode::OK;
         }
 
         inline void setPeriod(uint32_t microSeconds);

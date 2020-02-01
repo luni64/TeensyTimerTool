@@ -2,7 +2,7 @@
 #include "Arduino.h"
 #include "core_pins.h"
 
-namespace TeensyTimerTool 
+namespace TeensyTimerTool
 {
     ErrorHandler::ErrorHandler(Stream& s) : stream(s)
     {
@@ -34,6 +34,9 @@ namespace TeensyTimerTool
             case errorCode::noFreeModule:
                 txt = "Timer pool contains no free timer";
                 break;
+            case errorCode::notImplemented:
+                txt = "Function not implmented";
+                break;
 
             default:
                 txt = "Unknown error";
@@ -54,5 +57,5 @@ namespace TeensyTimerTool
         }
     }
 
-    
+
 }
