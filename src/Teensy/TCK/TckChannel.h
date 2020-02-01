@@ -90,7 +90,7 @@ namespace TeensyTimerTool
         inline TckChannel() { triggered = false; }
         inline virtual ~TckChannel(){};
 
-        inline void begin(callback_t cb, unsigned period, bool periodic)
+        inline errorCode begin(callback_t cb, unsigned period, bool periodic)
         {
             triggered = false;
             this->periodic = periodic;
@@ -98,6 +98,8 @@ namespace TeensyTimerTool
             this->callback = cb;
 
             startCNT = ARM_DWT_CYCCNT;
+
+            return errorCode::OK;
         }
 
         inline void start()
