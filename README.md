@@ -35,18 +35,18 @@ See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the
 ## <a name='BasicUsage'></a>Basic Usage
 
 ### <a name='PeriodicTimer'></a>Periodic Timer
-The following sketch shows the basic use of the TeensyTimerTool. It picks the next free timer from a pool of available timers and sets it so that the callback function is called periodically every 250ms.
+The following sketch shows the basic use of the TeensyTimerTool. It picks the next free timer from a pool of available timers and sets it up to call the callback function every 250ms.
 
 ```c++
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-Timer t1;
+PeriodicTimer t1;
 
 void setup()
 {
     pinMode(LED_BUILTIN,OUTPUT);
-    t1.beginPeriodic(callback, 250'000); // 250ms
+    t1.begin(callback, 250'000); // 250ms
 }
 
 void loop(){/*nothing*/}
@@ -59,7 +59,7 @@ void callback() // toggle the LED
 ```
 
 ### <a name='One-ShotTimer'></a>One-Shot Timer
-To use the timer in one-shot mode, simply replace ``beginPeriodic`` with ``beginOneShot``. After starting a one-shot-timer with its ``trigger`` function the callback is called once after the delay time has expired.
+You can also use one-shot timers. Instead of invoking the callback periodically it is called only once after starting the timer with the ``trigger`` function.
 
 The example below defines a one-shot timer whose callback simply switches off the board LED. In ``loop()``  the LED is switched on every 500ms. Immediately afterwards the timer is triggered with a delay time of 10ms so that the LED flashes briefly every 500ms.
 
@@ -68,12 +68,12 @@ The example below defines a one-shot timer whose callback simply switches off th
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-Timer t1;
+OneShotTimer t1;
 
 void setup()
 {
     pinMode(LED_BUILTIN,OUTPUT);
-    t1.beginOneShot(callback);
+    t1.begin(callback);
 }
 
 void loop()
@@ -109,8 +109,8 @@ The general purpose timer module (GPT) is a 32bit timer module with one timer ch
 
 ```c++
 // allocate two timers using GPT1 and GPT2 respectively
-Timer t1(GPT1);
-Timer t2(GPT2);
+PeriodicTimer t1(GPT1);
+PeriodicTimer t2(GPT2);
 ```
 
 ### <a name='TMRakaQUADTimer'></a>TMR aka QUAD Timer
@@ -118,9 +118,9 @@ The QUAD modules (TMR) are 16 bit timer modules with 4 timer channels per module
 Teensy 4.0 controller has four TMR modules (TMR1 ... TMR4). The Teensyduino core uses TMR1-TMR3 for generating PWM signals. Using one of those will disable the PMW capability of the corresponding pins.
 
 ```c++
-Timer t1(TMR1);  // first free channel of TMR1
-Timer t2(TMR1);  // next free channel of TMR1 (up to 4)
-Timer t3(TMR3);  // first free channel of TMR3
+PeriodicTimer t1(TMR1); // first free channel of TMR1
+OneShotTimer  t2(TMR1); // next free channel of TMR1 (up to 4)
+PeriodicTimer t3(TMR3); // first free channel of TMR3
 ...
 ```
 
@@ -131,13 +131,14 @@ Not yet implemented
 The tick timer is a 32bit software timer. Instead of using one of the built in hardware timer modules it relies on calling a *tick* function as often as possible.  That function checks the cycle counter to determine if the callback function needs to be called.
 Calling the *tick* function is automatically handled by TeensyTimerTool in the ```yield()``` function (this will be optional later). Thus, you can use the tick timer in exactly the same way as the hardware timers.
 ```c++
-Timer t1(TCK), t2(TCK), t3(TCK); // three tick timers
+PeriodicTimer t1(TCK), t2(TCK);
+OneShotTimer  t3(TCK);
 
 void setup()
 {
-    t1.beginPeriodic(callback1,200);
-    t2.beginPeriodic(callback2,20'000'000);
-    t3.beginOneShot(callback3);
+    t1.begin(callback1,200);
+    t2.begin(callback2,20'000'000);
+    t3.begin(callback3);
 }
 ```
 
@@ -162,7 +163,7 @@ In case you prefer a plain vanilla function pointer interface you can configure 
 ### <a name='TraditionalCallbacks'></a>Traditional Callbacks
 As usual you can simply attach a pointer to a parameter less void function.
 ```c++
-Timer t1;
+PeriodicTimer t1;
 
 void plainOldCallback()
 {
@@ -171,7 +172,7 @@ void plainOldCallback()
 
 void setup()
 {
-    t1.beginPeriodic(plainOldCallback, 1000);
+    t1.begin(plainOldCallback, 1000);
 }
 ```
 
@@ -202,15 +203,15 @@ protected:
 
 //==============================================================
 
-Timer t1, t2;
+OneShotTimer t1, t2;
 
 void setup()
 {
     pinMode(1, OUTPUT);
     pinMode(2, OUTPUT);
 
-    t1.beginOneShot(PulseGenerator(1, 5));  // 5µs pulse on pin 1
-    t2.beginOneShot(PulseGenerator(2, 10)); //10µs pulse on pin 2
+    t1.begin(PulseGenerator(1, 5));  // 5µs pulse on pin 1
+    t2.begin(PulseGenerator(2, 10)); //10µs pulse on pin 2
 }
 
 void loop()
@@ -231,13 +232,13 @@ Let's start with a simple example:
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-Timer t1;
+OneShotTimer t1;
 
 void setup()
 {
     while(!Serial);
 
-    t1.beginOneShot([] { Serial.printf("I'm called at %d ms\n", millis()); });
+    t1.begin([] { Serial.printf("I'm called at %d ms\n", millis()); });
 
     Serial.printf("Triggered at  %d ms\n", millis());
     t1.trigger(100'000); // 100ms
@@ -251,7 +252,7 @@ Triggered at  384 ms
 I'm called at 484 ms
 ```
 
-As you see, there is no need to create a dedicated callback function. You can directly define it as a lambda expression in the call to beginOneShot. That's nice, but not very exciting.
+The example shows that there is no need to create a dedicated callback function. You can directly define it as a lambda expression in the call to beginOneShot. That's nice, but not very exciting.
 
 It gets more interesting when you need to pass context to a callback function:
 
@@ -260,7 +261,7 @@ It gets more interesting when you need to pass context to a callback function:
 using namespace TeensyTimerTool;
 
 elapsedMillis stopwatch;
-Timer t1, t2, t3;
+OneShotTimer t1, t2, t3;
 
 void callbackWithContext(unsigned pin)
 {
@@ -272,9 +273,9 @@ void setup()
 {
     while(!Serial);
 
-     t1.beginOneShot([] { callbackWithContext(1); });
-     t2.beginOneShot([] { callbackWithContext(2); });
-     t3.beginOneShot([] { callbackWithContext(3); });
+     t1.begin([] { callbackWithContext(1); });
+     t2.begin([] { callbackWithContext(2); });
+     t3.begin([] { callbackWithContext(3); });
 
      stopwatch = 0;
 
@@ -324,7 +325,7 @@ using namespace TeensyTimerTool;
 
 // copy Blinker class definition here or use separate .h file
 
-Timer t1, t2, t3;
+PeriodicTimer t1, t2, t3;
 
 Blinker b1(1);           // blinks on pin 1
 Blinker b2(7);           // blinks on pin 7
@@ -332,9 +333,9 @@ Blinker b3(LED_BUILTIN); // blinks the built in LED
 
 void setup()
 {
-    t1.beginPeriodic([] { b1.blink(); }, 1'000);
-    t2.beginPeriodic([] { b2.blink(); }, 2'000);
-    t3.beginPeriodic([] { b3.blink(); }, 50'000);
+    t1.begin([] { b1.blink(); }, 1'000);
+    t2.begin([] { b2.blink(); }, 2'000);
+    t3.begin([] { b3.blink(); }, 50'000);
 }
 
 void loop() {}
@@ -342,13 +343,13 @@ void loop() {}
 
 ### <a name='HowtoEncapsulateaTimeranditsCallbackinaClass'></a>How to Encapsulate a Timer and its Callback in a Class
 
-The Blinker class from the previous example can be improved further. Since the timers are only needed to call the blink functions it would be much more elegant to directly encapsulate them in the class. Then, the timers could be seen as an implementation detail of the Blinker class and don't need to be known outside the class at all. The same applies for the blinker function which can be hidden (protected / private) as well. 
+The Blinker class from the previous example can be improved further. Since the timers are only needed to call the blink functions it would be much more elegant to directly encapsulate them in the class. Then, the timers could be seen as an implementation detail of the Blinker class and don't need to be known outside the class at all. The same applies for the blinker function which can be hidden (protected / private) as well.
 
 So, lets try to get rid of the globally defined timers and their initialization in setup().
 First move the blink function to the protected part of the class and add the timer as a member variable. The interesting part happens in beginPeriodic().
  As callback to the timer we define a lambda expression which captures the *this* pointer and uses it to call our own blink() member function.
 
-Here the complete code: 
+Here the complete code:
 
 File *blinker.h*
 ```c++
@@ -366,7 +367,7 @@ class Blinker
     void begin()  // better not initalizie peripherals in constructors
     {
         pinMode(pin, OUTPUT);
-        timer.beginPeriodic([this] { this->blink(); }, period);
+        timer.begin([this] { this->blink(); }, period);
     }
 
  protected:
@@ -376,7 +377,7 @@ class Blinker
     }
 
     unsigned pin, period;
-    Timer timer;
+    PeriodicTimer timer;
 };
 ```
 
@@ -406,13 +407,13 @@ The new Blinker class has a very clean public interface. It completely encapsula
 Things can and will go wrong in programming. E.g. assume that you try to acquire three channels of  an FTM1 module which only provides two channels
 
 ```c++
-Timer t1(FTM1), t2(FTM1), t3(FTM1)
+OneShotTimer t1(FTM1), t2(FTM1), t3(FTM1)
 
 void setup()
 {
-    t1.beginOneShot(callback1);
-    t2.beginOneShot(callback2);
-    t3.beginOneShot(callback3);
+    t1.begin(callback1);
+    t2.begin(callback2);
+    t3.begin(callback3);
 }
 ...
 ```
@@ -423,19 +424,19 @@ This will lead to a runtime error when you try to initialize t3 in the last line
 So, it is a good idea to check if the acquisition of a timer didn't produce an error. Here an example showing how this can be done. In case of an error a ```panic``` function will be called which simply prints out the error and enters an endless, fast blink loop to signal a problem.
 
 ```c++
-Timer t1(FTM1), t2(FTM1), t3(FTM1)
+OneShotTimer t1(FTM1), t2(FTM1), t3(FTM1)
 
 void setup()
 {
     ...
     errorCode err;
-    err = t1.beginOneShot(callback1);
+    err = t1.begin(callback1);
     if (err != errorCode::OK)
     {
         panic(err);
     }
 
-    err = t2.beginOneShot(callback2);
+    err = t2.begin(callback2);
     if (err != errorCode::OK)
     {
         panic(err);
@@ -462,7 +463,7 @@ All defined error codes can be found in the file 'ErrorHandling/error_codes.h'
 Although the  example above works perfectly, it is quite tedious to always check things for possible errors. To make error handling more convenient you can attach an error handler function to the library. You first need to initialize it by calling  ```attachErrFunc``` as shown in the example below. Now, TeensyTimerTool automatically calls the attached error function whenever something goes wrong.
 
 ```c++
-Timer t1(FTM1), t2(FTM1), t3(FTM1)
+OneShotTimer t1(FTM1), t2(FTM1), t3(FTM1)
 
 void setup()
 {
@@ -471,8 +472,9 @@ void setup()
     while(!Serial);
     pinMode(LED_BUILTIN, OUTPUT);
 
-    t1.beginOneShot(callback1);
-    t2.beginOneShot(callback2);
+    t1.begin(callback1);
+    t2.begin(callback2);
+    t3.begin(callback3);
 }
 
 
@@ -502,17 +504,18 @@ The constructor of the error handler sets the pin mode of LED_BUILTIN to OUTPUT 
 Here a quick example showing how to use the built in standard error handler for printing on Serial.
 
 ```c++
-Timer t1(FTM1), t2(FTM1), t3(FTM1)
+OneShotTimer t1(FTM1), t2(FTM1), t3(FTM1)
 
 void setup()
 {
-    Timer::attachErrFunc(ErrorHandler(Serial));
+    OneShotTimer::attachErrFunc(ErrorHandler(Serial));
 
     while(!Serial);
     pinMode(LED_BUILTIN, OUTPUT);
 
     t1.beginOneShot(callback1);
     t2.beginOneShot(callback2);
+    t3.beginOneShot(callback3);
 }
 ...
 ```
@@ -521,7 +524,6 @@ Output:
 ```
 Error: 104: Timer module has no free channel
 ```
-
 
 ## <a name='Configuration'></a>Configuration
 tbd
