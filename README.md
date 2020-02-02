@@ -526,5 +526,97 @@ Error: 104: Timer module has no free channel
 ```
 
 ## <a name='Configuration'></a>Configuration
-tbd
+TeensyTimerTool can be configured in the following two ways.
 
+**Change Settings Globally**
+
+To change settings for all sketches you can edit the file ./src/defautConfig.h in the library folder. Changing this file affects all sketches using TeensyTimerTool. Of course, updates of the library or reinstallation will overwrite the changes. So, if you want to go that route make sure to do a backup of the config file before updating.
+
+**Project Scope Settings**
+
+Instead of changing global settings in defaultConfig.h you can also copy the file to your sketch folder and rename it to 'userConfig.h'. If TeensyTimerTool finds this file it will read it instead of the default config.
+
+*Note: Depending on your build system, copying the config file might require a clean rebuild. This of course is only necessary once after copying the file. Subsequent config changes will be detected as usual and do not require a clean rebuild.*
+
+**Settings**
+
+The following block shows the available settings.
+```c++
+#pragma once
+
+#include "boardDef.h"
+namespace TeensyTimerTool
+{
+//--------------------------------------------------------------------------------------------
+// Timer pool defintion
+// Add and sort as required
+
+#if defined(T4_0)
+    TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
+
+#elif defined(T3_6)
+    TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, FTM3, FTM4, TCK};
+
+#elif defined(T3_5)
+    TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, FTM3, TCK};
+
+#elif defined(T3_2)
+    TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, TCK};
+
+#elif defined(T3_0)
+    TimerGenerator* const timerPool[] = {FTM0, FTM1, TCK};
+
+#elif defined(TLC)
+    TimerGenerator* const timerPool[] = {TCK};
+
+#elif defined(ESP32)
+    TimerGenerator* const timerPool[] = {TCK};
+
+#elif defined(UNO)
+    TimerGenerator* const timerPool[] = {TCK};
+#endif
+    constexpr unsigned timerCnt = sizeof(timerPool) / sizeof(timerPool[0]);
+
+//--------------------------------------------------------------------------------------------
+// Timer Settings
+//
+// Default settings for various timers
+
+// TMR (QUAD)
+    constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
+
+// GPT & PID
+    constexpr bool USE_GPT_PID_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+
+
+//--------------------------------------------------------------------------------------------
+// Callback type
+// Uncomment if you prefer function pointer callbacks instead of std::function callbacks
+
+//    #define PLAIN_VANILLA_CALLBACKS
+
+
+//--------------------------------------------------------------------------------------------
+// Advanced Features
+// Uncomment if you need access to advanced features
+
+//#define ENABLE_ADVANCED_FEATURES
+}
+```
+**TimerPool Settings**   \
+The `TimerPool` settings define which timer modules should be available to the timer pool. If you look at the setting for T4.0 you see that the pool contains both GPTs, all 4 TMR modules and the TCK timer.
+For a T4.0 and the settings from above the following code
+```c++
+PeriodicTimer t1,t2,t3,t4;
+```
+will generate timers using GPT1 (t1), GPT2 (t2), TMR1, ch1 (t3), TMR1, ch2 (t4).
+You can change this settings to fit your needs.
+
+**Pre-Scaling the TMR channels**   \
+The TMR timers are clocked with 150MHz. Since these timers are only 16bit wide you'd get a maximum period of ```1/150MHz * 2^16 = 437µs```. For longer periods you can pre-scale the timer clock using the TMR_DEFAULT_PSC. Setting this to 0,1,2..7 leads to a pre-scale value of 1,2,4,...128 respectively. Using say 7 you'd get `128/150MHz = 0.853µs` per tick and a maximum period of `128/150MHz * 2^16 = 55.9ms`.
+
+**Clock setting for the GPT and PIT timers**\
+The USE_GPT_PID_150MHz setting determines if the GPT and PIT should use a 24MHz (default) or 150MHz clock. Please note that there is no possibility to change the clock for GPT or PIT individually. Changing this setting will also change the clock for the stock IntervalTimers.
+
+**Callback Type**\
+This setting allows for switching the standard std::function interface for callbacks to the traditional void (f*)() function pointer interface. In some cases the function pointer interfaces is more efficient than the std::function interface. But of course you will loose all the benefits described in the callback chapter above. 
