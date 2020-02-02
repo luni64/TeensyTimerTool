@@ -3,8 +3,6 @@
 #include "ErrorHandling/error_codes.h"
 #include "baseTimer.h"
 #include "type_traits"
-#include "types.h"
-
 
 namespace TeensyTimerTool
 {
@@ -14,10 +12,10 @@ namespace TeensyTimerTool
         inline OneShotTimer(TimerGenerator* generator = nullptr);
 
         inline errorCode begin(callback_t cb);
-        template <typename T>
-        inline errorCode trigger(T delay);
+        template <typename T> errorCode trigger(T delay);
         inline errorCode stop();
     };
+
 
     // Implementation ================================================
 
@@ -33,21 +31,20 @@ namespace TeensyTimerTool
     template <typename T>
     errorCode OneShotTimer::trigger(T delay)
     {
-        static_assert(std::is_integral<T>() || std::is_floating_point<T>(), "Only floating point and integral types allowed");
+        static_assert(std::is_integral<T>() || std::is_floating_point<T>(), "Only floating point or integral types allowed");
 
-        // if (std::is_floating_point<T>())
-        // {
-        //     Serial.println("int");
-        // } else
-        // {
-        //     Serial.println("float");
-        // }
+        errorCode result;
 
-        return errorCode::notImplemented;
+        if (std::is_floating_point<T>())
+            result = timerChannel->trigger((float) delay);
+        else
+            result = timerChannel->trigger((uint32_t) delay);
+
+        return result;
     }
 
     errorCode OneShotTimer::stop()
     {
-        return errorCode::notImplemented;
+        return postError(errorCode::notImplemented);
     }
 }

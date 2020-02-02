@@ -1,18 +1,25 @@
 #pragma once
 
+//#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
-#include "types.h"
 
+#include <type_traits>
 
 namespace TeensyTimerTool
 {
     class BaseTimer
     {
      public:
-        inline errorCode begin(callback_t callback, uint32_t period, bool start = true);
+        template <typename T>
+        inline errorCode begin(callback_t callback, T period, bool start = true);
         inline errorCode end() { return errorCode::notImplemented; }
         inline errorCode stop() { return timerChannel->stop(); }
+        inline float getMaxPeriod();
+
+        #if defined(ENABLE_ADVANCED_FEATURES)
+        ITimerChannel* getChannel() {return timerChannel;}
+        #endif
 
      protected:
         BaseTimer(TimerGenerator* generator, bool periodic);
@@ -23,13 +30,13 @@ namespace TeensyTimerTool
     };
 
 
+    // INLINE IMPLEMENTATION ================================================
 
-    // INLINE IMPLEMENTATION ====================================
-
-    errorCode BaseTimer::begin(callback_t callback, uint32_t reload, bool start)
+    template <typename T>
+    errorCode BaseTimer::begin(callback_t callback, T period, bool start)
     {
         if (callback == nullptr) return postError(errorCode::callback);
-        if (isPeriodic && reload == 0) return postError(errorCode::reload);
+        if (isPeriodic && period == 0) return postError(errorCode::reload);
 
         if (timerChannel == nullptr)
         {
@@ -47,9 +54,23 @@ namespace TeensyTimerTool
             if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
         }
 
-        timerChannel->begin(callback, reload, isPeriodic);
-        if (isPeriodic && start) timerChannel->start();
+        static_assert(std::is_floating_point<T>() || std::is_integral<T>(), "only floating point or integral types allowed");
 
-        return errorCode::OK;
+        errorCode err = std::is_floating_point<T>() ?
+            timerChannel->begin(callback, (float)period, isPeriodic) :
+            timerChannel->begin(callback, (uint32_t)period, isPeriodic);
+
+        if (err == errorCode::OK && isPeriodic && start)
+                timerChannel->start();
+
+        return err;
     }
+
+    float BaseTimer::getMaxPeriod()
+    {
+        if (timerChannel != nullptr) return timerChannel->getMaxPeriod();
+        postError(errorCode::notInitialized);
+        return 0;
+    }
+
 }

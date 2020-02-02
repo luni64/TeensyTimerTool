@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../ITimerChannel.h"
+#include "ErrorHandling/error_codes.h"
 #include "core_pins.h"
 
 namespace TeensyTimerTool
@@ -15,7 +16,7 @@ namespace TeensyTimerTool
         inline TckChannel() { triggered = false; }
         inline virtual ~TckChannel(){};
 
-        inline void begin(callback_t cb, unsigned period, bool periodic)
+        inline void begin(callback_t cb, uint32_t period, bool periodic)
         {
             triggered = false;
             this->periodic = periodic;
@@ -90,7 +91,7 @@ namespace TeensyTimerTool
         inline TckChannel() { triggered = false; }
         inline virtual ~TckChannel(){};
 
-        inline errorCode begin(callback_t cb, unsigned period, bool periodic)
+        inline errorCode begin(callback_t cb, uint32_t period, bool periodic)
         {
             triggered = false;
             this->periodic = periodic;
@@ -117,12 +118,19 @@ namespace TeensyTimerTool
         inline void setPeriod(uint32_t microSeconds);
         inline uint32_t getPeriod(void);
 
-        inline void trigger(uint32_t delay) // µs
+        inline errorCode trigger(uint32_t delay) // µs
         {
             this->startCNT = ARM_DWT_CYCCNT;
             this->period = delay * (F_CPU / 1'000'000) - 68;
             this->triggered = true;
+
+            return errorCode::OK;
         }
+
+         inline float getMaxPeriod() override
+         {
+             return 1'000'000.0f / F_CPU * 0xFFFF'FFFF;
+         }
 
      protected:
         uint32_t startCNT, period;

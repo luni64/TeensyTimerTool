@@ -12,9 +12,13 @@ namespace TeensyTimerTool
         inline GptChannel(IMXRT_GPT_t*, callback_t*);
         inline virtual ~GptChannel();
 
-        inline errorCode begin(callback_t cb, unsigned tcnt, bool periodic);
-        inline void trigger(uint32_t);
+        inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
+        inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
+
+        inline errorCode trigger(uint32_t) override;
+        inline errorCode trigger(float) override;
         inline void setPeriod(uint32_t) {}
+        inline float getMaxPeriod() override;
 
         bool isPeriodic;
 
@@ -30,18 +34,30 @@ namespace TeensyTimerTool
     {
     }
 
-    errorCode GptChannel::begin(callback_t cb, unsigned micros, bool periodic)
+    errorCode GptChannel::begin(callback_t cb, uint32_t micros, bool periodic)
+    {
+        return begin(cb, (float)micros, periodic);
+    }
+
+    errorCode GptChannel::begin(callback_t cb, float micros, bool periodic)
     {
         isPeriodic = periodic;
         setCallback(cb);
         if (isPeriodic)
         {
             uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
-            double tmp = micros * (pid_clock_mhz / 1.0);
-            uint32_t reload = tmp > 0xFFFF'FFFF ? 0xFFFF'FFFF : (uint32_t)tmp;
+            float tmp = micros * pid_clock_mhz;
+
+            if (tmp > 0xFFFF'FFFF)
+            {
+                postError(errorCode::periodOverflow);
+                reload = 0xFFFF'FFFE;
+            } else
+                reload = (uint32_t)tmp - 1;
+
             regs->SR = 0x3F;         // clear all interupt flags
             regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-            regs->OCR1 = reload - 1; // set overflow value
+            regs->OCR1 = reload;     // set overflow value
             regs->CR |= GPT_CR_EN;   // enable timer
         }
         return errorCode::OK;
@@ -54,16 +70,35 @@ namespace TeensyTimerTool
         setCallback(nullptr);
     }
 
-    void GptChannel::trigger(uint32_t micros) //should be optimized somehow
+    errorCode GptChannel::trigger(uint32_t delay)
+    {
+        return trigger((float)delay);
+    }
+
+    errorCode GptChannel::trigger(float delay) //should be optimized somehow
     {
         uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
-        double tmp = micros * (pid_clock_mhz / 1.0);
-        uint32_t reload = tmp > 0xFFFF'FFFF ? 0xFFFF'FFFF : (uint32_t)tmp;
+        float tmp = delay * pid_clock_mhz;
+
+        if (tmp > 0xFFFF'FFFF)
+        {
+            postError(errorCode::periodOverflow);
+            reload = 0xFFFF'FFFE;
+        } else
+            reload = (uint32_t)tmp - 1;
 
         regs->SR = 0x3F;         // clear all interupt flags
         regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-        regs->OCR1 = reload - 1; // set overflow value
+        regs->OCR1 = reload ; // set overflow value
         regs->CR |= GPT_CR_EN;   // enable timer
+
+        return errorCode::OK;
+    }
+
+    float GptChannel::getMaxPeriod()
+    {
+        uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
+        return  (float) 0xFFFF'FFFE / pid_clock_mhz;
     }
 
 } // namespace TeensyTimerTool

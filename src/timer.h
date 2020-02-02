@@ -23,8 +23,6 @@ namespace TeensyTimerTool
             return BaseTimer::begin(cb, 0, false);
         }
         inline void trigger(uint32_t delay);
-
-        
     };
 
     // IMPLEMENTATION =======================================================
