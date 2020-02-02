@@ -38,14 +38,23 @@ namespace TeensyTimerTool
 //
 // Default settings for various timers
 
-// TMR:
-    constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, f=150MHz
+// TMR (QUAD)
+    constexpr unsigned TMR_DEFAULT_PSC = 1;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
+
+// GPT & PID
+    constexpr bool USE_GPT_PID_150MHz = true;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
 
 
 //--------------------------------------------------------------------------------------------
 // Callback type
 // Uncomment if you prefer function pointer callbacks instead of std::function callbacks
-// (see ./types.h)
 
-    //#define PLAIN_VANILLA_CALLBACKS
+//    #define PLAIN_VANILLA_CALLBACKS
+
+
+//--------------------------------------------------------------------------------------------
+// Advanced Features
+// Uncomment if you need access to advanced features
+
+//#define ENABLE_ADVANCED_FEATURES
 }

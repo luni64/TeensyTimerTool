@@ -7,7 +7,8 @@ namespace TeensyTimerTool
         OK =                 0,
 
         // Warnings
-        periodOverflow=    -10,
+        periodOverflow=   -100,
+        wrongType=        -101,
 
         //General errors
         argument =         100,
@@ -16,6 +17,7 @@ namespace TeensyTimerTool
         noFreeModule =     103,
         noFreeChannel =    104,
         notImplemented=    105,
+        notInitialized=    106,
 
         // GTP Errors
         GTP_err =          200,

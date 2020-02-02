@@ -1,6 +1,6 @@
 #include "error_handler.h"
-#include "Arduino.h"
 #include "core_pins.h"
+#include "types.h"
 
 namespace TeensyTimerTool
 {
@@ -35,7 +35,10 @@ namespace TeensyTimerTool
                 txt = "Timer pool contains no free timer";
                 break;
             case errorCode::notImplemented:
-                txt = "Function not implmented";
+                txt = "Function not implemented";
+                break;
+            case errorCode::notInitialized:
+                txt = "Timer not initialized or available";
                 break;
 
             default:
@@ -45,11 +48,11 @@ namespace TeensyTimerTool
 
         if ((int)code < 0) // in case of warnings we return after printing
         {
-            stream.printf("(%i) Warning: %s\n", -(int)code, txt);
+            stream.printf("W-%i: %s\n", -(int)code, txt);
             return;
         }
 
-        stream.printf("Error: (%i) %s\n", code, txt); // in case of errors we don't return
+        stream.printf("E-%i: %s\n", code, txt); // in case of errors we don't return
         while (true)
         {
             digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GPTchannel.h"
+#include "GPTChannel.h"
 
 namespace TeensyTimerTool
 {
@@ -17,7 +17,7 @@ namespace TeensyTimerTool
         static GptChannel* channel;
 
         // the following is calculated at compile time
-        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;        
+        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;
         static IMXRT_GPT_t* const pGPT;
         static_assert(moduleNr < 2, "Wrong GPT Number");
     };
@@ -34,10 +34,15 @@ namespace TeensyTimerTool
         {
             isInitialized = true;
 
-            if (moduleNr == 0) // clock settings
+            if (moduleNr == 0) // GPT1 clock settings
                 CCM_CCGR1 |= CCM_CCGR1_GPT1_BUS(CCM_CCGR_ON) | CCM_CCGR1_GPT1_SERIAL(CCM_CCGR_ON);
-            else
+            else // GPT2
                 CCM_CCGR0 |= CCM_CCGR0_GPT2_BUS(CCM_CCGR_ON) | CCM_CCGR0_GPT2_SERIAL(CCM_CCGR_ON);
+
+            if(USE_GPT_PID_150MHz) // timer clock setting from config.h
+                CCM_CSCMR1 &= ~CCM_CSCMR1_PERCLK_CLK_SEL; // 150MHz
+            else
+                CCM_CSCMR1 |= CCM_CSCMR1_PERCLK_CLK_SEL;  // 24MHz
 
             pGPT->CR = GPT_CR_CLKSRC(0x001) | GPT_CR_ENMOD; // stopped, restart mode and peripheral clock
 
