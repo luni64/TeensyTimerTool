@@ -43,6 +43,7 @@ namespace TeensyTimerTool
             #define HAS_TCK 20
             extern TimerGenerator *const TMR1, *const TMR2, *const TMR3, *const TMR4;
             extern TimerGenerator *const GPT1, *const GPT2;
+            extern TimerGenerator *const PIT;
             extern TimerGenerator *const TCK;
 
         #endif
