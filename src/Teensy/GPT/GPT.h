@@ -39,7 +39,7 @@ namespace TeensyTimerTool
             else // GPT2
                 CCM_CCGR0 |= CCM_CCGR0_GPT2_BUS(CCM_CCGR_ON) | CCM_CCGR0_GPT2_SERIAL(CCM_CCGR_ON);
 
-            if(USE_GPT_PID_150MHz) // timer clock setting from config.h
+            if(USE_GPT_PIT_150MHz) // timer clock setting from config.h
                 CCM_CSCMR1 &= ~CCM_CSCMR1_PERCLK_CLK_SEL; // 150MHz
             else
                 CCM_CSCMR1 |= CCM_CSCMR1_PERCLK_CLK_SEL;  // 24MHz

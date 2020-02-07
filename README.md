@@ -586,7 +586,7 @@ namespace TeensyTimerTool
     constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
 
 // GPT & PID
-    constexpr bool USE_GPT_PID_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+    constexpr bool USE_GPT_PIT_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
 
 
 //--------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-#include "defaultConfig.h"
+#include "config.h"
 #include "boardDef.h"
 
 #if defined(T4_0)
