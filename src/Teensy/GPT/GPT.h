@@ -63,7 +63,7 @@ namespace TeensyTimerTool
 
         pGPT->SR = 0x3F; // reset all interrupt flags
         callback();      // we only enabled the OF1 interrupt-> no need to find out which interrupt was actually called
-                         //pGPT->SR;                 // re-read flag to prevent re entering, takes very long, seems to work without?
+        pGPT->SR;                 // re-read flag to prevent re entering, takes very long, seems to work without?
     }
 
     template <unsigned m>
