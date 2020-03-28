@@ -13,6 +13,7 @@ See here https://github.com/luni64/TeensyTimerTool/edit/master/README.md for the
 	* [GPT - General Purpose Timer](#GPT-GeneralPurposeTimer)
 	* [TMR aka QUAD Timer](#TMRakaQUADTimer)
 	* [PIT - Periodic Timer](#PIT-PeriodicTimer)
+	* [FTM - Flex Timer Module](#FTM-FlexTimerModule)
 	* [TCK - Tick Timer](#TCK-TickTimer)
 * [Callback Functions](#CallbackFunctions)
 	* [Traditional Callbacks](#TraditionalCallbacks)
@@ -126,6 +127,9 @@ PeriodicTimer t3(TMR3); // first free channel of TMR3
 
 ### <a name='PIT-PeriodicTimer'></a>PIT - Periodic Timer
 Not yet implemented
+
+### <a name='FTM-FlexTimerModule'></a>FTM - Flex Timer Module
+The FTM modules are only available for the T3.x boards. They have a various number of 16bit timer channels (depending on processor type and FTM module).
 
 ### <a name='TCK-TickTimer'></a>TCK - Tick Timer
 The tick timer is a 32bit software timer. Instead of using one of the built in hardware timer modules it relies on calling a *tick* function as often as possible.  That function checks the cycle counter to determine if the callback function needs to be called.
@@ -582,12 +586,14 @@ namespace TeensyTimerTool
 //
 // Default settings for various timers
 
-// TMR (QUAD)
+// TMR (QUAD) Prescaler
     constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
+
+// FTM Prescaler
+    constexpr int FTM_DEFAULT_PSC = -1;      // -1: Auto, 0..7 -> prescaler= 1,2,4,...128, timer clock f=F_BUS
 
 // GPT & PID
     constexpr bool USE_GPT_PIT_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
-
 
 //--------------------------------------------------------------------------------------------
 // Callback type
@@ -613,10 +619,13 @@ will generate timers using GPT1 (t1), GPT2 (t2), TMR1, ch1 (t3), TMR1, ch2 (t4).
 You can change this settings to fit your needs.
 
 **Pre-Scaling the TMR channels**   \
-The TMR timers are clocked with 150MHz. Since these timers are only 16bit wide you'd get a maximum period of ```1/150MHz * 2^16 = 437µs```. For longer periods you can pre-scale the timer clock using the TMR_DEFAULT_PSC. Setting this to 0,1,2..7 leads to a pre-scale value of 1,2,4,...128 respectively. Using say 7 you'd get `128/150MHz = 0.853µs` per tick and a maximum period of `128/150MHz * 2^16 = 55.9ms`.
+The TMR timers are clocked with 150MHz. Since these timers are only 16bit wide you'd get a maximum period of ```1/150MHz * 2^16 = 437µs```. For longer periods you can prescale the timer clock using the TMR_DEFAULT_PSC. Setting this to 0,1,2..7 leads to a pre-scale value of 1,2,4,...128 respectively. Using say 7 you'd get `128/150MHz = 0.853µs` per tick and a maximum period of `128/150MHz * 2^16 = 55.9ms`.
+
+**Pre-Scaling the TMR channels**   \
+The FTM timers are clocked with F_BUS. Since these timers are only 16bit wide you'd get a maximum period of ```1/F_BUS * 2^16 = 1.36ms``` (assuming the standard F_BUS of 48MHz). For longer periods you can prescale the timer clock using the FTM_DEFAULT_PSC. Setting this to 0,1,2..7 leads to a pre-scale value of 1,2,4,...128 respectively. Using say 7 you'd get `128/150MHz = 0.853µs` per tick and a maximum period of `128/F_BUS * 2^16 = 174ms` (@F_BUS=48MHz). Setting this value to -1 uses an automatically calculated prescale value which generates about 1µs timer ticks.
 
 **Clock setting for the GPT and PIT timers**\
 The USE_GPT_PID_150MHz setting determines if the GPT and PIT should use a 24MHz (default) or 150MHz clock. Please note that there is no possibility to change the clock for GPT or PIT individually. Changing this setting will also change the clock for the stock IntervalTimers.
 
 **Callback Type**\
-This setting allows for switching the standard std::function interface for callbacks to the traditional void (f*)() function pointer interface. In some cases the function pointer interfaces is more efficient than the std::function interface. But of course you will loose all the benefits described in the callback chapter above. 
+This setting allows for switching the standard std::function interface for callbacks to the traditional void (f*)() function pointer interface. In some cases the function pointer interfaces is more efficient than the std::function interface. But of course you will loose all the benefits described in the callback chapter above.

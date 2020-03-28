@@ -15,7 +15,7 @@ namespace TeensyTimerTool
         inline errorCode begin(callback_t callback, T period, bool start = true);
         inline errorCode end() { return errorCode::notImplemented; }
         inline errorCode stop() { return timerChannel->stop(); }
-        inline float getMaxPeriod();
+        inline float getMaxPeriod() const;
 
         #if defined(ENABLE_ADVANCED_FEATURES)
         ITimerChannel* getChannel() {return timerChannel;}
@@ -66,7 +66,7 @@ namespace TeensyTimerTool
         return err;
     }
 
-    float BaseTimer::getMaxPeriod()
+    float BaseTimer::getMaxPeriod() const
     {
         if (timerChannel != nullptr) return timerChannel->getMaxPeriod();
         postError(errorCode::notInitialized);

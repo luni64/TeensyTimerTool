@@ -43,7 +43,7 @@ namespace TeensyTimerTool
     } FTM_r_t;
 
     //=======================================================================
-    // using a class instead of namespace here to reduce namespace pollution
+    // using a static class instead of namespace here to reduce namespace pollution
     // (anonymous namespace doesn't make sense for header only class)
 
     template<unsigned module>
@@ -89,14 +89,17 @@ namespace TeensyTimerTool
             0x400B'9000, // FTM3
         };
 
-        static constexpr unsigned  FTM_Prescale = // prescale value to roughly get 1µs per tick
-            F_BUS > 120'000'000 ? 0b111 :
-            F_BUS >  60'000'000 ? 0b110 :
-            F_BUS >  30'000'000 ? 0b101 :
-            F_BUS >  15'000'000 ? 0b100 :
-            F_BUS >   8'000'000 ? 0b011 :
-            F_BUS >   4'000'000 ? 0b010 :
-            F_BUS >   2'000'000 ? 0b001 : 0b000;
+        static constexpr unsigned FTM_Prescale =
+           FTM_DEFAULT_PSC < 0 || FTM_DEFAULT_PSC > 7 ? // prescale value to roughly get 1µs per tick
+           (
+             F_BUS > 120'000'000 ? 0b111 :
+             F_BUS >  60'000'000 ? 0b110 :
+             F_BUS >  30'000'000 ? 0b101 :
+             F_BUS >  15'000'000 ? 0b100 :
+             F_BUS >   8'000'000 ? 0b011 :
+             F_BUS >   4'000'000 ? 0b010 :
+             F_BUS >   2'000'000 ? 0b001 : 0b000
+           ):FTM_DEFAULT_PSC;
 
       public:
         static constexpr uintptr_t    baseAdr = FTM_BaseAdr[module];
@@ -107,7 +110,7 @@ namespace TeensyTimerTool
         static constexpr unsigned MicrosToReload(const unsigned mu)// Calculates required reload value to get a delay of mu microseconds.
         {
             constexpr unsigned fac = (1e-3 * F_BUS) / (1 << prescale);
-            return std::max(1u, (mu * fac) /1000u-1);
+            return std::max(1u, (mu * fac) /1000u);
         }
     };
 }
