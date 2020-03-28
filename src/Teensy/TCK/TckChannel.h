@@ -95,7 +95,7 @@ namespace TeensyTimerTool
         inline TckChannel() { triggered = false; }
         inline virtual ~TckChannel(){};
 
-        inline errorCode begin(callback_t cb, uint32_t period, bool periodic)
+        errorCode begin(callback_t cb, uint32_t period, bool periodic)
         {
             triggered = false;
             this->periodic = periodic;
@@ -107,13 +107,13 @@ namespace TeensyTimerTool
             return errorCode::OK;
         }
 
-        inline void start()
+        void start()
         {
             this->startCNT = ARM_DWT_CYCCNT;
             this->triggered = true;
         }
 
-        inline errorCode stop()
+        errorCode stop()
         {
             this->triggered = false;
             return errorCode::OK;
@@ -133,7 +133,7 @@ namespace TeensyTimerTool
 
          inline float getMaxPeriod() override
          {
-             return 1'000'000.0f / F_CPU * 0xFFFF'FFFF;
+             return 1.0f / F_CPU * 0xFFFF'FFFF;
          }
 
      protected:

@@ -38,12 +38,14 @@ namespace TeensyTimerTool
 //
 // Default settings for various timers
 
-// TMR (QUAD)
+// TMR (QUAD) Prescaler
     constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
+
+// FTM Prescaler
+    constexpr int FTM_DEFAULT_PSC = -1;      // -1: Auto, 0..7 -> prescaler= 1,2,4,...128, timer clock f=F_BUS
 
 // GPT & PID
     constexpr bool USE_GPT_PIT_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
-
 
 //--------------------------------------------------------------------------------------------
 // Callback type
