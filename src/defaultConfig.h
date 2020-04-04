@@ -39,20 +39,27 @@ namespace TeensyTimerTool
 // Default settings for various timers
 
 // TMR (QUAD) Prescaler
-    constexpr unsigned TMR_DEFAULT_PSC = 7;  // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
+    constexpr unsigned TMR_DEFAULT_PSC = 7;     // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
 
 // FTM Prescaler
-    constexpr int FTM_DEFAULT_PSC = -1;      // -1: Auto, 0..7 -> prescaler= 1,2,4,...128, timer clock f=F_BUS
+    constexpr int FTM_DEFAULT_PSC = -1;         // -1: Auto, 0..7 -> prescaler= 1,2,4,...128, timer clock f=F_BUS
 
 // GPT & PID
-    constexpr bool USE_GPT_PIT_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+    constexpr bool USE_GPT_PIT_150MHz = false;  // changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+
+// TCK Yield Settings
+    #define YIELD_NONE       0                  // Doesn't override yield at all, make sure to call TeensyTimerTool::Tick as often as possible
+    #define YIELD_STANDARD   1                  // Uses the standard yield function and adds a call to TeensyTimerTool::Tick() lots of overhead in yield...
+    #define YIELD_OPTIMIZED  2                  // Generate an optimized yield which only calls TeensyTimerTool::Tick()
+
+    #define YIELD_TYPE YIELD_OPTIMIZED          // Select the required yield strategy here
+
 
 //--------------------------------------------------------------------------------------------
 // Callback type
 // Uncomment if you prefer function pointer callbacks instead of std::function callbacks
 
 //    #define PLAIN_VANILLA_CALLBACKS
-
 
 //--------------------------------------------------------------------------------------------
 // Advanced Features
