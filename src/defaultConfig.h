@@ -50,9 +50,9 @@ namespace TeensyTimerTool
 // TCK Yield Settings
     #define YIELD_NONE       0                  // Doesn't override yield at all, make sure to call TeensyTimerTool::Tick as often as possible
     #define YIELD_STANDARD   1                  // Uses the standard yield function and adds a call to TeensyTimerTool::Tick() lots of overhead in yield...
-    #define YIELD_OPTIMIZED  2                  // Generate an optimized yield which only calls TeensyTimerTool::Tick()
+    #define YIELD_OPTIMIZED  2                  // Generate an optimized yield which only calls TeensyTimerTool::Tick()  (recommended if you don't use SerialEvents)
 
-    #define YIELD_TYPE YIELD_OPTIMIZED          // Select the required yield strategy here
+    #define YIELD_TYPE  YIELD_STANDARD          // Select the required yield strategy here
 
 
 //--------------------------------------------------------------------------------------------

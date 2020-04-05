@@ -8,7 +8,7 @@ namespace TeensyTimerTool
 
     // TEENSYDUINO  ==========================================================================
     #if defined(TEENSYDUINO)
-    
+
         #if defined(__MKL26Z64__)
         #define TLC
         #define HAS_TCK 20
@@ -47,6 +47,8 @@ namespace TeensyTimerTool
             extern TimerGenerator *const TCK;
 
         #endif
+
+        extern void(* const tick)();
 
     // ESP32  ==========================================================================
     #elif defined(ESP32)

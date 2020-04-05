@@ -1,6 +1,8 @@
 #include "config.h"
 #include "boardDef.h"
 
+using tick_t = void (*) ();
+
 #if defined(T4_0)
     #include "Teensy/TMR/TMR.h"
     #include "Teensy/GPT/GPT.h"
@@ -17,9 +19,11 @@
         TimerGenerator* const GPT2 = GPT_t<1>::getTimer;
 
         TimerGenerator* const TCK = TCK_t::getTimer;
+
+        constexpr tick_t tick = &TCK_t::tick;
     }
 
-#elif defined (T3_6) || defined (T3_5) 
+#elif defined (T3_6) || defined (T3_5)
     #include "Teensy/FTM/FTM.h"
     #include "Teensy/TCK/TCK.h"
 
@@ -33,8 +37,9 @@
         TimerGenerator* const FTM3 = FTM_t<3>::getTimer;
         TimerGenerator* const FTM4 = FTM_t<3>::getTimer;
 
+        constexpr tick_t tick = &TCK_t::tick;
     }
-#elif defined(T3_2) 
+#elif defined(T3_2)
     #include "Teensy/FTM/FTM.h"
     #include "Teensy/TCK/TCK.h"
 
@@ -45,6 +50,7 @@
         TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
         TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
         TimerGenerator* const FTM2 = FTM_t<2>::getTimer;
+        constexpr tick_t tick = &TCK_t::tick;
     }
 
 #elif defined(T3_0)
@@ -56,7 +62,8 @@
         TimerGenerator* const TCK = TCK_t::getTimer;
 
         TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
-        TimerGenerator* const FTM1 = FTM_t<1>::getTimer;    
+        TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
+        constexpr tick_t tick = &TCK_t::tick;
     }
 
 #elif defined(TLC)
@@ -66,6 +73,7 @@
     namespace TeensyTimerTool
     {
         TimerGenerator* const TCK = TCK_t::getTimer;
+        constexpr tick_t tick = &TCK_t::tick;
 
         // TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
         // TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
