@@ -13,6 +13,7 @@ namespace TeensyTimerTool
         inline FTM_Channel(FTM_r_t* regs, FTM_ChannelInfo* ci);
         inline virtual ~FTM_Channel();
 
+        inline float getMaxPeriod() override;
         inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic);
         inline errorCode trigger(uint32_t tcnt) FASTRUN;
 
@@ -36,7 +37,7 @@ namespace TeensyTimerTool
     errorCode FTM_Channel::begin(callback_t callback, uint32_t tcnt, bool periodic)
     {
         ci->isPeriodic = periodic;
-        ci->reload = std::min(0xFFFFu, FTM_Info<0>::MicrosToReload(tcnt));
+        ci->reload = std::min(0xFFFFu, FTM_Info<0>::MicrosToReload(tcnt)+1);
         ci->callback = callback;
 
         ci->chRegs->CV = regs->CNT + ci->reload;     // compare value (current counter + pReload)
@@ -49,13 +50,19 @@ namespace TeensyTimerTool
     {
         //ci->chRegs->SC &= ~FTM_CSC_CHF;              // Reset timer flag
         ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
-        uint32_t cv = regs->CNT + std::min(0xFFFFu, FTM_Info<0>::MicrosToReload(tcnt));
+        uint32_t cv = regs->CNT + std::min(0xFFFFu, FTM_Info<0>::MicrosToReload(tcnt)+1);
 
         regs->SC = 0;        // need to switch of clock to immediately set new CV
         ci->chRegs->CV = cv; // compare value (current counter + pReload)
         regs->SC = FTM_SC_CLKS(0b01) | FTM_SC_PS(FTM_Info<0>::prescale);
 
         return errorCode::OK;
+    }
+
+    float FTM_Channel::getMaxPeriod()
+    {
+         constexpr float pscValue = (1 << FTM_Info<0>::prescale);
+         return  pscValue / F_BUS  * 0xFFFF;
     }
 
     FTM_Channel::~FTM_Channel()
