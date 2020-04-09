@@ -6,10 +6,12 @@
 
 namespace TeensyTimerTool
 {
+    class PIT_t;
+
     class PITChannel : public ITimerChannel
     {
      public:
-        inline PITChannel( callback_t*);
+        inline PITChannel(unsigned nr);
         inline virtual ~PITChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
@@ -24,14 +26,28 @@ namespace TeensyTimerTool
 
      protected:
         //IMXRT_GPT_t* regs;
-        uint32_t reload;
+        //uint32_t reload;
+
+        inline void isr();
+
+        PITChannel() = delete;
+        PITChannel(const PITChannel&) = delete;
+
+        const unsigned chNr;
+        callback_t callback = nullptr;
+
+        static uint32_t clockFactor;
+
+        friend PIT_t;
     };
 
     // IMPLEMENTATION ==============================================
 
-    PITChannel::PITChannel(callback_t* cbStorage)
-        : ITimerChannel(cbStorage)//, regs(registers)
+    PITChannel::PITChannel(unsigned nr)
+        : ITimerChannel(nullptr), chNr(nr)
     {
+        callback = nullptr;
+        clockFactor = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
     }
 
     errorCode PITChannel::begin(callback_t cb, uint32_t micros, bool periodic)
@@ -42,32 +58,38 @@ namespace TeensyTimerTool
     errorCode PITChannel::begin(callback_t cb, float micros, bool periodic)
     {
         isPeriodic = periodic;
-        setCallback(cb);
+        callback = cb;
+
         if (isPeriodic)
         {
-            uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
-            float tmp = micros * pid_clock_mhz;
+            IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
+            IMXRT_PIT_CHANNELS[chNr].TFLG = 1;
 
+            float tmp = micros * clockFactor;
             if (tmp > 0xFFFF'FFFF)
             {
                 postError(errorCode::periodOverflow);
-                reload = 0xFFFF'FFFE;
+                IMXRT_PIT_CHANNELS[chNr].LDVAL = 0xFFFF'FFFE;
             } else
-                reload = (uint32_t)tmp - 1;
+                IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)tmp - 1;
 
-            // regs->SR = 0x3F;         // clear all interupt flags
-            // regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-            // regs->OCR1 = reload;     // set overflow value
-            // regs->CR |= GPT_CR_EN;   // enable timer
+            IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
         }
         return errorCode::OK;
     }
 
+    void PITChannel::isr()
+    {
+        if (callback != nullptr)
+        {
+            callback();
+            if (!isPeriodic) IMXRT_PIT_CHANNELS[chNr].TCTRL = 0; // switch off timer
+        }
+    }
+
     PITChannel::~PITChannel()
     {
-        // regs->CR &= ~GPT_CR_EN;
-        // regs->IR = 0x00;
-        // setCallback(nullptr);
+        callback = nullptr;
     }
 
     errorCode PITChannel::trigger(uint32_t delay)
@@ -77,28 +99,28 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::trigger(float delay) //should be optimized somehow
     {
-        // uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
-        // float tmp = delay * pid_clock_mhz;
+        IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
+        IMXRT_PIT_CHANNELS[chNr].TFLG = 1;
 
-        // if (tmp > 0xFFFF'FFFF)
-        // {
-        //     postError(errorCode::periodOverflow);
-        //     reload = 0xFFFF'FFFE;
-        // } else
-        //     reload = (uint32_t)tmp - 1;
+        float tmp = delay * clockFactor;
+        if (tmp > 0xFFFF'FFFF)
+        {
+            postError(errorCode::periodOverflow);
+            IMXRT_PIT_CHANNELS[chNr].LDVAL = 0xFFFF'FFFE;
+        } else
+            IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)tmp - 1;
 
-        // regs->SR = 0x3F;         // clear all interupt flags
-        // regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-        // regs->OCR1 = reload ; // set overflow value
-        // regs->CR |= GPT_CR_EN;   // enable timer
+        IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
 
         return errorCode::OK;
     }
 
     float PITChannel::getMaxPeriod()
     {
-        uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
-        return  (float) 0xFFFF'FFFE / pid_clock_mhz;
+        return (float)0xFFFF'FFFE / clockFactor;
     }
+
+
+   
 
 } // namespace TeensyTimerTool

@@ -12,14 +12,14 @@ namespace TeensyTimerTool
      protected:
         static bool isInitialized;
         static void isr();
-        static callback_t callback;
-        static PITChannel* channel;
-        static callback_t callbacks[4];
+        //tatic callback_t callback;
+        static PITChannel channel[4];
+        //static callback_t callbacks[4];
 
-        static constexpr IMXRT_PIT_CHANNEL_t* channels = IMXRT_PIT_CHANNELS;
-        static constexpr IMXRT_PIT_CHANNEL_t* tmp = &IMXRT_PIT_CHANNELS[0];
+        // static constexpr IMXRT_PIT_CHANNEL_t* channels = IMXRT_PIT_CHANNELS;
+        // static constexpr IMXRT_PIT_CHANNEL_t* tmp = &IMXRT_PIT_CHANNELS[0];
 
-        static constexpr auto x = &tmp -> CVAL;
+        //static constexpr auto x = &tmp -> CVAL;
 
         // the following is calculated at compile time
         //static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;
@@ -46,22 +46,20 @@ namespace TeensyTimerTool
             else
                 CCM_CSCMR1 |= CCM_CSCMR1_PERCLK_CLK_SEL;  // 24MHz
 
-            for (int i = 0; i < 4; i++)
-            {
-                IMXRT_PIT_CHANNELS[i].TCTRL = 0u;
-            }
-
-            IMXRT_PIT_CHANNELS[2].LDVAL = 100;
-            IMXRT_PIT_CHANNELS[2].TCTRL = PIT_TCTRL_TIE | PIT_TCTRL_TEN ;
-            callbacks[2] = [] {
-                digitalWriteFast(0, HIGH);
-                delayNanoseconds(200);
-                digitalWriteFast(0, LOW);
-            };
-
             attachInterruptVector(IRQ_PIT, isr);
             NVIC_ENABLE_IRQ(IRQ_PIT);
+
+            // channels[0] = new PITChannel(&callbacks[0]);
+
+             return &channel[0];
         }
+            // IMXRT_PIT_CHANNELS[2].LDVAL = 100;
+            // IMXRT_PIT_CHANNELS[2].TCTRL = PIT_TCTRL_TIE | PIT_TCTRL_TEN ;
+            // // callbacks[2] = [] {
+            // //     digitalWriteFast(13, HIGH);
+            // //     delayNanoseconds(200);
+            // //     digitalWriteFast(0, LOW);
+            // // };
 
 
 
@@ -70,29 +68,29 @@ namespace TeensyTimerTool
 
     inline void PIT_t::isr()
     {
-        if (callbacks[0] != nullptr && IMXRT_PIT_CHANNELS[0].TFLG)
+        if(IMXRT_PIT_CHANNELS[0].TFLG)
         {
             IMXRT_PIT_CHANNELS[0].TFLG = 1;
-            callbacks[0]();           
+            channel[0].isr();
         }
-        if (callbacks[1] != nullptr && IMXRT_PIT_CHANNELS[1].TFLG)
+        if(IMXRT_PIT_CHANNELS[1].TFLG)
         {
             IMXRT_PIT_CHANNELS[1].TFLG = 1;
-            callbacks[1]();
+            channel[1].isr();
         }
-        if (callbacks[2] != nullptr && IMXRT_PIT_CHANNELS[2].TFLG)
+        if(IMXRT_PIT_CHANNELS[2].TFLG)
         {
             IMXRT_PIT_CHANNELS[2].TFLG = 1;
-            callbacks[2]();
+            channel[2].isr();
         }
-        if (callbacks[3] != nullptr && IMXRT_PIT_CHANNELS[3].TFLG)
+        if(IMXRT_PIT_CHANNELS[3].TFLG)
         {
             IMXRT_PIT_CHANNELS[3].TFLG = 1;
-            callbacks[3]();
-        }       
-        
+            channel[3].isr();
+        }
+
         asm volatile("dsb"); //wait until register changes propagated through the cache
-        
+
         // if (!channel->isPeriodic)
         //     pGPT->CR &= ~GPT_CR_EN; // stop timer in one shot mode
 

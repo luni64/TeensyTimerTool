@@ -1,15 +1,13 @@
-#include "../../boardDef.h"
-
-#if defined(T4_0)
+#if defined(ARDUINO_TEENSY40)
 
 #include "PIT.h"
 
 namespace TeensyTimerTool
 {
     bool PIT_t::isInitialized = false;
-    callback_t PIT_t::callback = nullptr;
-    PITChannel* PIT_t::channel = nullptr;    
-    callback_t PIT_t::callbacks[4];
+    PITChannel PIT_t::channel[4] = {{0}, {1}, {2}, {3}};
+
+     uint32_t PITChannel::clockFactor = 1;
 }
 
 #endif
