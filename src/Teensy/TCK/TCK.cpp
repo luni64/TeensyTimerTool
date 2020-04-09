@@ -1,12 +1,12 @@
-#include "../../boardDef.h"
+#include "../../config.h"
 
-#if defined(HAS_TCK)
+#if defined(TEENSYDUINO)
 
     #include "TCK.h"
     namespace TeensyTimerTool
     {
         bool TCK_t::isInitialized = false;
-        TckChannel* TCK_t::channels[maxTckChannels];
+        TckChannel* TCK_t::channels[NR_OF_TCK_TIMERS];
     }
 
     //----------------------------------------------------------------------
