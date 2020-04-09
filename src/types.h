@@ -21,7 +21,7 @@
     namespace TeensyTimerTool
     {
         using callback_t = void (*)();
-        using errorFunc_t = void (*)();
+        using errorFunc_t = void (*)(errorCode);
 
         extern void attachErrFunc(errorFunc_t);
         extern errorCode postError(errorCode);
