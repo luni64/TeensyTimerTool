@@ -8,7 +8,7 @@ namespace TeensyTimerTool
 {
     class TCK_t;
 
-#if defined(TLC) // quick hack for T-LC, should be improved later (using systick?)
+#if defined(ARDUINO_TEENSYLC) // quick hack for T-LC, should be improved later (using systick?)
 
     class TckChannel : public ITimerChannel
     {

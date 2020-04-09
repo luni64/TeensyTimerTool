@@ -3,9 +3,10 @@
 
 using tick_t = void (*) ();
 
-#if defined(T4_0)
+#if defined(ARDUINO_TEENSY40)
     #include "Teensy/TMR/TMR.h"
     #include "Teensy/GPT/GPT.h"
+    #include "Teensy/PIT4/PIT.h"
     #include "Teensy/TCK/TCK.h"
 
     namespace TeensyTimerTool
@@ -18,12 +19,14 @@ using tick_t = void (*) ();
         TimerGenerator* const GPT1 = GPT_t<0>::getTimer;
         TimerGenerator* const GPT2 = GPT_t<1>::getTimer;
 
+        TimerGenerator* const PIT = PIT_t::getTimer;
+
         TimerGenerator* const TCK = TCK_t::getTimer;
 
         constexpr tick_t tick = &TCK_t::tick;
     }
 
-#elif defined (T3_6) || defined (T3_5)
+#elif defined (ARDUINO_TEENSY35) || defined (ARDUINO_TEENSY36)
     #include "Teensy/FTM/FTM.h"
     #include "Teensy/TCK/TCK.h"
 
@@ -39,7 +42,8 @@ using tick_t = void (*) ();
 
         constexpr tick_t tick = &TCK_t::tick;
     }
-#elif defined(T3_2)
+
+#elif defined(ARDUINO_TEENSY31)
     #include "Teensy/FTM/FTM.h"
     #include "Teensy/TCK/TCK.h"
 
@@ -53,7 +57,7 @@ using tick_t = void (*) ();
         constexpr tick_t tick = &TCK_t::tick;
     }
 
-#elif defined(T3_0)
+#elif defined(ARDUINO_TEENSY30)
     #include "Teensy/FTM/FTM.h"
     #include "Teensy/TCK/TCK.h"
 
@@ -66,17 +70,13 @@ using tick_t = void (*) ();
         constexpr tick_t tick = &TCK_t::tick;
     }
 
-#elif defined(TLC)
-    //#include "Teensy/FTM/FTM.h"
+#elif defined(ARDUINO_TEENSYLC)
     #include "Teensy/TCK/TCK.h"
 
     namespace TeensyTimerTool
     {
         TimerGenerator* const TCK = TCK_t::getTimer;
         constexpr tick_t tick = &TCK_t::tick;
-
-        // TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
-        // TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
     }
 
 #endif

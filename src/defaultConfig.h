@@ -5,24 +5,24 @@ namespace TeensyTimerTool
 {
 //--------------------------------------------------------------------------------------------
 // Timer pool defintion
-// Add and sort as required
+// Add, and sort and remove to define the timer pool. Timers will be allocted from left to right
 
-#if defined(T4_0)
+#if defined(ARDUINO_TEENSY40)
     TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
 
-#elif defined(T3_6)
+#elif defined(ARDUINO_TEENSY36)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, FTM3, FTM4, TCK};
 
-#elif defined(T3_5)
+#elif defined(ARDUINO_TEENSY35)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, FTM3, TCK};
 
-#elif defined(T3_2)
+#elif defined(ARDUINO_TEENSY31)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, TCK};
 
-#elif defined(T3_0)
+#elif defined(ARDUINO_TEENSY30)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, TCK};
 
-#elif defined(TLC)
+#elif defined(ARDUINO_TEENSYLC)
     TimerGenerator* const timerPool[] = {TCK};
 
 #elif defined(ESP32)
@@ -34,36 +34,36 @@ namespace TeensyTimerTool
     constexpr unsigned timerCnt = sizeof(timerPool) / sizeof(timerPool[0]);
 
 //--------------------------------------------------------------------------------------------
-// Timer Settings
-//
 // Default settings for various timers
 
-// TMR (QUAD) Prescaler
-    constexpr unsigned TMR_DEFAULT_PSC = 7;     // default prescaler, 0..7 -> prescaler= 1,2,4,...128, timer clock f=150MHz
+// TMR (QUAD)
+    constexpr int TMR_DEFAULT_PSC = PSC_128; // Allowed prescaling values: PSC_1, PSC_2, PSC_4 ... PSC_128, clock = 150MHz
 
-// FTM Prescaler
-    constexpr int FTM_DEFAULT_PSC = -1;         // -1: Auto, 0..7 -> prescaler= 1,2,4,...128, timer clock f=F_BUS
+// FTM
+    constexpr int FTM_DEFAULT_PSC = PSC_AUTO;     // Allowed prescaling values: PSC_Auto, PSC_1, PSC_2, PSC_4 ... PSC_128, clock = FBUS
 
 // GPT & PID
-    constexpr bool USE_GPT_PIT_150MHz = false;  // changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+    constexpr bool USE_GPT_PIT_150MHz = false;    // changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
 
-// TCK Yield Settings
-    #define YIELD_NONE       0                  // Doesn't override yield at all, make sure to call TeensyTimerTool::Tick as often as possible
-    #define YIELD_STANDARD   1                  // Uses the standard yield function and adds a call to TeensyTimerTool::Tick() lots of overhead in yield...
-    #define YIELD_OPTIMIZED  2                  // Generate an optimized yield which only calls TeensyTimerTool::Tick()  (recommended if you don't use SerialEvents)
+// TCK
+    constexpr unsigned NR_OF_TCK_TIMERS = 20;     // How many TCK timers shall be available
 
-    #define YIELD_TYPE  YIELD_STANDARD          // Select the required yield strategy here
+    #define YIELD_TYPE  YIELD_STANDARD            // Select the required yield strategy from the list below
+                                                  // YIELD_NONE:      lib doesn't touch yield. Make sure to call TeensyTimerTool::tick as often as possible
+                                                  // YIELD_STANDARD:  uses the standard yield function and adds a call to TeensyTimerTool::tick(). Lots of overhead in yield...
+                                                  // YIELD_OPTIMIZED: generate an optimized yield which only calls TeensyTimerTool::Tick()  (recommended if you don't use SerialEvents)
 
 
 //--------------------------------------------------------------------------------------------
 // Callback type
 // Uncomment if you prefer function pointer callbacks instead of std::function callbacks
 
-//    #define PLAIN_VANILLA_CALLBACKS
+//   #define PLAIN_VANILLA_CALLBACKS
+
 
 //--------------------------------------------------------------------------------------------
 // Advanced Features
 // Uncomment if you need access to advanced features
 
-//#define ENABLE_ADVANCED_FEATURES
+//   #define ENABLE_ADVANCED_FEATURES
 }

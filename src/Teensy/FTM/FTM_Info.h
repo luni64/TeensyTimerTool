@@ -50,15 +50,15 @@ namespace TeensyTimerTool
     class FTM_Info
     {
       private:
-        #if defined(TLC)
+        #if defined(ARDUINO_TEENSYLC)
         static constexpr unsigned boardNr = 0;
-        #elif defined(T3_0)
+        #elif defined(ARDUINO_TEENSY30)
         static constexpr unsigned boardNr = 1;
-        #elif defined(T3_2)
+        #elif defined(ARDUINO_TEENSY31)
         static constexpr unsigned boardNr = 2;
-        #elif defined(T3_5)
+        #elif defined(ARDUINO_TEENSY35)
         static constexpr unsigned boardNr = 3;
-        #elif defined(T3_6)
+        #elif defined(ARDUINO_TEENSY36)
         static constexpr unsigned boardNr = 4;
         #else
         #error Board not valid
