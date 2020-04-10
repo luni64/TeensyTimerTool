@@ -54,7 +54,7 @@
             }
 
         //----------------------------------------------------------------------
-        #elif defined(ARDUINO_TEENSY40)
+        #elif defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)
 
             extern uint8_t usb_enable_serial_event_processing;
 

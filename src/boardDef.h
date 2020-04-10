@@ -36,13 +36,13 @@ namespace TeensyTimerTool
 
         #endif
 
-        constexpr unsigned YIELD_NONE = 0;
-        constexpr unsigned YIELD_STANDARD = 1;
-        constexpr unsigned YIELD_OPTIMIZED = 2;
+        #define YIELD_NONE      0
+        #define YIELD_STANDARD  1
+        #define YIELD_OPTIMIZED 2
 
         constexpr int PSC_AUTO = -1;
         constexpr int PSC_1 = 0;
-        constexpr int PSC_2 = 1;  
+        constexpr int PSC_2 = 1;
         constexpr int PSC_4 = 2;
         constexpr int PSC_8 = 3;
         constexpr int PSC_16 = 4;
