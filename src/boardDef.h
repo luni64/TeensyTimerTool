@@ -16,7 +16,7 @@ namespace TeensyTimerTool
             extern TimerGenerator *const FTM0, * const FTM1;
             extern TimerGenerator *const TCK;
 
-        #elif defined(ARDUINO_TEENSY31)
+        #elif defined(ARDUINO_TEENSY31) || defined(ARDUINO_TEENSY32)
             extern TimerGenerator *const FTM0, * const FTM1, * const FTM2;
             extern TimerGenerator *const TCK;
 
@@ -33,7 +33,8 @@ namespace TeensyTimerTool
             extern TimerGenerator *const GPT1, *const GPT2;
             extern TimerGenerator *const PIT;
             extern TimerGenerator *const TCK;
-
+        #else
+            #error BOARD NOT SUPPORTED
         #endif
 
         #define YIELD_NONE      0

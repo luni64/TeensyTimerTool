@@ -54,7 +54,7 @@ namespace TeensyTimerTool
         static constexpr unsigned boardNr = 0;
         #elif defined(ARDUINO_TEENSY30)
         static constexpr unsigned boardNr = 1;
-        #elif defined(ARDUINO_TEENSY31)
+        #elif defined(ARDUINO_TEENSY31) || defined(ARDUINO_TEENSY32)
         static constexpr unsigned boardNr = 2;
         #elif defined(ARDUINO_TEENSY35)
         static constexpr unsigned boardNr = 3;

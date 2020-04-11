@@ -10,13 +10,16 @@ namespace TeensyTimerTool
 #if defined(ARDUINO_TEENSY40)
     TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
 
+#elif defined(ARDUINO_TEENSY41)
+    TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
+
 #elif defined(ARDUINO_TEENSY36)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, FTM3, FTM4, TCK};
 
 #elif defined(ARDUINO_TEENSY35)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, FTM3, TCK};
 
-#elif defined(ARDUINO_TEENSY31)
+#elif defined(ARDUINO_TEENSY31) || defined(ARDUINO_TEENSY32)
     TimerGenerator* const timerPool[] = {FTM0, FTM1, FTM2, TCK};
 
 #elif defined(ARDUINO_TEENSY30)

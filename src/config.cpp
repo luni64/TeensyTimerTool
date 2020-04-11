@@ -43,7 +43,7 @@ using tick_t = void (*) ();
         constexpr tick_t tick = &TCK_t::tick;
     }
 
-#elif defined(ARDUINO_TEENSY31)
+#elif defined(ARDUINO_TEENSY31) || defined (ARDUINO_TEENSY32)
     #include "Teensy/FTM/FTM.h"
     #include "Teensy/TCK/TCK.h"
 
