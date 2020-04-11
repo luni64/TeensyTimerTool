@@ -1,4 +1,4 @@
-#if defined(ARDUINO_TEENSY40)
+#if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)
 
 #include "PIT.h"
 
