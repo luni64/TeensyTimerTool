@@ -21,8 +21,7 @@ GPIO_Info_t::GPIO_Info_t(unsigned pin)
       gpioPortNr((pinCfg - (uintptr_t)&PORTA_PCR0) / 0x1000), // cfg base addresses are 4kB aligned staring with PORTA_PCR0
       gpioBitNr((pinCfg & 0xFFF) / 4)                         // each bit has to 4 consecutive 32bit cfg registers
 {
-
-
+  snprintf(name, 20, "GPIO%d_%02d", gpioPortNr, gpioBitNr);
 }
 
 //======================================================================================
