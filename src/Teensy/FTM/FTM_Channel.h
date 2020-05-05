@@ -48,14 +48,14 @@ namespace TeensyTimerTool
 
     errorCode FTM_Channel::trigger(const uint32_t tcnt)
     {
-        //ci->chRegs->SC &= ~FTM_CSC_CHF;              // Reset timer flag
-        ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
+        ci->chRegs->SC &= ~FTM_CSC_CHF;              // Reset timer flag
         uint32_t cv = regs->CNT + std::min(0xFFFFu, FTM_Info<0>::MicrosToReload(tcnt)+1);
 
-        regs->SC = 0;        // need to switch of clock to immediately set new CV
+        regs->SC = 0;        // need to switch off clock to immediately set new CV
         ci->chRegs->CV = cv; // compare value (current counter + pReload)
         regs->SC = FTM_SC_CLKS(0b01) | FTM_SC_PS(FTM_Info<0>::prescale);
 
+        ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
         return errorCode::OK;
     }
 
