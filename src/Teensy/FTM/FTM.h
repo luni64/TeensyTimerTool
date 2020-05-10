@@ -31,13 +31,14 @@ namespace TeensyTimerTool
         {
             r->SC = FTM_SC_CLKS(0b00); // Disable clock
             r->MOD = 0xFFFF;           // Set full counter range
-            r->CNT = 0;            
+            r->CNT = 0;
 
-            for (unsigned chNr = 0; chNr < maxChannel; chNr++)
+            for (unsigned chNr = 0; chNr < maxChannel; chNr++) // init channels
             {
                 channelInfo[chNr].isReserved = false;
                 channelInfo[chNr].callback = nullptr;
                 channelInfo[chNr].chRegs = &r->CH[chNr];
+                channelInfo[chNr].ticksPerMicrosecond =  1E-6f * F_BUS / (1 << FTM_Info<moduleNr>::prescale);
 
                 r->CH[chNr].SC &= ~FTM_CSC_CHF;  // FTM requires to clear flag by setting bit to 0
                 r->CH[chNr].SC &= ~FTM_CSC_CHIE; // Disable channel interupt
@@ -75,7 +76,7 @@ namespace TeensyTimerTool
                     cr->CV = r->CNT + ci->reload; // set compare value to 'reload' counts ahead of counter
                 } else
                 {
-                    cr->SC &= ~FTM_CSC_CHIE; //disable interrupt in on shot mode
+                    cr->SC &= ~FTM_CSC_CHIE;       //disable interrupt in on shot mode
                 }
                 ci->callback();
             }

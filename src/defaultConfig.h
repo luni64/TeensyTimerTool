@@ -40,21 +40,28 @@ namespace TeensyTimerTool
 // Default settings for various timers
 
 // TMR (QUAD)
-    constexpr int TMR_DEFAULT_PSC = PSC_128; // Allowed prescaling values: PSC_1, PSC_2, PSC_4 ... PSC_128, clock = 150MHz
+    constexpr int TMR_DEFAULT_PSC = PSC_128;  // Allowed prescaling values: PSC_1, PSC_2, PSC_4 ... PSC_128, clock = 150MHz
 
 // FTM
-    constexpr int FTM_DEFAULT_PSC = PSC_AUTO;     // Allowed prescaling values: PSC_Auto, PSC_1, PSC_2, PSC_4 ... PSC_128, clock = FBUS
+    constexpr int FTM_DEFAULT_PSC[] =         // Allowed prescaling values: PSC_AUTO, PSC_1, PSC_2, PSC_4 ... PSC_128, clock = FBUS
+    {                                         // (PSC_AUTO adjusts prescaler to get roughly 2 timer ticks per µs)
+        /*FTM0*/ PSC_AUTO,
+        /*FTM1*/ PSC_AUTO,
+        /*FTM2*/ PSC_AUTO,
+        /*FTM3*/ PSC_AUTO
+    };
+
 
 // GPT & PID
-    constexpr bool USE_GPT_PIT_150MHz = false;    // changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+    constexpr bool USE_GPT_PIT_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
 
 // TCK
-    constexpr unsigned NR_OF_TCK_TIMERS = 20;     // How many TCK timers shall be available
+    constexpr unsigned NR_OF_TCK_TIMERS = 20; // How many TCK timers shall be available
 
-    #define YIELD_TYPE  YIELD_STANDARD            // Select the required yield strategy from the list below
-                                                  // YIELD_NONE:      lib doesn't touch yield. Make sure to call TeensyTimerTool::tick as often as possible
-                                                  // YIELD_STANDARD:  uses the standard yield function and adds a call to TeensyTimerTool::tick(). Lots of overhead in yield...
-                                                  // YIELD_OPTIMIZED: generate an optimized yield which only calls TeensyTimerTool::Tick()  (recommended if you don't use SerialEvents)
+    #define YIELD_TYPE  YIELD_STANDARD        // Select the required yield strategy from the list below
+                                              // YIELD_NONE:      lib doesn't touch yield. Make sure to call TeensyTimerTool::tick as often as possible
+                                              // YIELD_STANDARD:  uses the standard yield function and adds a call to TeensyTimerTool::tick(). Lots of overhead in yield...
+                                              // YIELD_OPTIMIZED: generate an optimized yield which only calls TeensyTimerTool::Tick()  (recommended if you don't use SerialEvents)
 
 
 //--------------------------------------------------------------------------------------------

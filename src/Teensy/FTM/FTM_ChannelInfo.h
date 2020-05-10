@@ -12,5 +12,6 @@ namespace TeensyTimerTool
         callback_t callback;
         uint32_t reload;
         FTM_CH_t* chRegs;
+        float ticksPerMicrosecond;
     };
 }
