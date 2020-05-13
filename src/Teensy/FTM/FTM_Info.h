@@ -90,7 +90,7 @@ namespace TeensyTimerTool
         };
 
         static constexpr unsigned FTM_Prescale =
-           FTM_DEFAULT_PSC < 0 || FTM_DEFAULT_PSC > 7 ? // prescale value to roughly get 1µs per tick
+           FTM_DEFAULT_PSC[module] < 0 || FTM_DEFAULT_PSC[module] > 7 ? // prescale value to roughly get 2 ticks per µs
            (
              F_BUS > 120'000'000 ? 0b111 :
              F_BUS >  60'000'000 ? 0b110 :
@@ -99,18 +99,12 @@ namespace TeensyTimerTool
              F_BUS >   8'000'000 ? 0b011 :
              F_BUS >   4'000'000 ? 0b010 :
              F_BUS >   2'000'000 ? 0b001 : 0b000
-           ):FTM_DEFAULT_PSC;
+           ):FTM_DEFAULT_PSC[module];
 
       public:
         static constexpr uintptr_t    baseAdr = FTM_BaseAdr[module];
         static constexpr IRQ_NUMBER_t irqNumber = (IRQ_NUMBER_t)IRQ_Numbers[boardNr][module];
         static constexpr unsigned     nrOfChannels = FTM_NrOfChannels[module];
         static constexpr unsigned     prescale = FTM_Prescale;
-
-        static constexpr unsigned MicrosToReload(const unsigned mu)// Calculates required reload value to get a delay of mu microseconds.
-        {
-            constexpr unsigned fac = (1e-3 * F_BUS) / (1 << prescale);
-            return std::max(1u, (mu * fac) /1000u);
-        }
     };
 }
