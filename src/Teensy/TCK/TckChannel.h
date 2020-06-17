@@ -40,7 +40,7 @@ namespace TeensyTimerTool
             return errorCode::OK;
         }
 
-        inline void setPeriod(uint32_t microSeconds);
+        // inline void setPeriod(uint32_t microSeconds);
         inline uint32_t getPeriod(void);
 
         inline errorCode trigger(uint32_t delay) // µs
@@ -78,10 +78,10 @@ namespace TeensyTimerTool
             lock = false;
         }
     }
-    void TckChannel::setPeriod(uint32_t microSeconds)
-    {
-        period = microSeconds;
-    }
+    // void TckChannel::setPeriod(uint32_t microSeconds)
+    // {
+    //     period = microSeconds;
+    // }
     uint32_t TckChannel::getPeriod()
     {
         return period;
@@ -119,7 +119,7 @@ namespace TeensyTimerTool
             return errorCode::OK;
         }
 
-        inline void setPeriod(uint32_t microSeconds);
+        // inline void setPeriod(uint32_t microSeconds);
         inline uint32_t getPeriod(void);
 
         inline errorCode trigger(uint32_t delay) // µs
@@ -164,10 +164,10 @@ namespace TeensyTimerTool
         }
     }
 
-    void TckChannel::setPeriod(uint32_t microSeconds)
-    {
-        period = microSeconds * (F_CPU / 1'000'000);
-    }
+    // void TckChannel::setPeriod(uint32_t microSeconds)
+    // {
+    //     period = microSeconds * (F_CPU / 1'000'000);
+    // }
     uint32_t TckChannel::getPeriod()
     {
         return period * (1'000'000.0f / F_CPU);

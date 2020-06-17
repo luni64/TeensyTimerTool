@@ -14,7 +14,7 @@ namespace TeensyTimerTool
 
         virtual float getMaxPeriod(){ postError(errorCode::notImplemented); return 0;};
 
-        virtual void setPeriod(uint32_t microSeconds);
+        virtual void setPeriod(uint32_t microSeconds) { postError(errorCode::notImplemented); };
         virtual uint32_t getPeriod() { return 0; }
 
         virtual void start(){};

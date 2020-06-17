@@ -19,7 +19,7 @@ namespace TeensyTimerTool
 
         inline errorCode trigger(uint32_t) override;
         inline errorCode trigger(float) override;
-        inline void setPeriod(uint32_t) {}
+        // inline void setPeriod(uint32_t) {}
         inline float getMaxPeriod() override;
 
         bool isPeriodic;
