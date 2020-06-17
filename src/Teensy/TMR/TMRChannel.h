@@ -28,6 +28,9 @@ namespace TeensyTimerTool
         callback_t** pCallback = nullptr;
         float pscValue;
         uint32_t pscBits;
+
+        inline float_t microsecondToCounter(const float_t us) const;
+        inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
     // IMPLEMENTATION ==============================================
@@ -48,16 +51,26 @@ namespace TeensyTimerTool
         return begin(cb, (float)tcnt, periodic);
     }
 
+    float_t TMRChannel::microsecondToCounter(const float_t us) const {
+        return us * 150.0f / pscValue;
+    }
+
+    float_t TMRChannel::counterToMicrosecond(const float_t cnt) const {
+        return cnt * pscValue / 150.0f;
+    }
+
     errorCode TMRChannel::begin(callback_t cb, float tcnt, bool periodic)
     {
-        float t = tcnt * (150.0f / pscValue);
+        const float_t t = microsecondToCounter(tcnt);
         uint16_t reload;
         if(t > 0xFFFF)
         {
             postError(errorCode::periodOverflow);
             reload = 0xFFFE;
         }
-        else reload = (uint16_t)t - 1;
+        else {
+            reload = (uint16_t)t - 1;
+        }
 
         regs->CTRL = 0x0000;
         regs->LOAD = 0x0000;
@@ -84,7 +97,7 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::trigger(float tcnt) // quick and dirty, should be optimized
     {
-        float t = tcnt * (150.0f / pscValue);
+        const float_t t = microsecondToCounter(tcnt);
         uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
 
         regs->CTRL = 0x0000;
