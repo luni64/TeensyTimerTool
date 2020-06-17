@@ -98,12 +98,14 @@ namespace TeensyTimerTool
 
         errorCode begin(callback_t cb, uint32_t period, bool periodic)
         {
-            triggered = false;
+            this->triggered = false;
             this->periodic = periodic;
-            this->period = period * (F_CPU / 1'000'000);
+            this->currentPeriod = microsecondToCPUCycles(period);
+
+            this->nextPeriod = this->currentPeriod;
             this->callback = cb;
 
-            startCNT = ARM_DWT_CYCCNT;
+            this->startCNT = ARM_DWT_CYCCNT;
 
             return errorCode::OK;
         }
@@ -121,24 +123,26 @@ namespace TeensyTimerTool
         }
 
         inline errorCode setPeriod(uint32_t microSeconds) override;
-        inline uint32_t getPeriod(void);
+        // inline uint32_t getPeriod(void);
 
         inline errorCode trigger(uint32_t delay) // µs
         {
             this->startCNT = ARM_DWT_CYCCNT;
-            this->period = delay * (F_CPU / 1'000'000) - 68;
+            this->nextPeriod = microsecondToCPUCycles(delay);
+            this->currentPeriod = this->nextPeriod - 68; //??? compensating for cycles spent computing?
+
             this->triggered = true;
 
             return errorCode::OK;
         }
 
-         inline float getMaxPeriod() override
-         {
-             return 1.0f / F_CPU * 0xFFFF'FFFF;
-         }
+        inline float getMaxPeriod()
+        {
+            return CPUCyclesToMicroseond(0xFFFF'FFFF);
+        }
 
      protected:
-        uint32_t startCNT, period;
+        uint32_t startCNT, currentPeriod, nextPeriod;
         callback_t callback;
         bool triggered;
         bool periodic;
@@ -147,19 +151,34 @@ namespace TeensyTimerTool
         bool block = false;
 
         friend TCK_t;
+
+        static inline uint32_t microsecondToCPUCycles(uint32_t microSecond);
+
+        static inline uint32_t CPUCyclesToMicroseond(uint32_t cpuCycles);
     };
 
     // IMPLEMENTATION ==============================================
+
+
+    uint32_t TckChannel::microsecondToCPUCycles(uint32_t microSecond)
+    {
+        return microSecond * (F_CPU / 1'000'000);
+    }
+
+    uint32_t TckChannel::CPUCyclesToMicroseond(uint32_t cpuCycles)
+    {
+        return (1'000'000.0f / F_CPU) * cpuCycles;
+    }
 
     void TckChannel::tick()
     {
         static bool lock = false;
 
-        if (!lock && period != 0 && triggered && (ARM_DWT_CYCCNT - startCNT) >= period)
+        if (!lock && this->currentPeriod != 0 && this->triggered && (ARM_DWT_CYCCNT - this->startCNT) >= this->currentPeriod)
         {
             lock = true;
-            startCNT = ARM_DWT_CYCCNT;
-            triggered = periodic; // i.e., stays triggerd if periodic, stops if oneShot
+            this->startCNT = ARM_DWT_CYCCNT;
+            this->triggered = this->periodic; // i.e., stays triggerd if periodic, stops if oneShot
             callback();
             lock = false;
         }
@@ -167,13 +186,17 @@ namespace TeensyTimerTool
 
     errorCode TckChannel::setPeriod(uint32_t microSeconds)
     {
-        period = microSeconds * (F_CPU / 1'000'000);
+        const uint32_t period = microsecondToCPUCycles(microSeconds);
+
+        this->nextPeriod = period;
+        this->currentPeriod = period;
         return errorCode::OK;
     }
-    uint32_t TckChannel::getPeriod()
-    {
-        return period * (1'000'000.0f / F_CPU);
-    }
+    
+    // uint32_t TckChannel::getPeriod()
+    // {
+    //     return period * (1'000'000.0f / F_CPU);
+    // }
 
 #endif
 
