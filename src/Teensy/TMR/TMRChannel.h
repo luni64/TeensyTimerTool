@@ -20,7 +20,7 @@ namespace TeensyTimerTool
         inline errorCode trigger(float tcnt) override;
 
         inline float getMaxPeriod() override;
-        inline void setPeriod(uint32_t) override {}
+        // inline void setPeriod(uint32_t) override {}
         inline void setPrescaler(uint32_t psc); // psc 0..7 -> prescaler: 1..128
 
      protected:

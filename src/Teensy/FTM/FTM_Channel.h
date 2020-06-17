@@ -18,7 +18,7 @@ namespace TeensyTimerTool
         inline errorCode trigger(uint32_t tcnt) FASTRUN;
 
         inline uint16_t ticksFromMicros(float micros);
-        inline void setPeriod(uint32_t) {}
+        // inline void setPeriod(uint32_t) {}
 
      protected:
         FTM_ChannelInfo* ci;
