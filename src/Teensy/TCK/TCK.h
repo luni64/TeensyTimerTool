@@ -6,7 +6,7 @@
 namespace TeensyTimerTool
 {
     extern const unsigned NR_OF_TCK_TIMERS;
-    
+
     class TCK_t
     {
      public:
@@ -25,15 +25,21 @@ namespace TeensyTimerTool
     {
         if (!isInitialized)
         {
-            // enable the cycle counter
-            ARM_DEMCR |= ARM_DEMCR_TRCENA;
-            ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
-
             for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)
             {
                 channels[chNr] = nullptr;
             }
             isInitialized = true;
+
+            // enable the cycle counter
+            ARM_DEMCR |= ARM_DEMCR_TRCENA;
+            ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
+
+            // initialize the yield hook
+           #if  (defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)) && YIELD_TYPE == YIELD_STANDARD
+              extern void initYieldHook();
+              initYieldHook();
+           #endif
         }
 
         for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)

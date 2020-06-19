@@ -20,8 +20,6 @@
     //----------------------------------------------------------------------
     #elif YIELD_TYPE == YIELD_STANDARD
 
-        #include "EventResponder.h"
-
         //----------------------------------------------------------------------
         #if defined(KINETISK) || defined(KINETISL)
 
@@ -54,29 +52,24 @@
             }
 
         //----------------------------------------------------------------------
-        #elif defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)
+        #elif defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)  // Maybe use this for T3.x as well, but needs performance testing
 
-            extern uint8_t usb_enable_serial_event_processing;
+            #include "EventResponder.h"
 
-            void yield(void)
+            namespace TeensyTimerTool
             {
-                static uint8_t running=0;
+                static EventResponder er;
 
-                if (running) return; // TODO: does this need to be atomic?
-                running = 1;
-
-                // USB Serail - Add hack to minimize impact...
-                if (usb_enable_serial_event_processing && Serial.available()) serialEvent();
-
-                // Current workaround until integrate with EventResponder.
-                if (HardwareSerial::serial_event_handlers_active) HardwareSerial::processSerialEvents();
-
-                running = 0;
-                EventResponder::runFromYield();
-
-                TeensyTimerTool::TCK_t::tick();
-            };
-
+                void initYieldHook()
+                {
+                    er.attach([](EventResponderRef r)
+                    {
+                        TeensyTimerTool::TCK_t::tick();
+                        r.triggerEvent();
+                    });
+                    er.triggerEvent();
+                }
+            }
         #endif
     #endif
 #endif
