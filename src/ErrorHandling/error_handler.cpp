@@ -64,7 +64,7 @@ namespace TeensyTimerTool
 
     errorCode postError(errorCode e)
     {
-        if (errFunc != nullptr) errFunc(e);
+        if (errFunc != nullptr && e != errorCode::OK) errFunc(e);
         return e;
     }
 
