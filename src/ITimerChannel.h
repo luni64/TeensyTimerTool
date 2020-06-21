@@ -21,7 +21,7 @@ namespace TeensyTimerTool
         virtual uint32_t getPeriod() { return 0; }
 
         virtual void start(){};
-        virtual errorCode stop() { return errorCode::OK; }
+        virtual errorCode stop() { return errorCode::notImplemented; }
         inline void setCallback(callback_t);
 
      protected:

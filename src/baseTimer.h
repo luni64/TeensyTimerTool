@@ -3,7 +3,6 @@
 //#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
-
 #include <type_traits>
 
 namespace TeensyTimerTool
@@ -13,13 +12,16 @@ namespace TeensyTimerTool
      public:
         template <typename T>
         inline errorCode begin(callback_t callback, T period, bool start = true);
-        inline errorCode end() { return errorCode::notImplemented; }
-        inline errorCode stop() { return timerChannel->stop(); }
+        inline errorCode end();
+        inline errorCode stop();
         inline float getMaxPeriod() const;
 
-        #if defined(ENABLE_ADVANCED_FEATURES)
-        ITimerChannel* getChannel() {return timerChannel;}
-        #endif
+#if defined(ENABLE_ADVANCED_FEATURES)
+        ITimerChannel* getChannel()
+        {
+            return timerChannel;
+        }
+#endif
 
      protected:
         BaseTimer(TimerGenerator* generator, bool periodic);
@@ -28,7 +30,6 @@ namespace TeensyTimerTool
         ITimerChannel* timerChannel;
         bool isPeriodic;
     };
-
 
     // INLINE IMPLEMENTATION ================================================
 
@@ -56,21 +57,32 @@ namespace TeensyTimerTool
 
         static_assert(std::is_floating_point<T>() || std::is_integral<T>(), "only floating point or integral types allowed");
 
-        errorCode err = std::is_floating_point<T>() ?
-            timerChannel->begin(callback, (float)period, isPeriodic) :
-            timerChannel->begin(callback, (uint32_t)period, isPeriodic);
+        errorCode err = std::is_floating_point<T>() ? timerChannel->begin(callback, (float)period, isPeriodic) : timerChannel->begin(callback, (uint32_t)period, isPeriodic);
 
         if (err == errorCode::OK && isPeriodic && start)
-                timerChannel->start();
+        {
+            timerChannel->start();
+        }
 
         return err;
     }
 
+    errorCode BaseTimer::end()
+    {
+        return postError(errorCode::notImplemented);
+    }
+
+    errorCode BaseTimer::stop()
+    {
+        return postError(timerChannel->stop());
+    }
+
     float BaseTimer::getMaxPeriod() const
     {
-        if (timerChannel != nullptr) return timerChannel->getMaxPeriod();
+        if (timerChannel != nullptr)
+            return timerChannel->getMaxPeriod();
+
         postError(errorCode::notInitialized);
         return 0;
     }
-
 }

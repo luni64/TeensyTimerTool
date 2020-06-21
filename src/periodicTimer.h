@@ -11,20 +11,19 @@ namespace TeensyTimerTool
             : BaseTimer(generator, true) {}
 
         inline errorCode start();
-        inline errorCode stop();
     };
 
 
     // IMPLEMENTATION =====================================================================
 
-   
+
     errorCode PeriodicTimer::start()
     {
         return errorCode::notImplemented;
     }
 
-    errorCode PeriodicTimer::stop()
-    {
-        return errorCode::notImplemented;
-    }
+    // errorCode PeriodicTimer::stop()
+    // {
+    //     return errorCode::notImplemented;
+    // }
 }

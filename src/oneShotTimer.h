@@ -13,7 +13,6 @@ namespace TeensyTimerTool
 
         inline errorCode begin(callback_t cb);
         template <typename T> errorCode trigger(T delay);
-        inline errorCode stop();
     };
 
 
@@ -41,10 +40,5 @@ namespace TeensyTimerTool
             result = timerChannel->trigger((uint32_t) delay);
 
         return result;
-    }
-
-    errorCode OneShotTimer::stop()
-    {
-        return postError(errorCode::notImplemented);
     }
 }
