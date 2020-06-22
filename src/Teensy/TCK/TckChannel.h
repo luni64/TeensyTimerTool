@@ -18,10 +18,10 @@ namespace TeensyTimerTool
         inline TckChannel() { triggered = false; }
         inline virtual ~TckChannel(){}; //TBD
 
-        inline errorCode begin(callback_t cb, uint32_t period, bool periodic);
-        inline void start();
-        inline errorCode stop();
-        inline errorCode trigger(uint32_t delay_us);
+        inline errorCode begin(callback_t cb, uint32_t period, bool periodic) override;
+        inline errorCode start() override;
+        inline errorCode stop() override;
+        inline errorCode trigger(uint32_t delay_us) override;
 
         inline errorCode setPeriod(uint32_t microSeconds) override;
         inline errorCode setCurrentPeriod(uint32_t microSeconds) override;
@@ -64,10 +64,11 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    void TckChannel::start()
+    errorCode TckChannel::start()
     {
         this->startCNT = ARM_DWT_CYCCNT;
         this->triggered = true;
+        return errorCode::OK;
     }
 
     errorCode TckChannel::stop()
