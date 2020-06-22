@@ -18,10 +18,10 @@ namespace TeensyTimerTool
         virtual errorCode setCurrentPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setNextPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
 
-        virtual uint32_t getPeriod() { return 0; }
+        virtual uint32_t getPeriod() { return 0; } 
 
-        virtual void start(){};
-        virtual errorCode stop() { return errorCode::notImplemented; }
+        virtual errorCode start() { return postError(errorCode::notInitialized); };
+        virtual errorCode stop() { return postError(errorCode::notImplemented); }
         inline void setCallback(callback_t);
 
      protected:

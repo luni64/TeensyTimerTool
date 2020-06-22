@@ -13,7 +13,9 @@ namespace TeensyTimerTool
         template <typename T>
         inline errorCode begin(callback_t callback, T period, bool start = true);
         inline errorCode end();
+        inline errorCode start();
         inline errorCode stop();
+
         inline float getMaxPeriod() const;
 
 #if defined(ENABLE_ADVANCED_FEATURES)
@@ -70,6 +72,12 @@ namespace TeensyTimerTool
     errorCode BaseTimer::end()
     {
         return postError(errorCode::notImplemented);
+    }
+
+    errorCode BaseTimer::start()
+    {
+        timerChannel->start();
+        return errorCode::OK; // hack, implement return value in timer interface
     }
 
     errorCode BaseTimer::stop()
