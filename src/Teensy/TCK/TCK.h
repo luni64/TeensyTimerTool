@@ -36,7 +36,7 @@ namespace TeensyTimerTool
             ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
 
             // initialize the yield hook
-           #if  (defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)) && YIELD_TYPE == YIELD_STANDARD
+           #if defined(TEENSYDUINO) && YIELD_TYPE == YIELD_STANDARD
               extern void initYieldHook();
               initYieldHook();
            #endif
