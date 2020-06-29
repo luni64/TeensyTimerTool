@@ -16,6 +16,8 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() override;
         inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic);
         inline errorCode trigger(uint32_t tcnt) FASTRUN;
+        inline errorCode start() override;
+        inline errorCode stop() override;
 
         inline uint16_t ticksFromMicros(float micros);
         // inline void setPeriod(uint32_t) {}
@@ -41,9 +43,22 @@ namespace TeensyTimerTool
         ci->reload = ticksFromMicros(tcnt);
         ci->callback = callback;
 
+        return errorCode::OK;
+    }
+
+     errorCode FTM_Channel::start()
+    {
         ci->chRegs->CV = regs->CNT + ci->reload;               // compare value (current counter + pReload)
         ci->chRegs->SC &= ~FTM_CSC_CHF;                        // reset timer flag
         ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE;           // enable interrupts
+        return errorCode::OK;
+    }
+
+    errorCode FTM_Channel::stop()
+    {
+        ci->chRegs->SC &= ~FTM_CSC_CHIE;                       // enable interrupts
+        ci->chRegs->SC &= ~FTM_CSC_CHF;                        // reset timer flag
+
         return errorCode::OK;
     }
 
