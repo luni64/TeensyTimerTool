@@ -16,6 +16,8 @@ namespace TeensyTimerTool
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
+        inline errorCode start() override;
+        inline errorCode stop() override;
 
         inline errorCode trigger(uint32_t) override;
         inline errorCode trigger(float) override;
@@ -71,10 +73,22 @@ namespace TeensyTimerTool
                 postError(errorCode::periodOverflow);
                 IMXRT_PIT_CHANNELS[chNr].LDVAL = 0xFFFF'FFFE;
             } else
+            {
                 IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)tmp - 1;
-
-            IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
+            }
         }
+        return errorCode::OK;
+    }
+
+    errorCode PITChannel::start()
+    {
+       IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
+       return errorCode::OK;
+    }
+
+    errorCode PITChannel::stop()
+    {
+        IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
         return errorCode::OK;
     }
 
@@ -110,7 +124,7 @@ namespace TeensyTimerTool
         } else
             IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)tmp - 1;
 
-        IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
+        start();
 
         return errorCode::OK;
     }
@@ -121,6 +135,6 @@ namespace TeensyTimerTool
     }
 
 
-   
+
 
 } // namespace TeensyTimerTool

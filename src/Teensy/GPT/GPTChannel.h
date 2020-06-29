@@ -14,6 +14,8 @@ namespace TeensyTimerTool
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
+        inline errorCode start() override;
+        inline errorCode stop() override;
 
         inline errorCode trigger(uint32_t) override;
         inline errorCode trigger(float) override;
@@ -55,18 +57,29 @@ namespace TeensyTimerTool
             } else
                 reload = (uint32_t)tmp - 1;
 
-            regs->SR = 0x3F;         // clear all interupt flags
-            regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-            regs->OCR1 = reload;     // set overflow value
-            regs->CR |= GPT_CR_EN;   // enable timer
+            regs->OCR1 = reload; // set overflow value
         }
+        return errorCode::OK;
+    }
+
+    errorCode GptChannel::start()
+    {
+        regs->SR = 0x3F;         // clear all interupt flags
+        regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
+        regs->CR |= GPT_CR_EN;   // enable timer
+        return errorCode::OK;
+    }
+
+    errorCode GptChannel::stop()
+    {
+        regs->CR &= ~GPT_CR_EN; // disable timer
+        regs->IR = 0;
         return errorCode::OK;
     }
 
     GptChannel::~GptChannel()
     {
-        regs->CR &= ~GPT_CR_EN;
-        regs->IR = 0x00;
+        stop();
         setCallback(nullptr);
     }
 
@@ -89,7 +102,7 @@ namespace TeensyTimerTool
 
         regs->SR = 0x3F;         // clear all interupt flags
         regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-        regs->OCR1 = reload ; // set overflow value
+        regs->OCR1 = reload;     // set overflow value
         regs->CR |= GPT_CR_EN;   // enable timer
 
         return errorCode::OK;
@@ -98,7 +111,7 @@ namespace TeensyTimerTool
     float GptChannel::getMaxPeriod()
     {
         uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
-        return  (float) 0xFFFF'FFFE / pid_clock_mhz;
+        return (float)0xFFFF'FFFE / pid_clock_mhz;
     }
 
 } // namespace TeensyTimerTool
