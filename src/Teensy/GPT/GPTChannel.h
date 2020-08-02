@@ -110,7 +110,7 @@ namespace TeensyTimerTool
 
     float GptChannel::getMaxPeriod()
     {
-        uint32_t pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
+        float pid_clock_mhz = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24E6f : (F_BUS_ACTUAL);
         return (float)0xFFFF'FFFE / pid_clock_mhz;
     }
 

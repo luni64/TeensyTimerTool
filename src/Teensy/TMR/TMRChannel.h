@@ -135,7 +135,7 @@ namespace TeensyTimerTool
 
     float TMRChannel::getMaxPeriod()
     {
-        return pscValue / 150.0f * 0xFFFE;
+        return pscValue / 150'000'000.0f * 0xFFFE;
     }
 
     void TMRChannel::_setNextPeriod(const uint16_t cnt)

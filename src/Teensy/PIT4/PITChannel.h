@@ -131,7 +131,7 @@ namespace TeensyTimerTool
 
     float PITChannel::getMaxPeriod()
     {
-        return (float)0xFFFF'FFFE / clockFactor;
+        return (float)0xFFFF'FFFE / clockFactor / 1'000'000;
     }
 
 
