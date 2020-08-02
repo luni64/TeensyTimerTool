@@ -12,6 +12,7 @@ namespace TeensyTimerTool
      public:
         template <typename T>
         inline errorCode begin(callback_t callback, T period, bool start = true);
+        errorCode setPrescaler(int psc);
         inline errorCode end();
         inline errorCode start();
         inline errorCode stop();
@@ -31,11 +32,12 @@ namespace TeensyTimerTool
         TimerGenerator* timerGenerator;
         ITimerChannel* timerChannel;
         bool isPeriodic;
+        uint32_t prescaler = 0;
     };
 
     // INLINE IMPLEMENTATION ================================================
 
-    template <typename T>
+ template <typename T>
     errorCode BaseTimer::begin(callback_t callback, T period, bool start)
     {
         if (callback == nullptr) return postError(errorCode::callback);
@@ -59,6 +61,7 @@ namespace TeensyTimerTool
 
         static_assert(std::is_floating_point<T>() || std::is_integral<T>(), "only floating point or integral types allowed");
 
+        
         errorCode err = std::is_floating_point<T>() ? timerChannel->begin(callback, (float)period, isPeriodic) : timerChannel->begin(callback, (uint32_t)period, isPeriodic);
 
         if (err == errorCode::OK && isPeriodic && start)
@@ -68,6 +71,7 @@ namespace TeensyTimerTool
 
         return err;
     }
+
 
     errorCode BaseTimer::end()
     {

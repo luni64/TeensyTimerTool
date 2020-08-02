@@ -1,5 +1,6 @@
 #pragma once
 
+//#include "TckChannelBase.h"
 #include "TckChannel.h"
 #include "core_pins.h"
 
@@ -10,17 +11,18 @@ namespace TeensyTimerTool
     class TCK_t
     {
      public:
-        static inline ITimerChannel* getTimer();
-        static inline void removeTimer(TckChannel*);
+        template<typename counterType> static inline ITimerChannel* getTimer();
+        static inline void removeTimer(TckChannelBase*);
         static inline void tick();
 
      protected:
         static bool isInitialized;
-        static TckChannel* channels[NR_OF_TCK_TIMERS];
+        static TckChannelBase* channels[NR_OF_TCK_TIMERS];
     };
 
     // IMPLEMENTATION ==================================================================
 
+    template<typename counterType>
     ITimerChannel* TCK_t::getTimer()
     {
         if (!isInitialized)
@@ -46,7 +48,7 @@ namespace TeensyTimerTool
         {
             if (channels[chNr] == nullptr)
             {
-                channels[chNr] = new TckChannel();
+                channels[chNr] = new TckChannel<counterType>();
                 return channels[chNr];
             }
         }
@@ -54,7 +56,7 @@ namespace TeensyTimerTool
         return nullptr;
     }
 
-    void TCK_t::removeTimer(TckChannel* channel)
+    void TCK_t::removeTimer(TckChannelBase* channel)
     {
         for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)
         {

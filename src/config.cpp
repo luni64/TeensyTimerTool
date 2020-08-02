@@ -21,7 +21,9 @@ using tick_t = void (*) ();
 
         TimerGenerator* const PIT = PIT_t::getTimer;
 
-        TimerGenerator* const TCK = TCK_t::getTimer;
+        TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
+        TimerGenerator* const TCK32 = TCK_t::getTimer<uint32_t>; // same as TCK
+        TimerGenerator* const TCK64 = TCK_t::getTimer<uint64_t>;
 
         constexpr tick_t tick = &TCK_t::tick;
     }
@@ -32,7 +34,9 @@ using tick_t = void (*) ();
 
     namespace TeensyTimerTool
     {
-        TimerGenerator* const TCK = TCK_t::getTimer;
+        TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
+        TimerGenerator* const TCK32 = TCK_t::getTimer<uint32_t>; // same as TCK
+        TimerGenerator* const TCK64 = TCK_t::getTimer<uint64_t>;
 
         TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
         TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
@@ -49,7 +53,9 @@ using tick_t = void (*) ();
 
     namespace TeensyTimerTool
     {
-        TimerGenerator* const TCK = TCK_t::getTimer;
+        TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
+        TimerGenerator* const TCK32 = TCK_t::getTimer<uint32_t>; // same as TCK
+        TimerGenerator* const TCK64 = TCK_t::getTimer<uint64_t>;
 
         TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
         TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
@@ -75,7 +81,7 @@ using tick_t = void (*) ();
 
     namespace TeensyTimerTool
     {
-        TimerGenerator* const TCK = TCK_t::getTimer;
+        TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
         constexpr tick_t tick = &TCK_t::tick;
     }
 

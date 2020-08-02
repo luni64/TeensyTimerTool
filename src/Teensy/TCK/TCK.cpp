@@ -6,7 +6,7 @@
     namespace TeensyTimerTool
     {
         bool TCK_t::isInitialized = false;
-        TckChannel* TCK_t::channels[NR_OF_TCK_TIMERS];
+        TckChannelBase* TCK_t::channels[NR_OF_TCK_TIMERS];
     }
 
 //----------------------------------------------------------------------

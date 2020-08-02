@@ -1,9 +1,9 @@
 #include "baseTimer.h"
+#include "Arduino.h"
 #include "types.h"
 
 namespace TeensyTimerTool
 {
-
 
     BaseTimer::BaseTimer(TimerGenerator* generator, bool periodic)
         : timerGenerator(generator)
@@ -13,9 +13,10 @@ namespace TeensyTimerTool
         this->isPeriodic = periodic;
     }
 
-
-
-
-
+    errorCode BaseTimer::setPrescaler(int psc)
+    {
+        this->prescaler = psc;
+        return errorCode::OK;
+    }
 
 }

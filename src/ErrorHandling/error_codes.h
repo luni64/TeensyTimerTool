@@ -16,9 +16,10 @@ namespace TeensyTimerTool
         callback=          101,
         reload=            102,
         noFreeModule =     103,
-        noFreeChannel =    104,
-        notImplemented=    105,
+        noFreeChannel =    104,  // requested module has no free channel
+        notImplemented=    105,  // timer does not support this feature
         notInitialized=    106,
+
 
         // GTP Errors
         GTP_err =          200,

@@ -23,6 +23,9 @@ namespace TeensyTimerTool
             case errorCode::periodOverflow:
                 txt = "Period overflow, set to maximum";
                 break;
+            case errorCode::wrongType:
+                txt = "Wrong parameter type";
+                break;
 
             // general errors
             case errorCode::reload:
@@ -35,7 +38,7 @@ namespace TeensyTimerTool
                 txt = "Timer pool contains no free timer";
                 break;
             case errorCode::notImplemented:
-                txt = "Function not implemented";
+                txt = "Function not implemented for this timer";
                 break;
             case errorCode::notInitialized:
                 txt = "Timer not initialized or available";
