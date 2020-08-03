@@ -15,15 +15,15 @@ namespace TeensyTimerTool
     class TckChannel : public TckChannelBase
     {
      public:
-        inline TckChannel() { triggered = false; }
-        inline virtual ~TckChannel(){}; //TBD
+        TckChannel() { triggered = false; }
+        virtual ~TckChannel(){}; //TBD
 
         inline errorCode begin(callback_t cb, uint32_t period, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
         inline errorCode trigger(uint32_t delay_us) override;
 
-        float getMaxPeriod() { return getMaxMicros() / 1E6; } // seconds
+        float getMaxPeriod() override  { return getMaxMicros() / 1E6; }  // seconds
 
         uint32_64_t getCurCycleCounter() { postError(errorCode::wrongType); }
 
@@ -33,7 +33,7 @@ namespace TeensyTimerTool
 
      protected:
         inline bool tick();
-        uint32_t getMaxMicros();
+        uint32_t getMaxMicros() const;
 
         callback_t callback;
 
@@ -58,8 +58,8 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ==============================================
 
-    template <typename ct>
-    errorCode TckChannel<ct>::begin(callback_t cb, uint32_t period, bool periodic)
+    template <typename T>
+    errorCode TckChannel<T>::begin(callback_t cb, uint32_t period, bool periodic)
     {
         this->triggered = false;
         this->periodic = periodic;
@@ -73,23 +73,23 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    template <typename ct>
-    errorCode TckChannel<ct>::start()
+    template <typename T>
+    errorCode TckChannel<T>::start()
     {
         this->startCnt = getCurCycleCounter();
         this->triggered = true;
         return errorCode::OK;
     }
 
-    template <typename ct>
-    errorCode TckChannel<ct>::stop()
+    template <typename T>
+    errorCode TckChannel<T>::stop()
     {
         this->triggered = false;
         return errorCode::OK;
     }
 
-    template <typename ct>
-    errorCode TckChannel<ct>::trigger(uint32_t delay) // µs
+    template <typename T>
+    errorCode TckChannel<T>::trigger(uint32_t delay) // µs
     {
         this->startCnt = getCurCycleCounter();
         this->nextPeriod = microsecondToCPUCycles(delay);
@@ -140,7 +140,7 @@ namespace TeensyTimerTool
     }
 
     template <>
-    inline uint32_t TckChannel<uint32_t>::getMaxMicros()
+    inline uint32_t TckChannel<uint32_t>::getMaxMicros() const
     {
         return (1E6 * 0xF000'0000) / F_CPU; // don't use full range otherwise tick might miss the turnover for large periods
     }
@@ -160,7 +160,7 @@ namespace TeensyTimerTool
     }
 
     template <>
-    inline uint32_t TckChannel<uint64_t>::getMaxMicros()
+    inline uint32_t TckChannel<uint64_t>::getMaxMicros() const
     {
         return 0xFFFF'FFFF; // currently limited to 2^32 µs (71.6h). Could be extended to 2^64 but would require change of interface
     }
