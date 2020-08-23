@@ -8,21 +8,20 @@ namespace TeensyTimerTool
     {
      public:
         virtual errorCode begin(callback_t callback, uint32_t period, bool oneShot) = 0;
-        virtual errorCode begin(callback_t callback, float period, bool oneShot) { return postError(errorCode::wrongType); };
+        virtual errorCode begin(callback_t callback, float period, bool oneShot) = 0;
         virtual errorCode trigger(uint32_t delay) = 0;
-        virtual errorCode trigger(float delay) { return postError(errorCode::wrongType); }
+        virtual errorCode trigger(float delay) = 0;
+        virtual errorCode start() = 0;
+        virtual errorCode stop() = 0;
+
         virtual errorCode setPrescaler(int  psc) { return postError(errorCode::notImplemented); }
 
-        virtual float getMaxPeriod(){ postError(errorCode::notImplemented); return 0.0f;};
-
+        virtual float getMaxPeriod() = 0;
         virtual errorCode setPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setCurrentPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setNextPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
-
         virtual uint32_t getPeriod() { return 0; }
 
-        virtual errorCode start() { return postError(errorCode::notInitialized); };
-        virtual errorCode stop() { return postError(errorCode::notImplemented); }
         inline void setCallback(callback_t);
 
      protected:
