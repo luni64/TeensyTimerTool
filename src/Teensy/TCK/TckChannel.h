@@ -15,16 +15,22 @@ namespace TeensyTimerTool
     class TckChannel : public TckChannelBase
     {
      public:
-        TckChannel() { triggered = false; }
+        TckChannel();
         virtual ~TckChannel(){}; //TBD
 
-        inline errorCode begin(callback_t cb, uint32_t period, bool periodic) override;
         inline errorCode begin(callback_t cb, float period, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
-        inline errorCode trigger(uint32_t delay_us) override;
 
-        float getMaxPeriod() override  { return getMaxMicros() / 1E6; }  // seconds
+        inline errorCode trigger(float delay_us) override;
+        inline errorCode triggerDirect(CounterType reload) override;
+        inline errorCode getTriggerReload(float delay, CounterType* reload) override
+        {
+            *reload = microsecondToCycles(delay);
+            return errorCode::OK;
+        }
+
+        float getMaxPeriod() const override { return getMaxMicros() / 1E6; } // seconds
 
         CounterType getCycleCounter() { postError(errorCode::wrongType); }
 
@@ -33,22 +39,23 @@ namespace TeensyTimerTool
         // inline errorCode setNextPeriod(uint32_t microSeconds) override;
 
      protected:
-        inline bool tick();
-        inline CounterType microsecondToCPUCycles(const float microSecond) const;
-        uint32_t getMaxMicros() const;
+        inline CounterType microsecondToCycles(const float microSecond) const;
+        float getMaxMicros() const;
 
+        inline bool tick();
         callback_t callback;
 
-        bool triggered;
         bool periodic;
+        bool triggered;
 
-        bool block = false;
-
+       // bool block = false;
 
         CounterType startCnt, currentPeriod, nextPeriod;
 
         uint32_t lastCyCnt;
         uint32_t curHIGH;
+
+        float clock;
 
         friend TCK_t;
 
@@ -60,16 +67,24 @@ namespace TeensyTimerTool
     // IMPLEMENTATION ==============================================
 
     template <typename T>
-    errorCode TckChannel<T>::begin(callback_t cb, uint32_t period, bool periodic)
+    TckChannel<T>::TckChannel()
+    {
+        triggered = false;
+        clock = F_CPU / 1'000'000.0f;
+    }
+
+    template <typename T>
+    errorCode TckChannel<T>::begin(callback_t cb, float period, bool periodic)
     {
         this->triggered = false;
+
         this->periodic = periodic;
-        this->currentPeriod = microsecondToCPUCycles(period);
-
-        this->nextPeriod = this->currentPeriod;
+        if (periodic)
+        {
+            this->currentPeriod = microsecondToCycles(period);
+            this->nextPeriod = this->currentPeriod;
+        }
         this->callback = cb;
-
-        this->startCnt = getCurCycleCounter();
 
         return errorCode::OK;
     }
@@ -77,7 +92,7 @@ namespace TeensyTimerTool
     template <typename T>
     errorCode TckChannel<T>::start()
     {
-        this->startCnt = getCurCycleCounter();
+        this->startCnt = getCycleCounter();
         this->triggered = true;
         return errorCode::OK;
     }
@@ -89,27 +104,32 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    template <typename T>
-    errorCode TckChannel<T>::trigger(uint32_t delay) // µs
+    template <typename CounterType>
+    errorCode TckChannel<CounterType>::triggerDirect(CounterType reload)
     {
-        this->startCnt = getCurCycleCounter();
-        this->nextPeriod = microsecondToCPUCycles(delay);
-        this->currentPeriod = this->nextPeriod - 68; //??? compensating for cycles spent computing?
-
+        this->startCnt = getCycleCounter();
+        this->nextPeriod = reload;
+        this->currentPeriod = this->nextPeriod;
         this->triggered = true;
-
         return errorCode::OK;
+    }
+
+    template <typename T>
+    errorCode TckChannel<T>::trigger(float delay) // µs
+    {
+        return triggerDirect(microsecondToCycles(delay));
     }
 
     template <typename counter_t>
     bool TckChannel<counter_t>::tick()
     {
         static bool lock = false;
-        counter_t now = getCurCycleCounter();
+        counter_t now = getCycleCounter();
         if (!lock && this->currentPeriod != 0 && this->triggered && (now - this->startCnt) >= this->currentPeriod)
         {
             lock = true;
-            this->startCnt = now;
+            //this->startCnt = now;
+            this->startCnt += currentPeriod;
             this->triggered = this->periodic; // i.e., stays triggerd if periodic, stops if oneShot
             callback();
             lock = false;
@@ -120,36 +140,36 @@ namespace TeensyTimerTool
         }
     }
 
-    template <typename ct>
-    ct TckChannel<ct>::microsecondToCPUCycles(uint32_t microSecond)
+    template <typename CounterType>
+    CounterType TckChannel<CounterType>::microsecondToCycles(float microSecond) const
     {
         if (microSecond > getMaxMicros())
         {
             microSecond = getMaxMicros();
             postError(errorCode::periodOverflow);
         }
-        return microSecond * ct(F_CPU / 1'000'000);
+        return (CounterType)(microSecond * clock);
     }
 
     // SPECIALIZATIONS =================================================================================
     // 32bit Counter -------------------------------------------------------------------------
 
     template <>
-    inline uint32_t TckChannel<uint32_t>::getCurCycleCounter()
+    inline uint32_t TckChannel<uint32_t>::getCycleCounter()
     {
         return ARM_DWT_CYCCNT; //directly use the cycle counter for uint32_t
     }
 
     template <>
-    inline uint32_t TckChannel<uint32_t>::getMaxMicros() const
+    inline float TckChannel<uint32_t>::getMaxMicros() const
     {
-        return (1E6 * 0xF000'0000) / F_CPU; // don't use full range otherwise tick might miss the turnover for large periods
+        return  0xF000'0000 / clock; // don't use full range otherwise tick might miss the turnover for large periods
     }
 
     // 64bit Counter -------------------------------------------------------------------------
 
     template <>
-    inline uint64_t TckChannel<uint64_t>::getCurCycleCounter()
+    inline uint64_t TckChannel<uint64_t>::getCycleCounter()
     {
         uint32_t now = ARM_DWT_CYCCNT; // (extend the cycle counter to 64 bit)
         if (now < lastCyCnt)
@@ -161,7 +181,7 @@ namespace TeensyTimerTool
     }
 
     template <>
-    inline uint32_t TckChannel<uint64_t>::getMaxMicros() const
+    inline float TckChannel<uint64_t>::getMaxMicros() const
     {
         return 0xFFFF'FFFF; // currently limited to 2^32 µs (71.6h). Could be extended to 2^64 but would require change of interface
     }
@@ -228,14 +248,12 @@ namespace TeensyTimerTool
         TckChannel() { triggered = false; }
         virtual ~TckChannel(){};
 
-        errorCode begin(callback_t cb, uint32_t period, bool periodic)
+        errorCode begin(callback_t cb, float period, bool periodic) override
         {
             triggered = false;
             this->periodic = periodic;
-            this->period = period;
+            this->period = (uint32_t)period;
             this->callback = cb;
-
-            startCNT = micros();
 
             return errorCode::OK;
         }
@@ -256,10 +274,10 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(uint32_t microSeconds) override;
         inline uint32_t getPeriod(void);
 
-        inline errorCode trigger(uint32_t delay) // µs
+        inline errorCode trigger(float delay) // µs
         {
             this->startCNT = micros();
-            this->period = delay;
+            this->period = (uint32_t)delay;
             this->triggered = true;
             return errorCode::OK;
         }
