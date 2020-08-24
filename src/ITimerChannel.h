@@ -7,16 +7,19 @@ namespace TeensyTimerTool
     class ITimerChannel
     {
      public:
-        virtual errorCode begin(callback_t callback, uint32_t period, bool oneShot) = 0;
         virtual errorCode begin(callback_t callback, float period, bool oneShot) = 0;
-        virtual errorCode trigger(uint32_t delay) = 0;
         virtual errorCode trigger(float delay) = 0;
+        virtual errorCode triggerDirect(uint32_t reload){ return postError(errorCode::notImplemented); };
+        virtual errorCode triggerDirect(uint64_t reload){ return postError(errorCode::notImplemented); };
+        virtual errorCode getTriggerReload(float delay, uint32_t* reload) {return postError(errorCode::notImplemented);};
+        virtual errorCode getTriggerReload(float delay, uint64_t* reload) {return postError(errorCode::notImplemented);};
+
         virtual errorCode start() = 0;
         virtual errorCode stop() = 0;
 
         virtual errorCode setPrescaler(int  psc) { return postError(errorCode::notImplemented); }
 
-        virtual float getMaxPeriod() = 0;
+        virtual float getMaxPeriod() const = 0;
         virtual errorCode setPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setCurrentPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setNextPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };

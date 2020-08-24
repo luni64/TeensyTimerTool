@@ -13,8 +13,9 @@ namespace TeensyTimerTool
 
         inline errorCode begin(callback_t cb);
         template <typename T> errorCode trigger(T delay);
+        template <typename T> errorCode triggerDirect(T reload);
+        template <typename T> errorCode getTriggerReload(float delay, T* reload);
     };
-
 
     // Implementation ================================================
 
@@ -24,7 +25,7 @@ namespace TeensyTimerTool
 
     errorCode OneShotTimer::begin(callback_t callback)
     {
-        return BaseTimer::begin(callback, 0,  false);
+        return BaseTimer::begin(callback, 0, false);
     }
 
     template <typename T>
@@ -35,10 +36,22 @@ namespace TeensyTimerTool
         errorCode result;
 
         if (std::is_floating_point<T>())
-            result = timerChannel->trigger((float) delay);
+            result = timerChannel->trigger((float)delay);
         else
-            result = timerChannel->trigger((uint32_t) delay);
+            result = timerChannel->trigger((uint32_t)delay);
 
         return result;
+    }
+
+    template <typename T>
+    errorCode OneShotTimer::triggerDirect(T reload)
+    {
+        return timerChannel->triggerDirect(reload);
+    }
+
+    template <typename T>
+    errorCode OneShotTimer::getTriggerReload(float delay, T* reload)
+    {
+        return timerChannel->getTriggerReload(delay, reload);
     }
 }
