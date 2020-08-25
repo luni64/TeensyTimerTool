@@ -13,13 +13,23 @@ namespace TeensyTimerTool
         inline FTM_Channel(FTM_r_t* regs, FTM_ChannelInfo* ci);
         inline virtual ~FTM_Channel();
 
-        inline float getMaxPeriod() override;
+        inline float getMaxPeriod() const override;
+        inline errorCode begin(callback_t cb, float tcnt, bool periodic)
+        {
+            begin(cb, (uint32_t)tcnt, periodic);
+            return errorCode::OK;
+        };
         inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic);
-        inline errorCode trigger(uint32_t tcnt) FASTRUN;
+
+        inline errorCode trigger(float tcnt) override FASTRUN;
+        inline errorCode triggerDirect(uint32_t reload) override FASTRUN;
+        inline errorCode getTriggerReload(float delay, uint32_t* reload) override;
+
         inline errorCode start() override;
         inline errorCode stop() override;
 
         inline uint16_t ticksFromMicros(float micros);
+
         // inline void setPeriod(uint32_t) {}
 
      protected:
@@ -46,38 +56,50 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-     errorCode FTM_Channel::start()
+    errorCode FTM_Channel::start()
     {
-        ci->chRegs->CV = regs->CNT + ci->reload;               // compare value (current counter + pReload)
-        ci->chRegs->SC &= ~FTM_CSC_CHF;                        // reset timer flag
-        ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE;           // enable interrupts
+        ci->chRegs->CV = regs->CNT + ci->reload;     // compare value (current counter + pReload)
+        ci->chRegs->SC &= ~FTM_CSC_CHF;              // reset timer flag
+        ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
         return errorCode::OK;
     }
 
     errorCode FTM_Channel::stop()
     {
-        ci->chRegs->SC &= ~FTM_CSC_CHIE;                       // enable interrupts
-        ci->chRegs->SC &= ~FTM_CSC_CHF;                        // reset timer flag
+        ci->chRegs->SC &= ~FTM_CSC_CHIE; // enable interrupts
+        ci->chRegs->SC &= ~FTM_CSC_CHF;  // reset timer flag
 
         return errorCode::OK;
     }
 
-    errorCode FTM_Channel::trigger(const uint32_t micros)
+    errorCode FTM_Channel::getTriggerReload(float delay, uint32_t* reload)
     {
-        uint32_t cv = regs->CNT + ticksFromMicros(micros) + 1; // calc early to minimize error
-        ci->chRegs->SC &= ~FTM_CSC_CHF;                        // Reset timer flag
-
-        regs->SC &= ~FTM_SC_CLKS_MASK;                         // need to switch off clock to immediately set new CV
-        ci->chRegs->CV = cv;                                   // compare value (current counter + pReload)
-        regs->SC |= FTM_SC_CLKS(0b01);                         // restart clock
-
-        ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE;           // enable interrupts
+        *reload = ticksFromMicros(delay);
         return errorCode::OK;
     }
 
-    float FTM_Channel::getMaxPeriod()
+    errorCode FTM_Channel::trigger(float delay)
     {
-        return  (0xFFFF * 1E-6f) / ci->ticksPerMicrosecond;    // max period in seconds
+        return triggerDirect(ticksFromMicros(delay));
+    }
+
+    errorCode FTM_Channel::triggerDirect(uint32_t reload)
+    {
+        uint32_t cv = regs->CNT + reload + 1;        // calc early to minimize error
+        ci->chRegs->SC &= ~FTM_CSC_CHF;              // Reset timer flag
+
+        regs->SC &= ~FTM_SC_CLKS_MASK;               // need to switch off clock to immediately set new CV
+        ci->chRegs->CV = cv;                         // compare value (current counter + pReload)
+        regs->SC |= FTM_SC_CLKS(0b01);               // restart clock
+
+        ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
+
+        return errorCode::OK;
+    }
+
+    float FTM_Channel::getMaxPeriod() const
+    {
+        return (0xFFFF * 1E-6f) / ci->ticksPerMicrosecond; // max period in seconds
     }
 
     uint16_t FTM_Channel::ticksFromMicros(float micros)
@@ -85,7 +107,7 @@ namespace TeensyTimerTool
         uint32_t rl = ci->ticksPerMicrosecond * micros;
         if (rl > 0xFFFF)
         {
-            postError(errorCode::periodOverflow);              // warning only, continues with clipped value
+            postError(errorCode::periodOverflow); // warning only, continues with clipped value
             rl = 0xFFFF;
         }
         return rl;

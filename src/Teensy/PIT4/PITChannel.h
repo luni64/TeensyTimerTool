@@ -15,14 +15,14 @@ namespace TeensyTimerTool
         inline virtual ~PITChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
-        inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
+        //inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
 
-        inline errorCode trigger(uint32_t) override;
+        //inline errorCode trigger(uint32_t) override;
         inline errorCode trigger(float) override;
         // inline void setPeriod(uint32_t) {}
-        inline float getMaxPeriod() override;
+        inline float getMaxPeriod() const override;
 
         bool isPeriodic;
 
@@ -52,10 +52,10 @@ namespace TeensyTimerTool
         clockFactor = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
     }
 
-    errorCode PITChannel::begin(callback_t cb, uint32_t micros, bool periodic)
-    {
-        return begin(cb, (float)micros, periodic);
-    }
+    // errorCode PITChannel::begin(callback_t cb, uint32_t micros, bool periodic)
+    // {
+    //     return begin(cb, (float)micros, periodic);
+    // }
 
     errorCode PITChannel::begin(callback_t cb, float micros, bool periodic)
     {
@@ -106,10 +106,10 @@ namespace TeensyTimerTool
         callback = nullptr;
     }
 
-    errorCode PITChannel::trigger(uint32_t delay)
-    {
-        return trigger((float)delay);
-    }
+    // errorCode PITChannel::trigger(uint32_t delay)
+    // {
+    //     return trigger((float)delay);
+    // }
 
     errorCode PITChannel::trigger(float delay) //should be optimized somehow
     {
@@ -129,7 +129,7 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    float PITChannel::getMaxPeriod()
+    float PITChannel::getMaxPeriod() const
     {
         return (float)0xFFFF'FFFE / clockFactor / 1'000'000;
     }

@@ -1,6 +1,7 @@
 #pragma once
 #include "../../ITimerChannel.h"
-#include "Arduino.h"
+//#include "Arduino.h"
+#include <cmath>
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
 #include "imxrt.h"
@@ -13,15 +14,15 @@ namespace TeensyTimerTool
         inline TMRChannel(IMXRT_TMR_CH_t* regs, callback_t* cbStorage);
         inline virtual ~TMRChannel();
 
-        inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
+       // inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
 
-        inline errorCode trigger(uint32_t tcnt) override;
+        //inline errorCode trigger(uint32_t tcnt) override;
         inline errorCode trigger(float tcnt) override;
 
-        inline float getMaxPeriod() override;
+        inline float getMaxPeriod() const override;
 
         inline errorCode setPeriod(uint32_t us) override;
         inline errorCode setCurrentPeriod(uint32_t us) override;
@@ -68,10 +69,10 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    errorCode TMRChannel::begin(callback_t cb, uint32_t tcnt, bool periodic)
-    {
-        return begin(cb, (float)tcnt, periodic);
-    }
+    // errorCode TMRChannel::begin(callback_t cb, uint32_t tcnt, bool periodic)
+    // {
+    //     return begin(cb, (float)tcnt, periodic);
+    // }
 
     errorCode TMRChannel::begin(callback_t cb, float tcnt, bool periodic)
     {
@@ -103,10 +104,10 @@ namespace TeensyTimerTool
         return t > 0xFFFF ? errorCode::periodOverflow : errorCode::OK;
     }
 
-    errorCode TMRChannel::trigger(uint32_t tcnt)
-    {
-        return trigger((float)tcnt);
-    }
+    // errorCode TMRChannel::trigger(uint32_t tcnt)
+    // {
+    //     return trigger((float)tcnt);
+    // }
 
     errorCode TMRChannel::trigger(float tcnt) // quick and dirty, should be optimized
     {
@@ -133,7 +134,7 @@ namespace TeensyTimerTool
         pscBits = 0b1000 | (psc & 0b0111);
     }
 
-    float TMRChannel::getMaxPeriod()
+    float TMRChannel::getMaxPeriod() const
     {
         return pscValue / 150'000'000.0f * 0xFFFE;
     }
