@@ -29,14 +29,12 @@ void PulsedDevice::begin(unsigned pin, float delay, float duration)
     pulseTimer.getTriggerReload(delay, &delayReload);
 }
 
-// switches pin on, and switches it off after duration time, non blocking
 void PulsedDevice::triggerDelayed()
 {
     digitalWriteFast(pin, LOW);
     pulseTimer.triggerDirect(delayReload);
 }
 
-// switches pin on after delay time and leaves it on for the duration time, non blocking
 void PulsedDevice::triggerNow()
 {
     digitalWriteFast(pin, HIGH);

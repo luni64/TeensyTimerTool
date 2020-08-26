@@ -5,22 +5,12 @@
 class LaserController
 {
  public:
-    //LaserController();
     void begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin);
     void shoot();
 
  protected:
-    unsigned preTriggerPin, triggerPin, camPin;
-
     PulsedDevice preTrigger, trigger, camera;
 };
-
-// LaserController::LaserController(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin)
-// {
-//     this->lamp = lamp;
-//     this->qSwitch = qSwitch;
-//     this->camera = camera;
-// }
 
 void LaserController::begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin)
 {
@@ -36,7 +26,7 @@ void LaserController::begin(unsigned preTriggerPin, unsigned triggerPin, unsigne
 
 void LaserController::shoot()
 {
-    preTrigger.triggerNow();  // immediately generate a pretrigger pulse
-    trigger.triggerDelayed(); // generate the trigger pulse after set delay time
-    camera.triggerDelayed();  // generate the cam pulse after the set delay time
+    preTrigger.triggerNow();  // immediately generate the pretrigger pulse
+    trigger.triggerDelayed(); // generate the trigger pulse after the warmup time
+    camera.triggerDelayed();  // generate the cam pulse after the camDelay time
 }
