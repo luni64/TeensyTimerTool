@@ -6,8 +6,8 @@
 class LaserController
 {
  public:
-    void begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin);
-    void shoot();
+    inline void begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin);
+    inline void shoot();
 
  protected:
     PulseGenerator preTrigger, trigger, camera;
