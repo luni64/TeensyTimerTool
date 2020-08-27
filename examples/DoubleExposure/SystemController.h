@@ -5,7 +5,7 @@
 class SystemController
 {
  public:
-    SystemController() : mainTimer(TeensyTimerTool::TCK) {} // construct the main 15Hz timer, we use a TCK here
+    SystemController();
     inline void begin();
     inline void shoot();
 
@@ -17,6 +17,9 @@ class SystemController
     LaserController lCtrl1, lCtrl2;
     unsigned exposureDelay = 300;
 };
+
+SystemController::SystemController()
+    : mainTimer(TeensyTimerTool::TCK) {} // construct the main 15Hz timer, we use a TCK here
 
 void SystemController::begin()
 {
@@ -45,9 +48,13 @@ void SystemController::shoot()
 void SystemController::continousMode(bool on)
 {
     if (on)
+    {
         mainTimer.start();
+    }
     else
+    {
         mainTimer.stop();
+    }
 }
 
 void SystemController::setExposureDelay(unsigned delay)

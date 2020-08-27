@@ -1,5 +1,6 @@
 #pragma once
-#include "PulsedDevice.h"
+
+#include "PulseGenerator.h"
 #include "TeensyTimerTool.h"
 
 class LaserController
@@ -9,24 +10,24 @@ class LaserController
     void shoot();
 
  protected:
-    PulsedDevice preTrigger, trigger, camera;
+    PulseGenerator preTrigger, trigger, camera;
 };
 
 void LaserController::begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin)
 {
-    constexpr unsigned warmUpTime = 139-4;
-    constexpr unsigned switchPulseWidth = 10-2;
-    constexpr unsigned camDelay = 109-5;
-    constexpr unsigned camIntegrationTime = 30-2;
-
-    preTrigger.begin(preTriggerPin, 0, switchPulseWidth);
-    trigger.begin(triggerPin, warmUpTime, switchPulseWidth);
-    camera.begin(camPin, camDelay, camIntegrationTime);
+    preTrigger.begin(preTriggerPin);
+    trigger.begin(triggerPin);
+    camera.begin(camPin);
 }
 
 void LaserController::shoot()
 {
-    preTrigger.triggerNow();  // immediately generate the pretrigger pulse
-    trigger.triggerDelayed(); // generate the trigger pulse after the warmup time
-    camera.triggerDelayed();  // generate the cam pulse after the camDelay time
+    constexpr float t_warmup = 140 - 5.5;
+    constexpr float t_p = 10 - 3;
+    constexpr float t_camDelay = 130 - 7.5;
+    constexpr float t_int = 30 - 3;
+
+    preTrigger.schedulePulse(0, t_p);        // immediately generate the pretrigger pulse
+    trigger.schedulePulse(t_warmup, t_p);    // schedule the trigger pulse to start after the warmup time
+    camera.schedulePulse(t_camDelay, t_int); // schedule the cam pulse after the camDelay time
 }
