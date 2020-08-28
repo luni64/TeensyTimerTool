@@ -6,17 +6,18 @@
 class PulseGenerator
 {
  public:
-    inline PulseGenerator();                             // constructor, initializes non hardware related stuff
-    inline void begin(unsigned pin);                     // intializes hardware related stuff
-    inline void schedulePulse(float delay, float width); // schedules a 'width µs' wide pulse after a waiting time of 'delay µs'. Non blocking.
+    PulseGenerator();                             // constructor, initializes non hardware related stuff
+    void begin(unsigned pin);                     // intializes hardware related stuff
+    void schedulePulse(float delay, float width); // schedules a 'width µs' wide pulse after a waiting time of 'delay µs'. Non blocking.
 
  protected:
     TeensyTimerTool::OneShotTimer pulseTimer;     // used for generating the pulses
-    inline void callback();
+    void callback();
 
     uint32_t pin;
     float width;
 };
+
 
 
 void PulseGenerator::begin(unsigned pin)

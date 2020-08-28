@@ -39,9 +39,9 @@ void SystemController::begin()
 
 void SystemController::shoot()
 {
-    unsigned start = micros();
+    elapsedMicros stopwatch = 0;
     lCtrl1.shoot();
-    while (micros() - start < exposureDelay) { yield(); }
+    while (stopwatch < exposureDelay) { yield(); }
     lCtrl2.shoot();
 }
 

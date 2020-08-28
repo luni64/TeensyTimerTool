@@ -4,25 +4,25 @@
 constexpr unsigned potPin = A0;
 ResponsiveAnalogRead pot(potPin, false);
 
-SystemController controller;
+SystemController sysControl;
 
 
 void setup()
 {
-    controller.begin();
+    sysControl.begin();
 
-    controller.setExposureDelay(250); // set exposure delay (time between two exposures) to 250 µs
-    controller.shoot();               // do a manual exposure
+    sysControl.setExposureDelay(250); // set exposure delay (time between two exposures) to 250 µs
+    sysControl.shoot();               // do a manual exposure
     delay(10);
-    controller.setExposureDelay(500); // same with 500µs delay between exposures
-    controller.shoot();
+    sysControl.setExposureDelay(500); // same with 500µs delay between exposures
+    sysControl.shoot();
 
-    controller.continousMode(true);   // start continously shooting
+    sysControl.continousMode(true);   // start continously shooting
     delay(1000);
-    controller.continousMode(false);  // stop after one second
+    sysControl.continousMode(false);  // stop after one second
 
     delay(500);
-    controller.continousMode(true);   // start again
+    sysControl.continousMode(true);   // start again
 }
 
 void loop()

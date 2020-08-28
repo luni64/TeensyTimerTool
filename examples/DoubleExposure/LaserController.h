@@ -1,13 +1,12 @@
 #pragma once
-
 #include "PulseGenerator.h"
 #include "TeensyTimerTool.h"
 
 class LaserController
 {
  public:
-    inline void begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin);
-    inline void shoot();
+    void begin(unsigned preTriggerPin, unsigned triggerPin, unsigned camPin);
+    void shoot();
 
  protected:
     PulseGenerator preTrigger, trigger, camera;
