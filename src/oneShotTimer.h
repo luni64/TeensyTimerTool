@@ -15,6 +15,15 @@ namespace TeensyTimerTool
         template <typename T> errorCode trigger(T delay);
         template <typename T> errorCode triggerDirect(T reload);
         template <typename T> errorCode getTriggerReload(float delay, T* reload);
+
+        #if defined(USE_TIME_LITERALS)
+        template <typename T, typename ratio>
+        errorCode trigger(duration<T, ratio> _delay)
+        {
+            T delay = duration_cast<microseconds>(_delay).count();
+            return trigger(delay);
+        }
+        #endif
     };
 
     // Implementation ================================================

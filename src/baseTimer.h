@@ -5,6 +5,13 @@
 #include "ITimerChannel.h"
 #include <type_traits>
 
+#if defined(USE_TIME_LITERALS)
+  #include <chrono>
+  using namespace std::chrono_literals;
+  using namespace std::chrono;
+#endif
+
+
 namespace TeensyTimerTool
 {
     class BaseTimer
@@ -12,12 +19,22 @@ namespace TeensyTimerTool
      public:
         template <typename T>
         inline errorCode begin(callback_t callback, T period, bool start = true);
-        errorCode setPrescaler(int psc);
+        inline errorCode setPrescaler(int psc);
         inline errorCode end();
         inline errorCode start();
         inline errorCode stop();
 
         inline float getMaxPeriod() const;
+
+        #if defined(USE_TIME_LITERALS)
+        template <typename T, typename ratio>
+        errorCode begin(callback_t callback, duration<T, ratio> period, bool start = true)
+        {
+            T p = duration_cast<microseconds>(period).count();
+            return begin(callback, p, start);
+        }
+        #endif
+
 
 #if defined(ENABLE_ADVANCED_FEATURES)
         ITimerChannel* getChannel()
@@ -61,7 +78,7 @@ namespace TeensyTimerTool
 
         static_assert(std::is_floating_point<T>() || std::is_integral<T>(), "only floating point or integral types allowed");
 
-        
+
         errorCode err = std::is_floating_point<T>() ? timerChannel->begin(callback, (float)period, isPeriodic) : timerChannel->begin(callback, (uint32_t)period, isPeriodic);
 
         if (err == errorCode::OK && isPeriodic && start)
