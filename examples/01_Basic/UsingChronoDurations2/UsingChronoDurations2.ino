@@ -1,7 +1,8 @@
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-OneShotTimer timer[]{TCK, TCK, TCK, TCK}; // 5 one-shot-timers
+OneShotTimer timer[]{TCK, TCK, TCK, TCK}; // 4 one-shot-timers
+PeriodicTimer pt1;                        // 1 periodic timer
 unsigned t_0;                             // start time
 
 void isr()
@@ -11,7 +12,7 @@ void isr()
 
 void setup()
 {
-    while (!Serial) {}            // wait for PC to connect the virtual serial port
+    while (!Serial) {} // wait for PC to connect the virtual serial port
 
     for (OneShotTimer& t : timer) // for the sake of simplicity, attach the same isr to all timers in array
     {
@@ -23,6 +24,8 @@ void setup()
     timer[2].trigger(2.5 * 0.3s + 20'000us / 2);             // 760 ms
     timer[3].trigger(milliseconds(50) + microseconds(5000)); // 55ms
     t_0 = millis();
+
+    pt1.begin([]{digitalToggleFast(LED_BUILTIN)})
 }
 
 void loop()
