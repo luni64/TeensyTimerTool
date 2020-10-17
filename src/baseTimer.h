@@ -7,10 +7,10 @@
 
 #if defined(USE_TIME_LITERALS)
   #include <chrono>
+  #include "frequency.h"
   using namespace std::chrono_literals;
   using namespace std::chrono;
 #endif
-
 
 namespace TeensyTimerTool
 {
@@ -32,6 +32,13 @@ namespace TeensyTimerTool
         {
             T p = duration_cast<microseconds>(period).count();
             return begin(callback, p, start);
+        }
+
+        template <typename T, typename ratio>
+        errorCode begin(callback_t callback, frequency<T, ratio> f, bool start = true)
+        {
+            T freq = ((hertz)f).count();
+            return begin(callback, 1E6f/freq, start);
         }
         #endif
 
