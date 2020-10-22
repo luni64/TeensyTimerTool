@@ -26,30 +26,29 @@ namespace TeensyTimerTool
 
         inline float getMaxPeriod() const;
 
-#if defined(ENABLE_ADVANCED_FEATURES)
-        ITimerChannel* getChannel()
-        {
-            return timerChannel;
-        }
-#endif
-
      protected:
         template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
         T getPeriod(T v) { return v; }
 
-#if defined(USE_TIME_LITERALS)
-        template <class T, std::enable_if_t<std::chrono::__is_duration<T>::value, int>* = nullptr>
-        float getPeriod(T v) {return (duration_cast<duration<float, std::micro>>(v).count());}
-
-        template <class T, std::enable_if_t<TeensyTimerTool::__is_frequency<T>::value, int>* = nullptr>
-        float getPeriod(T v) { return 1'000'000 / duration_cast<hertz>(v).count(); }
-#endif
         BaseTimer(TimerGenerator* generator, bool periodic);
 
         TimerGenerator* timerGenerator;
         ITimerChannel* timerChannel;
         bool isPeriodic;
         uint32_t prescaler = 0;
+
+#if defined(USE_TIME_LITERALS)
+     public:
+        template <typename dur = seconds>
+        inline float getMaxDuration() const { return getMaxPeriod() * dur::period::den / dur::period::num; }
+
+     protected:
+        template <class T, std::enable_if_t<std::chrono::__is_duration<T>::value, int>* = nullptr>
+        float getPeriod(T v) { return (duration_cast<duration<float, std::micro>>(v).count()); }
+
+        template <class T, std::enable_if_t<TeensyTimerTool::__is_frequency<T>::value, int>* = nullptr>
+        float getPeriod(T v) { return 1'000'000 / duration_cast<hertz>(v).count(); }
+#endif
     };
 
     // INLINE IMPLEMENTATION ================================================
@@ -106,8 +105,9 @@ namespace TeensyTimerTool
     float BaseTimer::getMaxPeriod() const
     {
         if (timerChannel != nullptr)
+        {
             return timerChannel->getMaxPeriod();
-
+        }
         postError(errorCode::notInitialized);
         return 0;
     }
