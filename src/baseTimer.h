@@ -6,10 +6,10 @@
 #include <type_traits>
 
 #if defined(USE_TIME_LITERALS)
-  #include <chrono>
-  #include "frequency.h"
-  using namespace std::chrono_literals;
-  using namespace std::chrono;
+#    include "frequency.h"
+#    include <chrono>
+using namespace std::chrono_literals;
+using namespace std::chrono;
 #endif
 
 namespace TeensyTimerTool
@@ -26,23 +26,6 @@ namespace TeensyTimerTool
 
         inline float getMaxPeriod() const;
 
-        #if defined(USE_TIME_LITERALS)
-        template <typename T, typename ratio>
-        errorCode begin(callback_t callback, duration<T, ratio> period, bool start = true)
-        {
-            T p = duration_cast<microseconds>(period).count();
-            return begin(callback, p, start);
-        }
-
-        template <typename T, typename ratio>
-        errorCode begin(callback_t callback, frequency<T, ratio> f, bool start = true)
-        {
-            T freq = ((hertz)f).count();
-            return begin(callback, 1E6f/freq, start);
-        }
-        #endif
-
-
 #if defined(ENABLE_ADVANCED_FEATURES)
         ITimerChannel* getChannel()
         {
@@ -51,6 +34,16 @@ namespace TeensyTimerTool
 #endif
 
      protected:
+        template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
+        T getPeriod(T v) { return v; }
+
+#if defined(USE_TIME_LITERALS)
+        template <class T, std::enable_if_t<std::chrono::__is_duration<T>::value, int>* = nullptr>
+        float getPeriod(T v) {return (duration_cast<duration<float, std::micro>>(v).count());}
+
+        template <class T, std::enable_if_t<TeensyTimerTool::__is_frequency<T>::value, int>* = nullptr>
+        float getPeriod(T v) { return 1'000'000 / duration_cast<hertz>(v).count(); }
+#endif
         BaseTimer(TimerGenerator* generator, bool periodic);
 
         TimerGenerator* timerGenerator;
@@ -61,9 +54,11 @@ namespace TeensyTimerTool
 
     // INLINE IMPLEMENTATION ================================================
 
- template <typename T>
-    errorCode BaseTimer::begin(callback_t callback, T period, bool start)
+    template <typename T>
+    errorCode BaseTimer::begin(callback_t callback, T p, bool start)
     {
+        auto period = getPeriod(p);
+
         if (callback == nullptr) return postError(errorCode::callback);
         if (isPeriodic && period == 0) return postError(errorCode::reload);
 
@@ -83,19 +78,14 @@ namespace TeensyTimerTool
             if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
         }
 
-        static_assert(std::is_floating_point<T>() || std::is_integral<T>(), "only floating point or integral types allowed");
+        errorCode result = timerChannel->begin(callback, period, isPeriodic);
 
-
-        errorCode err = std::is_floating_point<T>() ? timerChannel->begin(callback, (float)period, isPeriodic) : timerChannel->begin(callback, (uint32_t)period, isPeriodic);
-
-        if (err == errorCode::OK && isPeriodic && start)
+        if (result == errorCode::OK)
         {
-            timerChannel->start();
+            if (isPeriodic && start) timerChannel->start();
         }
-
-        return err;
+        return postError(result);
     }
-
 
     errorCode BaseTimer::end()
     {
