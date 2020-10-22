@@ -20,9 +20,9 @@ namespace TeensyTimerTool
         inline errorCode triggerDirect(uint32_t delay) override;
         inline errorCode getTriggerReload(float delay, uint32_t* reload) override;
 
-        inline float getMaxPeriod() const override { return getMaxPeriod() / 1E6; }
+        inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
 
-      
+
 
         bool periodic;
      protected:
