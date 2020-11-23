@@ -55,7 +55,7 @@ namespace TeensyTimerTool
             return;
         }
 
-        stream.printf("E-%i: %s\n", code, txt); // in case of errors we don't return
+        stream.printf("E-%i: %s\n", (int)code, txt); // in case of errors we don't return
         while (true)
         {
             digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
