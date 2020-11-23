@@ -48,7 +48,7 @@ namespace TeensyTimerTool
         bool periodic;
         bool triggered;
 
-       // bool block = false;
+        // bool block = false;
 
         CounterType startCnt, currentPeriod, nextPeriod;
 
@@ -163,7 +163,7 @@ namespace TeensyTimerTool
     template <>
     inline float TckChannel<uint32_t>::getMaxMicros() const
     {
-        return  0xF000'0000 / clock; // don't use full range otherwise tick might miss the turnover for large periods
+        return 0xF000'0000 / clock; // don't use full range otherwise tick might miss the turnover for large periods
     }
 
     // 64bit Counter -------------------------------------------------------------------------
@@ -237,7 +237,7 @@ namespace TeensyTimerTool
     //     return errorCode::OK;
     // }
 
-#else
+#else // TeensyLC
 
     // Quick hack only, needs to be improved
 
@@ -282,12 +282,12 @@ namespace TeensyTimerTool
             return errorCode::OK;
         }
 
-        float getMaxPeriod()
-        {
-            return (float)0xFFFF'FFFF / 1E6;
-        }
+        float getMaxPeriod() const override { return getMaxMicros() / 1E6; } // seconds
 
      protected:
+        static constexpr float clock = F_CPU / 1'000'000.0f;
+        float getMaxMicros() const { return 0xF000'0000 / clock; } // don't use full range otherwise tick might miss the turnover for large periods
+
         uint32_t startCNT, period;
         callback_t callback;
         bool triggered;
