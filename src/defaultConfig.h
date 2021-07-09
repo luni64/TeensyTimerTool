@@ -7,7 +7,10 @@ namespace TeensyTimerTool
 // Timer pool defintion
 // Add, and sort and remove to define the timer pool. Timers will be allocted from left to right
 
-#if defined(ARDUINO_TEENSY40)
+#if defined(ARDUINO_TEENSY_MICROMOD)
+    TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
+
+#elif defined(ARDUINO_TEENSY40)
     TimerGenerator* const timerPool[] = {GPT1, GPT2, TMR1, TMR2, TMR3, TMR4, TCK};
 
 #elif defined(ARDUINO_TEENSY41)
