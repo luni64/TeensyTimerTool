@@ -12,7 +12,7 @@ struct PWM_TimerInfo_t
 };
 
 //===========================================================================================================
-#if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)
+#if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY_MICROMOD)
 
 // holds core info about used pwm timers. Struct is defined in pwm.c.
 // There is no header declaring it. So, we need to do this here:

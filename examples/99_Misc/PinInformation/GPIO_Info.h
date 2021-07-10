@@ -25,9 +25,9 @@ GPIO_Info_t::GPIO_Info_t(unsigned pin)
 }
 
 //======================================================================================
-#elif defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)
+#elif defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY_MICROMOD)
 
-
+ 
 GPIO_Info_t::GPIO_Info_t(unsigned pin)
     : pinCfg((uintptr_t)digital_pin_to_info_PGM[pin].reg),            // address of pin config register
       gpioPortNr((pinCfg - (uintptr_t)&IMXRT_GPIO6) / 0x4000 + 6),    // cfg base addresses are 4kB aligned staring with PORTA_PCR0

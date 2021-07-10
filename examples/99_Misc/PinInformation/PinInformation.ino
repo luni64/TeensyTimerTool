@@ -1,5 +1,9 @@
+#include "Arduino.h"
+
 #include "PinInfo.h"
 #include <algorithm>
+
+void printPins(PinInfo* pins[], unsigned nrOfPins);
 
 void setup()
 {
