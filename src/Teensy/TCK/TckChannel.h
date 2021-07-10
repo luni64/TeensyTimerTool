@@ -35,7 +35,7 @@ namespace TeensyTimerTool
         CounterType getCycleCounter() { postError(errorCode::wrongType); }
 
         // inline errorCode setPeriod(uint32_t microSeconds) override;
-        // inline errorCode setCurrentPeriod(uint32_t microSeconds) override;
+        // inline errorCode setPeriod(uint32_t microSeconds) override;
         // inline errorCode setNextPeriod(uint32_t microSeconds) override;
 
      protected:
@@ -223,7 +223,7 @@ namespace TeensyTimerTool
     // }
 
     // template <typename ct>
-    // errorCode TckChannel<ct>::setCurrentPeriod(uint32_t microSeconds)
+    // errorCode TckChannel<ct>::setPeriod(uint32_t microSeconds)
     // {
     //     const uint32_t period = microsecondToCPUCycles(microSeconds);
     //     return this->_setCurrentPeriod(period);

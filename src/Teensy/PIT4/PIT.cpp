@@ -1,4 +1,4 @@
-#if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41)
+#if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY_MICROMOD)
 
 #include "PIT.h"
 

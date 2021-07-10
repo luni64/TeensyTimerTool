@@ -9,7 +9,7 @@ namespace TeensyTimerTool
     class TMR_t
     {
      public:
-        static ITimerChannel* getTimer(); 
+        static ITimerChannel* getTimer();
 
      protected:
         static bool isInitialized;
@@ -17,7 +17,7 @@ namespace TeensyTimerTool
         static callback_t callbacks[4];
 
         // the following is calculated at compile time
-        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_QTIMER1 : moduleNr == 1 ? IRQ_QTIMER2 : moduleNr == 2 ? IRQ_QTIMER3 : IRQ_QTIMER4;       
+        static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_QTIMER1 : moduleNr == 1 ? IRQ_QTIMER2 : moduleNr == 2 ? IRQ_QTIMER3 : IRQ_QTIMER4;
         static IMXRT_TMR_t* const pTMR;
         static IMXRT_TMR_CH_t* const pCH0;
         static IMXRT_TMR_CH_t* const pCH1;
@@ -30,7 +30,7 @@ namespace TeensyTimerTool
     // IMPLEMENTATION ==================================================================
 
     template <unsigned moduleNr> IMXRT_TMR_t*    const TMR_t<moduleNr>::pTMR = moduleNr == 0 ? &IMXRT_TMR1 : moduleNr == 1 ? &IMXRT_TMR2 : moduleNr == 2 ? &IMXRT_TMR3 : &IMXRT_TMR4;
-    template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH0 = &pTMR->CH[0]; 
+    template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH0 = &pTMR->CH[0];
     template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH1 = &pTMR->CH[1];
     template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH2 = &pTMR->CH[2];
     template <unsigned moduleNr> IMXRT_TMR_CH_t* const TMR_t<moduleNr>::pCH3 = &pTMR->CH[3];

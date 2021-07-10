@@ -27,8 +27,10 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const;
 
      protected:
+       
         template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
         T getPeriod(T v) { return v; }
+
 
         BaseTimer(TimerGenerator* generator, bool periodic);
 
