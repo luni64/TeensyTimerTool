@@ -14,12 +14,9 @@ namespace TeensyTimerTool
         inline virtual ~FTM_Channel();
 
         inline float getMaxPeriod() const override;
-        inline errorCode begin(callback_t cb, float tcnt, bool periodic)
-        {
-            begin(cb, (uint32_t)tcnt, periodic);
-            return errorCode::OK;
-        };
-        inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic);
+
+        inline errorCode begin(callback_t cb, float period, bool periodic) { return doBegin(cb, period, periodic); } ///hacky improve in later version
+        inline errorCode begin(callback_t cb, uint32_t period, bool periodic) { return doBegin(cb, period, periodic); };
 
         inline errorCode trigger(float tcnt) override FASTRUN;
         inline errorCode triggerDirect(uint32_t reload) override FASTRUN;
@@ -36,6 +33,9 @@ namespace TeensyTimerTool
         FTM_ChannelInfo* ci;
         FTM_r_t* regs;
         callback_t* pCallback = nullptr;
+
+        template <typename period_t>
+        inline errorCode doBegin(callback_t cb, period_t period, bool periodic);
     };
 
     // IMPLEMENTATION ==============================================
@@ -44,14 +44,15 @@ namespace TeensyTimerTool
         : ITimerChannel(nullptr)
     {
         this->regs = regs;
-        this->ci = channelInfo;
+        this->ci   = channelInfo;
     }
 
-    errorCode FTM_Channel::begin(callback_t callback, uint32_t tcnt, bool periodic)
+    template <typename period_t>
+    errorCode FTM_Channel::doBegin(callback_t callback, period_t period, bool periodic)
     {
         ci->isPeriodic = periodic;
-        ci->reload = ticksFromMicros(tcnt);
-        ci->callback = callback;
+        ci->reload     = ticksFromMicros(period);
+        ci->callback   = callback;
 
         return errorCode::OK;
     }
@@ -87,11 +88,11 @@ namespace TeensyTimerTool
     {
         uint32_t cv = regs->CNT + reload + 1;        // calc early to minimize error
         ci->chRegs->SC &= ~FTM_CSC_CHF;              // Reset timer flag
-
+                                                     //
         regs->SC &= ~FTM_SC_CLKS_MASK;               // need to switch off clock to immediately set new CV
         ci->chRegs->CV = cv;                         // compare value (current counter + pReload)
         regs->SC |= FTM_SC_CLKS(0b01);               // restart clock
-
+                                                     //
         ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
 
         return errorCode::OK;

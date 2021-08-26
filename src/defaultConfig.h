@@ -77,7 +77,8 @@ namespace TeensyTimerTool
 
 
 //--------------------------------------------------------------------------------------------
-// Use additionally c++14 user literals (e.g. 3.4s, 50ms ...) for time inputs
+// Use c++14 time literals (e.g. 3.4s, 50ms, _kHz...) for time inputs. Periods without literals are
+// interpreted as microseconds. 
 // Comment the following line if you don't want this.
 
     #define USE_TIME_LITERALS
