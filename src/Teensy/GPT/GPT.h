@@ -1,6 +1,7 @@
 #pragma once
 
 #include "GPTChannel.h"
+#include "Arduino.h"
 
 namespace TeensyTimerTool
 {
@@ -9,6 +10,7 @@ namespace TeensyTimerTool
     {
      public:
         static ITimerChannel* getTimer();
+        static void end();
 
      protected:
         static bool isInitialized;
@@ -64,6 +66,16 @@ namespace TeensyTimerTool
         pGPT->SR = 0x3F;            // reset all interrupt flags
         callback();                 // we only enabled the OF1 interrupt-> no need to find out which interrupt was actually called
         asm volatile("dsb");        // wait until register changes propagated through the cache
+    }
+
+    template <unsigned tmoduleNr>
+    void GPT_t<tmoduleNr>::end()
+    {
+        Serial.printf("end %d\n", tmoduleNr);
+        NVIC_DISABLE_IRQ(irq);
+        pGPT->CR = 0;
+        callback = nullptr;
+        isInitialized = false;
     }
 
     template <unsigned m>
