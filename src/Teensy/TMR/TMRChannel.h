@@ -13,11 +13,11 @@ namespace TeensyTimerTool
      public:
         inline TMRChannel(IMXRT_TMR_CH_t* regs, callback_t* cbStorage);
         inline virtual ~TMRChannel();
-       
+
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
-        
+
         inline errorCode trigger(float tcnt) override;
         inline float getMaxPeriod() const override;
 
@@ -31,7 +31,7 @@ namespace TeensyTimerTool
         uint32_t pscBits;
 
         inline float_t microsecondToCounter(const float_t us) const;
-        inline float_t counterToMicrosecond(const float_t cnt) const;     
+        inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
     // IMPLEMENTATION ==============================================
@@ -45,12 +45,13 @@ namespace TeensyTimerTool
 
     TMRChannel::~TMRChannel()
     {
+        regs->CTRL = 0x0000; // stop timer and mark it free
     }
 
     errorCode TMRChannel::start()
     {
         regs->CNTR = 0x0000;
-        
+
         regs->CSCTRL &= ~TMR_CSCTRL_TCF1;
         regs->CSCTRL |= TMR_CSCTRL_TCF1EN;
         return errorCode::OK;
@@ -62,7 +63,7 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-   
+
     errorCode TMRChannel::begin(callback_t cb, float tcnt, bool periodic)
     {
         const float_t t = microsecondToCounter(tcnt);
@@ -93,7 +94,7 @@ namespace TeensyTimerTool
         return t > 0xFFFF ? errorCode::periodOverflow : errorCode::OK;
     }
 
-    
+
     errorCode TMRChannel::trigger(float tcnt) // quick and dirty, should be optimized
     {
         const float_t t = microsecondToCounter(tcnt);
