@@ -20,14 +20,13 @@ namespace TeensyTimerTool
         virtual errorCode setPrescaler(int  psc) { return postError(errorCode::notImplemented); }
 
         virtual float getMaxPeriod() const = 0;
-        //virtual errorCode setPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
-        //virtual errorCode setNextPeriod(uint32_t microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setNextPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
         virtual uint32_t getPeriod() { return 0; }
 
         inline void setCallback(callback_t);
 
+        virtual ~ITimerChannel(){};
      protected:
         inline ITimerChannel(callback_t* cbStorage = nullptr);
         callback_t* pCallback;
