@@ -9,14 +9,13 @@ namespace TeensyTimerTool
 {
     class TCK_t;
 
-#if !defined(ARDUINO_TEENSYLC) // T-LC doesn't have a cycle counter, nees special treatment
+#if !defined(ARDUINO_TEENSYLC) // T-LC doesn't have a cycle counter, needs special treatment
 
     template <typename CounterType>
     class TckChannel : public TckChannelBase
     {
      public:
         TckChannel();
-        virtual ~TckChannel(){}; //TBD
 
         inline errorCode begin(callback_t cb, float period, bool periodic) override;
         inline errorCode start() override;
@@ -34,10 +33,6 @@ namespace TeensyTimerTool
 
         CounterType getCycleCounter() { postError(errorCode::wrongType); }
 
-        // inline errorCode setPeriod(uint32_t microSeconds) override;
-        // inline errorCode setPeriod(uint32_t microSeconds) override;
-        // inline errorCode setNextPeriod(uint32_t microSeconds) override;
-
      protected:
         inline CounterType microsecondToCycles(const float microSecond) const;
         float getMaxMicros() const;
@@ -48,20 +43,14 @@ namespace TeensyTimerTool
         bool periodic;
         bool triggered;
 
-        // bool block = false;
-
         CounterType startCnt, currentPeriod, nextPeriod;
 
         uint32_t lastCyCnt;
         uint32_t curHIGH;
-
+        
         float clock;
 
         friend TCK_t;
-
-        // inline uint32_t CPUCyclesToMicroseond(const uint32_t cpuCycles);
-        // inline errorCode _setCurrentPeriod(const uint32_t period);
-        // inline void _setNextPeriod(const uint32_t period);
     };
 
     // IMPLEMENTATION ==============================================

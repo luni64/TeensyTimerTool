@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "TckChannelBase.h"
+//#include "Arduino.h"
 #include "TckChannel.h"
 #include "core_pins.h"
 
@@ -63,7 +63,6 @@ namespace TeensyTimerTool
             if (channels[chNr] == channel)
             {
                 channels[chNr] = nullptr;
-                delete channel;
                 break;
             }
         }
