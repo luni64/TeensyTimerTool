@@ -1,6 +1,7 @@
 #include "error_handler.h"
 #include "core_pins.h"
 #include "types.h"
+#include "Arduino.h"
 
 namespace TeensyTimerTool
 {
@@ -31,7 +32,7 @@ namespace TeensyTimerTool
             case errorCode::reload:
                 txt = "Period must not be zero";
                 break;
-            case errorCode::noFreeChannel:
+            case errorCode::noFreeTimer:
                 txt = "Timer module has no free channel";
                 break;
             case errorCode::noFreeModule:

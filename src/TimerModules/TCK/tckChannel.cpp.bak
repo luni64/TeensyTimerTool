@@ -1,0 +1,49 @@
+#if defined(TEENSYDUINO)
+
+#include "TckChannelBase.h"
+#include "Arduino.h"
+#include "TCK.h"
+#include "tckPeriodicChannel.h"
+
+namespace TeensyTimerTool
+{
+    // template<>
+    // TckPeriodicChannel<uint32_t>::~TckPeriodicChannel()
+    // {
+    //     TCK_t::removeTimer(this);
+    // }
+
+    // template<>
+    // TckPeriodicChannel<uint64_t>::~TckPeriodicChannel()
+    // {
+    //     TCK_t::removeTimer(this);
+    // }
+
+
+    // SPECIALIZATIONS =================================================================================
+    // 32bit Counter -------------------------------------------------------------------------
+
+    // template <>
+    // uint32_t TckChannelBase::getCycleCounter()
+    // {
+    //     return ARM_DWT_CYCCNT; //directly use the cycle counter for uint32_t
+    // }
+
+    // template <>
+    // uint32_t TckChannelBase::getMaxCounter()
+    // {
+    //     return 0xF000'0000; // don't use full range otherwise tick might miss the turnover for large periods
+    // }
+
+    // //64bit Counter -------------------------------------------------------------------------
+
+
+    // template <>
+    // uint64_t TckChannelBase::getMaxCounter()
+    // {
+    //     return 0xFFFF'FFFF; // currently limited to 2^32 µs (71.6h). Could be extended to 2^64 but would require change of interface
+    // }
+
+} // namespace TeensyTimerTool
+
+#endif

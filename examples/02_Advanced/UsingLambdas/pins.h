@@ -173,8 +173,8 @@ namespace pins
         pin(const pin&) = delete;  // disable copy constructor
 
         // Setting and getting the pin value
-        template<class T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
-        operator T() const { return *reinterpret_cast<volatile uint32_t*>(pdirBB); }
+        template<class period_t, typename = typename std::enable_if<std::is_integral<period_t>::value>::type>
+        operator period_t() const { return *reinterpret_cast<volatile uint32_t*>(pdirBB); }
         operator bool() const { return *reinterpret_cast<volatile uint32_t*>(pdirBB) & 1; }
         inline void operator = (const bool v) const { *reinterpret_cast<volatile uint32_t*>(pdorBB) = v; } // assignment  --> somePin = HIGH
         inline void operator = (const pin& v) const = delete;                                             // disable copying

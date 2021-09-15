@@ -12,13 +12,14 @@ namespace TeensyTimerTool
         triggeredLate=    -102,  //warn if new setted period is shorter than elapsed time
 
         //General errors
-        argument =         100,
-        callback=          101,
+        arguments =         100,
+        noCallback=        101,
         reload=            102,
         noFreeModule =     103,
-        noFreeChannel =    104,  // requested module has no free channel
+        noFreeTimer =    104,  // requested module has no free channel
         notImplemented=    105,  // timer does not support this feature
         notInitialized=    106,
+        zeroPeriod=        107,
 
 
         // GTP Errors
