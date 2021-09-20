@@ -2,9 +2,9 @@
 #include "boardDef.h"
 
 #if defined(TEENSY4X)
-#include "TimerModules/GPT/gpt.h"
-#include "TimerModules/IOneShotChannelEx.h"
-#include "TimerModules/IPeriodicChannelEx.h"
+#include "TimerModules/GPT/gptFactory.h"
+#include "TimerModules/IOneShotChannel.h"
+#include "TimerModules/IPeriodicChannel.h"
 #include "TimerModules/TMR/tmr.h"
 
 #elif defined(TEENSY3X)
@@ -32,7 +32,6 @@ namespace TeensyTimerTool
 #endif
 #if defined(TEENSY3X)
                 case TimerModule::TCK64: return TCK_t::makeTimer<CycleCounter64>(timerType);
-
 #endif
 
 #if defined(TEENSY4X)
@@ -48,16 +47,13 @@ namespace TeensyTimerTool
                 case TimerModule::TMR1: return TMR_t<0>::makeTimer(timerType);
                 case TimerModule::TMR2: return TMR_t<1>::makeTimer(timerType);
                 case TimerModule::TMR3: return TMR_t<2>::makeTimer(timerType);
-                case TimerModule::TMR4:
-                    return TMR_t<3>::makeTimer(timerType);
+                case TimerModule::TMR4: return TMR_t<3>::makeTimer(timerType);
 
                 // General Purpose Timers 32bit, one channel per module ------------------------
                 case TimerModule::GPT:
-                    if (ITimerChannelEx *t = GPT_t<1>::makeTimer(timerType)) { return t; }
-                    if (ITimerChannelEx *t = GPT_t<0>::makeTimer(timerType)) { return t; }
-                    return nullptr;
-                case TimerModule::GPT1: return GPT_t<0>::makeTimer(timerType);
-                case TimerModule::GPT2: return GPT_t<1>::makeTimer(timerType);
+                case TimerModule::GPT1:
+                case TimerModule::GPT2:
+                    return GPTFactory::makeTimer(module, timerType);
 
                 case TimerModule::PIT: return nullptr;
 
@@ -72,5 +68,48 @@ namespace TeensyTimerTool
                     return nullptr;
             }
         }
+
+        // ITimerChannelEx *makeGPT(TimerModule module, TimerType timerType)
+        // {
+        //     void *timer;
+
+        //     switch (module)
+        //     {
+        //         case TimerModule::GPT1:
+        //             timer = new (std::nothrow) GptPeriodicChannel2<0>();
+        //             break;
+
+        //         case TimerModule::GPT2:
+        //             timer = new (std::nothrow) GptPeriodicChannel2<1>();
+        //             break;
+
+        //         case TimerModule::GPT:
+        //             if (!GptPeriodicChannel2<0>::isInitialized)
+        //                 timer = new (std::nothrow) GptPeriodicChannel2<0>();
+        //             else if (!GptPeriodicChannel2<1>::isInitialized)
+        //                 timer = new (std::nothrow) GptPeriodicChannel2<1>();
+        //             else
+        //                 timer = nullptr;
+        //             break;
+
+        //         default:
+        //             timer = nullptr;
+        //             break;
+        //     }
+
+        //     return (ITimerChannelEx *)timer;
+
+        //     // switch (timerType)
+        //     // {
+        //     //     case TimerType::periodic
+        //     //     return (IPeriodicChannelEx)
+
+        //     //         default:
+        //     //         break;
+        //     // }
+
+        // return timerType == TimerType::periodic ? ()
+        //}
+
     } // namespace TimerFactory
 } // namespace TeensyTimerTool

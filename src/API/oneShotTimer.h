@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../ErrorHandling/error_codes.h"
-#include "IOneShotChannelEx.h"
+#include "IOneShotChannel.h"
 
 namespace TeensyTimerTool
 {

@@ -2,7 +2,7 @@
 
 //#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
-#include "IPeriodicChannelEx.h"
+#include "IPeriodicChannel.h"
 #include "TckChannelBase.h"
 #include "tickCounters.h"
 //#include "tck.h"
@@ -16,11 +16,11 @@ namespace TeensyTimerTool
     {
      public:
         TckPeriodicChannel(callback_t *cbStorage);
-        ~TckPeriodicChannel() { end(); }
+        ~TckPeriodicChannel() {  }
         errorCode begin(callback_t cb, float period, bool startImmediately) override;
         errorCode start() override;
         errorCode stop() override;
-        errorCode end() override;
+        //errorCode end() override;
         errorCode setPeriod(float us) override { return errorCode::notImplemented; }
 
         float getMaxPeriod() override { return 0; }
@@ -72,14 +72,14 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    template <typename TickCounter>
-    errorCode TckPeriodicChannel<TickCounter>::end()
-    {
-        extern void removeTimer(ITimerChannelEx * channel);
-        stop();
-        removeTimer(this);
-        return errorCode::OK;
-    }
+    // template <typename TickCounter>
+    // errorCode TckPeriodicChannel<TickCounter>::end()
+    // {
+    //     extern void removeTimer(ITimerChannelEx * channel);
+    //     stop();
+    //     removeTimer(this);
+    //     return errorCode::OK;
+    // }
 
     template <typename TickCounter>
     void TckPeriodicChannel<TickCounter>::tick()

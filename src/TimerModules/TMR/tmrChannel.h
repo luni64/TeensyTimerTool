@@ -13,7 +13,6 @@ namespace TeensyTimerTool
 
         inline errorCode setPrescaler(int psc); // psc 0..7 -> prescaler: 1..128
         inline errorCode stop() const;
-        inline errorCode end() const;
         inline float getMaxPeriod() const;
 
      protected:
@@ -21,6 +20,8 @@ namespace TeensyTimerTool
         callback_t *cbStorage;
         float pscValue;
         uint32_t pscBits;
+
+
 
         inline float microsecondToCounter(const float us) const;
         inline float counterToMicrosecond(const float cnt) const;
@@ -37,19 +38,14 @@ namespace TeensyTimerTool
 
     TmrChannel::~TmrChannel()
     {
-        end();
+        Serial.println("tmrchannel::dtor");
+        stop();
+        regs->CTRL = 0x0000; // stop timer and mark it free
     }
 
     errorCode TmrChannel::stop() const
     {
         regs->CSCTRL &= ~TMR_CSCTRL_TCF1EN; // disable interrupt
-        return errorCode::OK;
-    }
-
-    errorCode TmrChannel::end() const
-    {
-        stop();
-        regs->CTRL = 0x0000;                // stop timer and mark it free
         return errorCode::OK;
     }
 

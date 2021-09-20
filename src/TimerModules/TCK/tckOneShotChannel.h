@@ -2,7 +2,7 @@
 
 //#include "Arduino.h"
 #include "../boardDef.h"
-#include "../IOneShotChannelEx.h"
+#include "../IOneShotChannel.h"
 #include "../ErrorHandling/error_codes.h"
 #include "TckChannelBase.h"
 #include "core_pins.h"
@@ -21,10 +21,10 @@ namespace TeensyTimerTool
 
      public:
         TckOneShotChannel(){};
-        ~TckOneShotChannel() { end(); }
+        ~TckOneShotChannel() { }
         errorCode begin(callback_t cb) override;
         errorCode stop() override;
-        errorCode end() override;
+       // errorCode end() override;
 
 
         errorCode trigger(float delay_us) override;
@@ -65,14 +65,14 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    template <typename TickCounter>
-    errorCode TckOneShotChannel<TickCounter>::end()
-    {
-        extern void removeTimer(ITimerChannelEx *channel);
-        stop();
-        removeTimer(this);
-        return errorCode::OK;
-    }
+    // template <typename TickCounter>
+    // errorCode TckOneShotChannel<TickCounter>::end()
+    // {
+    //     extern void removeTimer(ITimerChannelEx *channel);
+    //     stop();
+    //     removeTimer(this);
+    //     return errorCode::OK;
+    // }
 
     template <typename TickCounter>
     errorCode TckOneShotChannel<TickCounter>::getTriggerReload(float microseconds, counter_t *reload)

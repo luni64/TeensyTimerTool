@@ -1,5 +1,5 @@
 #include "periodicTimer.h"
-#include "Arduino.h"
+//#include "Arduino.h"
 
 namespace TeensyTimerTool
 {
@@ -9,7 +9,7 @@ namespace TeensyTimerTool
 
     PeriodicTimer::~PeriodicTimer()
     {
-        delete timer;
+        end();
     }
 
     float PeriodicTimer::getMaxPeriod() const
@@ -32,6 +32,8 @@ namespace TeensyTimerTool
 
     errorCode PeriodicTimer::end()
     {
-        return postError(timer ? timer->end() : errorCode::notInitialized);
+        delete timer;
+        timer = nullptr;
+        return errorCode::OK;
     }
 } // namespace TeensyTimerTool

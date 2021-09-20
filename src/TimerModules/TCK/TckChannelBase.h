@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../ITimerChannelEx.h"
-#include "../IPeriodicChannelEx.h"
+#include "../IPeriodicChannel.h"
 
 #include "Arduino.h"
 

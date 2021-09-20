@@ -57,11 +57,11 @@ namespace TeensyTimerTool
                 switch (t)
                 {
                     case TimerType::periodic:
-                        channels[chNr] = new TckPeriodicChannel<counterType>(nullptr);
+                        channels[chNr] = new(std::nothrow) TckPeriodicChannel<counterType>(nullptr);
                         break;
 
                     case TimerType::oneShot:
-                        channels[chNr] = new TckOneShotChannel<counterType>();
+                        channels[chNr] = new(std::nothrow) TckOneShotChannel<counterType>();
                         break;
 
                     default:

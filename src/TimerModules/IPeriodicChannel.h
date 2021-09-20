@@ -2,6 +2,8 @@
 
 #include "ITimerChannelEx.h"
 
+#include "../types.h"
+
 namespace TeensyTimerTool
 {
     class IPeriodicChannelEx : public ITimerChannelEx
@@ -13,7 +15,7 @@ namespace TeensyTimerTool
         virtual errorCode start()                                  = 0;
 
         // optional API
-        virtual errorCode setNextPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
-        virtual uint32_t getPeriod() { postError(errorCode::notImplemented); return 0; }
+        virtual errorCode setNextPeriod(float microSeconds) { return errorCode::notImplemented; };
+        virtual uint32_t getPeriod() {  return 0; }
     };
 } // namespace TeensyTimerTool

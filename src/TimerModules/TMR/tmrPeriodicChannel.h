@@ -3,6 +3,7 @@
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
 #include "tmrChannel.h"
+#include "IPeriodicChannel.h"
 #include <cmath>
 
 namespace TeensyTimerTool
@@ -17,11 +18,9 @@ namespace TeensyTimerTool
         inline errorCode stop() override { return TmrChannel::stop(); } // stop timer but keep it allocated
 
         inline errorCode setPeriod(float us) override;
-
-        inline errorCode end() override { return TmrChannel::end(); } // stop and release timer
         inline float getMaxPeriod() override { return TmrChannel::getMaxPeriod(); }
 
-        inline ~TmrPeriodicChannel();
+        //inline ~TmrPeriodicChannel();
     };
 
     // IMPLEMENTATION ==============================================
@@ -30,14 +29,13 @@ namespace TeensyTimerTool
         : TmrChannel(regs, cbStorage)
     {}
 
-    TmrPeriodicChannel::~TmrPeriodicChannel()
-    {
-        Serial.println("tmr dtor");
-    }
+    // TmrPeriodicChannel::~TmrPeriodicChannel()
+    // {
+    //     Serial.println("tmr dtor");
+    // }
 
     errorCode TmrPeriodicChannel::begin(callback_t cb, float tcnt, bool startImmediately)
     {
-        Serial.println("tmrbegin");
         *cbStorage = cb;
 
         const float_t t       = microsecondToCounter(tcnt);

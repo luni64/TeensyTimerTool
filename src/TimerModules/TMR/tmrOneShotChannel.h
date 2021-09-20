@@ -15,7 +15,6 @@ namespace TeensyTimerTool
         inline errorCode begin(callback_t cb) override;
         inline errorCode trigger(float tcnt) override;                  // start timer
         inline errorCode stop() override { return TmrChannel::stop(); } // stop timer but keep it allocated
-        inline errorCode end() override { return TmrChannel::end(); }   // stop and release timer
         inline float getMaxPeriod() override { return TmrChannel::getMaxPeriod(); }
 
         errorCode getTriggerReload(float delay, uint32_t *reload)

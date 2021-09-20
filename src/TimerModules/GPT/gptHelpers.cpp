@@ -2,8 +2,9 @@
 
 #if defined(TEENSY4X)
 
+#include "core_pins.h"
 #include "gptHelpers.h"
-#include "gpt.h"
+#include "types.h"
 
 namespace TeensyTimerTool
 {
@@ -13,7 +14,7 @@ namespace TeensyTimerTool
         {
             float clock()
             {
-                return (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24.0f : (F_BUS_ACTUAL / 1000000.0f);
+                return (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24.0f : (F_BUS_ACTUAL / 1'000'000.0f);
             }
 
         } // namespace
@@ -28,19 +29,6 @@ namespace TeensyTimerTool
             return getMaxMicros() / 1E6;
         }
 
-        errorCode removeTimer(IMXRT_GPT_t *regs)
-        {
-            if (regs == (IMXRT_GPT_t *)&IMXRT_GPT1)
-                GPT_t<0>::removeTimer();
-
-            else if (regs == (IMXRT_GPT_t *)&IMXRT_GPT2)
-                GPT_t<1>::removeTimer();
-            else
-                postError(errorCode::GTP_err);
-
-            return errorCode::OK;
-        }
-
         uint32_t microsecondToCycles(float micros)
         {
             if (micros > getMaxMicros())
@@ -51,8 +39,6 @@ namespace TeensyTimerTool
             return (uint32_t)(clock() * micros) - 1;
         }
 
-    } // namespace GptChannel
-
+    } // namespace GptHelpers
 } // namespace TeensyTimerTool
-
 #endif

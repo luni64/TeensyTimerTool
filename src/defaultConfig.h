@@ -21,7 +21,7 @@ namespace TeensyTimerTool
     // Default settings for various timers
 
     // TMR (QUAD)
-    constexpr int TMR_DEFAULT_PSC = PSC_1; // Allowed prescaling values: PSC_1, PSC_2, PSC_4 ... PSC_128, clock = 150MHz
+    constexpr int TMR_DEFAULT_PSC = PSC_128; // Allowed prescaling values: PSC_1, PSC_2, PSC_4 ... PSC_128, clock = 150MHz
 
     // FTM
     constexpr int FTM_DEFAULT_PSC[] = // Allowed prescaling values: PSC_AUTO, PSC_1, PSC_2, PSC_4 ... PSC_128, clock = FBUS

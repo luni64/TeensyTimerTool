@@ -1,11 +1,9 @@
 #pragma once
 
-#include "Arduino.h"
-
-#include "IPeriodicChannelEx.h"
+#include "IPeriodicChannel.h"
 #include "helpers.h"
 #include "timerFactory.h"
-#include "TimerModules/TCK/tckPeriodicChannel.h"
+#include "types.h"
 
 namespace TeensyTimerTool
 {
@@ -53,8 +51,6 @@ namespace TeensyTimerTool
                 return postError(errorCode::notImplemented);
             }
         }
-        Serial.println("pt begin");
         return postError(timer->begin(callback, period, start));
-        Serial.println("pt begin done");
     }
 }
