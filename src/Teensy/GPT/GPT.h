@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GPTChannel.h"
-#include "Arduino.h"
+//#include "Arduino.h"
 
 namespace TeensyTimerTool
 {
@@ -71,7 +71,7 @@ namespace TeensyTimerTool
     template <unsigned tmoduleNr>
     void GPT_t<tmoduleNr>::end()
     {
-        Serial.printf("end %d\n", tmoduleNr);
+        //Serial.printf("end %d\n", tmoduleNr);
         NVIC_DISABLE_IRQ(irq);
         pGPT->CR = 0;
         callback = nullptr;

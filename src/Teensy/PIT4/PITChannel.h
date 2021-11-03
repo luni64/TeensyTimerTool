@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../../ITimerChannel.h"
+#include "ITimerChannel.h"
 #include "Arduino.h"
-#include "PITMap.h"
 
 namespace TeensyTimerTool
 {

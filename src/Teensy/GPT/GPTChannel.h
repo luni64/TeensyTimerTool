@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../ITimerChannel.h"
+#include "ITimerChannel.h"
 #include "GPTmap.h"
 #include "core_pins.h"
 

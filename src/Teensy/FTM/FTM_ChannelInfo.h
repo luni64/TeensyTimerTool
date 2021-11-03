@@ -1,7 +1,7 @@
 #pragma once
 
 #include "FTM_Info.h"
-#include "../../types.h"
+#include "types.h"
 
 namespace TeensyTimerTool
 {
