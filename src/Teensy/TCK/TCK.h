@@ -33,17 +33,12 @@ namespace TeensyTimerTool
             }
             isInitialized = true;
 
-            // enable the cycle counter
-            ARM_DEMCR |= ARM_DEMCR_TRCENA;
-            ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
-
             // initialize the yield hook
            #if defined(TEENSYDUINO) && YIELD_TYPE == YIELD_STANDARD
               extern void initYieldHook();
               initYieldHook();
            #endif
         }
-
         for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)
         {
             if (channels[chNr] == nullptr)
@@ -52,7 +47,6 @@ namespace TeensyTimerTool
                 return channels[chNr];
             }
         }
-
         return nullptr;
     }
 
