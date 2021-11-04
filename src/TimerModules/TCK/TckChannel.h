@@ -1,14 +1,15 @@
 #pragma once
 
+#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "TckChannelBase.h"
 
 namespace TeensyTimerTool
 {
-    template <typename tickTimer> // tickTimer is the underlying counter, e.g. 32bit cycle counter, RTC counter, micros counter etc
+    template <typename tckCounter> // tckCounter is the underlying counter, e.g. 32bit cycle counter, RTC counter, micros counter etc
     class TckChannel : public TckChannelBase
     {
-        using counter_t = typename tickTimer::counter_t; // use counter type (uint32_t or unit64_t) defined in the used tickTimer
+        using counter_t = typename tckCounter::counter_t; // use the counter type (uint32_t, unit64_t...) of the used tckCounter class
 
      public:
         TckChannel();
@@ -21,7 +22,7 @@ namespace TeensyTimerTool
         inline errorCode triggerDirect(counter_t reload) override;
         inline errorCode getTriggerReload(float delay, counter_t* reload) override;
 
-        float getMaxPeriod() const override { return tickTimer::getMaxMicros() / 1E6; } // seconds
+        float getMaxPeriod() const override { return tckCounter::getMaxMicros() / 1E6f; } // seconds
 
      protected:
         inline bool tick();
@@ -34,21 +35,21 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ==============================================
 
-    template <typename tckTimer>
-    TckChannel<tckTimer>::TckChannel()
+    template <typename tckCounter>
+    TckChannel<tckCounter>::TckChannel()
     {
         triggered = false;
     }
 
-    template <typename tckTimer>
-    errorCode TckChannel<tckTimer>::begin(callback_t cb, float period, bool periodic)
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::begin(callback_t cb, float period, bool periodic)
     {
         this->triggered = false;
 
         this->periodic = periodic;
         if (periodic)
         {
-            this->currentPeriod = tckTimer::us2ticks(period);
+            this->currentPeriod = tckCounter::us2ticks(period);
             this->nextPeriod = this->currentPeriod;
         }
         this->callback = cb;
@@ -56,49 +57,49 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    template <typename tckTimer>
-    errorCode TckChannel<tckTimer>::start()
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::start()
     {
-        this->startCnt = tckTimer::getCount();
+        this->startCnt = tckCounter::getCount();
         this->triggered = true;
         return errorCode::OK;
     }
 
-    template <typename tckTimer>
-    errorCode TckChannel<tckTimer>::stop()
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::stop()
     {
         this->triggered = false;
         return errorCode::OK;
     }
 
-    template <typename tckTimer>
-    errorCode TckChannel<tckTimer>::triggerDirect(counter_t reload)
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::triggerDirect(counter_t reload)
     {
-        this->startCnt = tckTimer::getCount();
+        this->startCnt = tckCounter::getCount();
         this->nextPeriod = reload;
         this->currentPeriod = this->nextPeriod;
         this->triggered = true;
         return errorCode::OK;
     }
 
-    template <typename tckTimer>
-    errorCode TckChannel<tckTimer>::trigger(float delay) // µs
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::trigger(float delay) // µs
     {
-        return triggerDirect(tckTimer::us2ticks(delay));
+        return triggerDirect(tckCounter::us2ticks(delay));
     }
 
-    template <typename tckTimer>
-    errorCode TckChannel<tckTimer>::getTriggerReload(float delay, counter_t* reload)
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::getTriggerReload(float delay, counter_t* reload)
     {
-        *reload = tckTimer::us2ticks(delay);
+        *reload = tckCounter::us2ticks(delay);
         return errorCode::OK;
     }
 
-    template <typename tckTimer>
-    bool TckChannel<tckTimer>::tick()
+    template <typename tckCounter>
+    bool TckChannel<tckCounter>::tick()
     {
         static bool lock = false;
-        counter_t now = tckTimer::getCount();
+        counter_t now = tckCounter::getCount();
         if (!lock && this->currentPeriod != 0 && this->triggered && (now - this->startCnt) >= this->currentPeriod)
         {
             lock = true;

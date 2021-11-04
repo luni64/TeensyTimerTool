@@ -3,23 +3,15 @@
 #include "boardDef.h"
 #include "Arduino.h"
 
-#if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY_MICROMOD)
-#define F_CPU_TTT F_CPU_ACTUAL
+
+#if defined(TTT_TEENSY4X)
+#define TTT_F_CPU F_CPU_ACTUAL
 #else
-#define F_CPU_TTT F_CPU
+#define TTT_F_CPU F_CPU
 #endif
 
 namespace TeensyTimerTool
 {
-    CycleCounterBase::CycleCounterBase()
-    {
-        if (ARM_DWT_CYCCNT == ARM_DWT_CYCCNT)
-        {
-            ARM_DEMCR |= ARM_DEMCR_TRCENA;
-            ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
-        }
-    }
-
     //---------------------------------------------------------------------
     // CycleCounter32
 
@@ -30,12 +22,12 @@ namespace TeensyTimerTool
 
     uint32_t CycleCounter32::us2ticks(float us)
     {
-        return us * (F_CPU_TTT / 1E6f);
+        return us * (TTT_F_CPU / 1E6f);
     }
 
     float CycleCounter32::getMaxMicros()
     {
-        return 0;
+        return 5E6; //Can't use full 2^32 *1.66ns =7.2s range since we need some headroom to detect reaching target. This works if we call tick() at least once per 2 seconds
     }
 
     //---------------------------------------------------------------------
@@ -57,12 +49,12 @@ namespace TeensyTimerTool
 
     uint64_t CycleCounter64::us2ticks(float us)
     {
-        return us * (F_CPU_TTT / 1E6f);
+        return us * (TTT_F_CPU / 1E6f);
     }
 
     float CycleCounter64::getMaxMicros()
     {
-        return 0;
+        return 2E16f; //~630 years  can't use full 2^64 *1.66ns range since we need some headroom to detect reaching target.
     }
 
     //------------------------------------------------------------------
@@ -80,10 +72,10 @@ namespace TeensyTimerTool
 
     float MicrosCounter::getMaxMicros()
     {
-        return 0;
+        return 70*60*1E6;   // 70min, can't use full 2^32 µs = 72min range since we need some headroom to detect reaching target. This works if we call tick() at least once per 2min
     }
 
-#if defined(TEENSY4X)
+#if defined(TTT_TEENSY4X)
     //------------------------------------------------------------------
     // RtcCounter
 
@@ -109,7 +101,7 @@ namespace TeensyTimerTool
 
     float RtcCounter::getMaxMicros()
     {
-        return 0;
+        return 2E16f; // ~630 years
     }
 
 #endif

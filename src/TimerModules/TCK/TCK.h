@@ -11,7 +11,8 @@ namespace TeensyTimerTool
     class TCK_t
     {
      public:
-        template<typename counterType> static inline ITimerChannel* getTimer();
+        template <typename counterType>
+        static inline ITimerChannel* getTimer();
         static inline void removeTimer(TckChannelBase*);
         static inline void tick();
 
@@ -22,7 +23,7 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ==================================================================
 
-    template<typename counterType>
+    template <typename counterType>
     ITimerChannel* TCK_t::getTimer()
     {
         if (!isInitialized)
@@ -33,11 +34,17 @@ namespace TeensyTimerTool
             }
             isInitialized = true;
 
+            if (ARM_DWT_CYCCNT == ARM_DWT_CYCCNT)
+            {
+                ARM_DEMCR |= ARM_DEMCR_TRCENA;
+                ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
+            }
+
             // initialize the yield hook
-           #if defined(TEENSYDUINO) && YIELD_TYPE == YIELD_STANDARD
-              extern void initYieldHook();
-              initYieldHook();
-           #endif
+#if defined(TEENSYDUINO) && YIELD_TYPE == YIELD_STANDARD
+            extern void initYieldHook();
+            initYieldHook();
+#endif
         }
         for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)
         {

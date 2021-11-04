@@ -1,14 +1,14 @@
 #include "config.h"
+#include "TimerModules/TCK/TCK.h"
+#include "TimerModules/TCK/tickCounters.h"
 #include "boardDef.h"
 
 using tick_t = void (*)();
 
 #if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY_MICROMOD)
-#    include "Teensy/GPT/GPT.h"
-#    include "Teensy/PIT4/PIT.h"
-#    include "Teensy/TCK/TCK.h"
-#    include "Teensy/TCK/tickCounters.h"
-#    include "Teensy/TMR/TMR.h"
+#include "TimerModules/GPT/GPT.h"
+#include "TimerModules/PIT4/PIT.h"
+#include "TimerModules/TMR/TMR.h"
 
 namespace TeensyTimerTool
 {
@@ -20,25 +20,24 @@ namespace TeensyTimerTool
     TimerGenerator* const GPT1 = GPT_t<0>::getTimer;
     TimerGenerator* const GPT2 = GPT_t<1>::getTimer;
 
-    TimerGenerator* const PIT  = PIT_t::getTimer;
+    TimerGenerator* const PIT = PIT_t::getTimer;
 
-    TimerGenerator* const TCK     = TCK_t::getTimer<CycleCounter32>;
-    TimerGenerator* const TCK32   = TCK_t::getTimer<CycleCounter32>; // same as TCK
-    TimerGenerator* const TCK64   = TCK_t::getTimer<CycleCounter64>;
+    TimerGenerator* const TCK = TCK_t::getTimer<CycleCounter32>;
+    TimerGenerator* const TCK32 = TCK_t::getTimer<CycleCounter32>; // same as TCK
+    TimerGenerator* const TCK64 = TCK_t::getTimer<CycleCounter64>;
     TimerGenerator* const TCK_RTC = TCK_t::getTimer<RtcCounter>;
 
     constexpr tick_t tick = &TCK_t::tick;
 }
 
 #elif defined(ARDUINO_TEENSY35) || defined(ARDUINO_TEENSY36)
-#    include "Teensy/FTM/FTM.h"
-#    include "Teensy/TCK/TCK.h"
+#include "TimerModules/FTM/FTM.h"
 
 namespace TeensyTimerTool
 {
-    TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
-    TimerGenerator* const TCK32 = TCK_t::getTimer<uint32_t>; // same as TCK
-    TimerGenerator* const TCK64 = TCK_t::getTimer<uint64_t>;
+    TimerGenerator* const TCK = TCK_t::getTimer<CycleCounter32>;
+    TimerGenerator* const TCK32 = TCK_t::getTimer<CycleCounter32>; // same as TCK
+    TimerGenerator* const TCK64 = TCK_t::getTimer<CycleCounter64>;
 
     TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
     TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
@@ -50,14 +49,13 @@ namespace TeensyTimerTool
 }
 
 #elif defined(ARDUINO_TEENSY31) || defined(ARDUINO_TEENSY32)
-#    include "Teensy/FTM/FTM.h"
-#    include "Teensy/TCK/TCK.h"
+#include "TimerModules/FTM/FTM.h"
 
 namespace TeensyTimerTool
 {
-    TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
-    TimerGenerator* const TCK32 = TCK_t::getTimer<uint32_t>; // same as TCK
-    TimerGenerator* const TCK64 = TCK_t::getTimer<uint64_t>;
+    TimerGenerator* const TCK = TCK_t::getTimer<CycleCounter32>;
+    TimerGenerator* const TCK32 = TCK_t::getTimer<CycleCounter32>; // same as TCK
+    TimerGenerator* const TCK64 = TCK_t::getTimer<CycleCounter64>;
 
     TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
     TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
@@ -66,12 +64,13 @@ namespace TeensyTimerTool
 }
 
 #elif defined(ARDUINO_TEENSY30)
-#    include "Teensy/FTM/FTM.h"
-#    include "Teensy/TCK/TCK.h"
+#include "TimerModules/FTM/FTM.h"
 
 namespace TeensyTimerTool
 {
-    TimerGenerator* const TCK = TCK_t::getTimer;
+    TimerGenerator* const TCK = TCK_t::getTimer<CycleCounter32>;
+    TimerGenerator* const TCK32 = TCK_t::getTimer<CycleCounter32>; // same as TCK
+    TimerGenerator* const TCK64 = TCK_t::getTimer<CycleCounter64>;
 
     TimerGenerator* const FTM0 = FTM_t<0>::getTimer;
     TimerGenerator* const FTM1 = FTM_t<1>::getTimer;
@@ -79,11 +78,10 @@ namespace TeensyTimerTool
 }
 
 #elif defined(ARDUINO_TEENSYLC)
-#    include "Teensy/TCK/TCK.h"
 
 namespace TeensyTimerTool
 {
-    TimerGenerator* const TCK = TCK_t::getTimer<uint32_t>;
+    TimerGenerator* const TCK = TCK_t::getTimer<MicrosCounter>;
     constexpr tick_t tick = &TCK_t::tick;
 }
 
