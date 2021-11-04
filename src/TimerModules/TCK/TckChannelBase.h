@@ -8,8 +8,6 @@ namespace TeensyTimerTool
     {
      public:
         virtual bool tick() = 0;
-        virtual ~TckChannelBase() = 0;
+        virtual ~TckChannelBase();
     };
-
-    inline TckChannelBase::~TckChannelBase() {}
 }

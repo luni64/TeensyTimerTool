@@ -6,8 +6,8 @@
 #include <type_traits>
 
 #if defined(USE_TIME_LITERALS)
-#    include "frequency.h"
-#    include <chrono>
+#include "frequency.h"
+#include <chrono>
 using namespace std::chrono_literals;
 using namespace std::chrono;
 #endif
@@ -27,12 +27,11 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const;
 
      protected:
-       
         template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
         T getPeriod(T v) { return v; }
 
-
         BaseTimer(TimerGenerator* generator, bool periodic);
+        virtual ~BaseTimer();
 
         TimerGenerator* timerGenerator;
         ITimerChannel* timerChannel;

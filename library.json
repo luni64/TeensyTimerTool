@@ -9,13 +9,12 @@
   },
   "authors":
   {
-    "name": "Lutz Niggl",
-    "email": "lutz.niggl@lunoptics.com",
+    "name": "luni64",
     "url": "https://github.com/luni64",
     "maintainer": true
   },
   "homepage": "https://github.com/luni64/TeensyTimerTool",
-  "version": "0.3.5",
+  "version": "0.4.0",
   "frameworks": "arduino",
   "platforms": "Teensy"
 }

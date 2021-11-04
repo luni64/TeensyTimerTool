@@ -1,13 +1,15 @@
-#include "../../config.h"
+#include "config.h"
 
 #if defined(TEENSYDUINO)
 
     #include "TCK.h"
+
     namespace TeensyTimerTool
     {
         bool TCK_t::isInitialized = false;
         TckChannelBase* TCK_t::channels[NR_OF_TCK_TIMERS];
     }
+
 
 //----------------------------------------------------------------------
     #if YIELD_TYPE == YIELD_OPTIMIZED
@@ -38,4 +40,3 @@
     }
     #endif
 #endif
-//#endif

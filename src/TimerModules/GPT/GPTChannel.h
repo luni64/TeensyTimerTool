@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../ITimerChannel.h"
+#include "ITimerChannel.h"
 #include "GPTmap.h"
 #include "core_pins.h"
 
@@ -10,7 +10,7 @@ namespace TeensyTimerTool
     {
      public:
         inline GptChannel(IMXRT_GPT_t*, callback_t*);
-        inline virtual ~GptChannel();
+        virtual ~GptChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode start() override;
@@ -22,13 +22,11 @@ namespace TeensyTimerTool
 
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
 
-
-
         bool periodic;
+
      protected:
         inline uint32_t microsecondToCycles(float micros) const;
         inline float getMaxMicros() const;
-
 
         IMXRT_GPT_t* regs;
         uint32_t reload;
@@ -71,11 +69,7 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    GptChannel::~GptChannel()
-    {
-        stop();
-        setCallback(nullptr);
-    }
+
 
     errorCode GptChannel::trigger(float delay) //should be optimized somehow
     {
