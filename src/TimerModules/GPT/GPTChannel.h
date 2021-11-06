@@ -20,16 +20,19 @@ namespace TeensyTimerTool
         inline errorCode triggerDirect(uint32_t delay) override;
         inline errorCode getTriggerReload(float delay, uint32_t *reload) override;
 
+        inline errorCode setNextPeriod(float us) override;
+        inline errorCode setPeriod(float us) override;
+
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
 
         bool periodic;
 
      protected:
-        inline uint32_t microsecondToCycles(float micros) const;
+        inline uint32_t us2ticks(float micros) const;
         inline float getMaxMicros() const;
 
         IMXRT_GPT_t *regs;
-        uint32_t reload;
+        //uint32_t reload;
         float clock;
     };
 
@@ -46,8 +49,7 @@ namespace TeensyTimerTool
         this->periodic = periodic;
         if (periodic)
         {
-            reload     = microsecondToCycles(period);
-            regs->OCR1 = reload;
+            regs->OCR1 = us2ticks(period);
         }
         setCallback(cb);
 
@@ -71,7 +73,7 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::trigger(float delay) //should be optimized somehow
     {
-        return triggerDirect(microsecondToCycles(delay));
+        return triggerDirect(us2ticks(delay));
     }
 
     errorCode GptChannel::triggerDirect(uint32_t reload)
@@ -86,11 +88,11 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::getTriggerReload(float delay, uint32_t *reload)
     {
-        *reload = microsecondToCycles(delay);
+        *reload = us2ticks(delay);
         return errorCode::OK;
     }
 
-    uint32_t GptChannel::microsecondToCycles(float micros) const
+    uint32_t GptChannel::us2ticks(float micros) const
     {
         if (micros > getMaxMicros())
         {
@@ -103,6 +105,25 @@ namespace TeensyTimerTool
     float GptChannel::getMaxMicros() const
     {
         return (float)0xFFFF'FFFE / clock;
+    }
+
+    errorCode GptChannel::setNextPeriod(float us)
+    {
+        return errorCode::notImplemented;
+    }
+
+    errorCode GptChannel::setPeriod(float us)   // not good, will generate one too long period if called before cnt == oldPeriod
+    {                                           // need to redo the timing using free running timer to get setPeriod and setNewPeriod working correctly
+        uint32_t newPeriod = us2ticks(us);
+        uint32_t now      = regs->CNT;
+
+        if (now > newPeriod)
+        {
+            (*pCallback)();
+        }
+
+        regs->OCR1 = newPeriod;
+        return errorCode::OK;
     }
 
 } // namespace TeensyTimerTool

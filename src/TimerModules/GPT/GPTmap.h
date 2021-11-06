@@ -1,7 +1,7 @@
 #pragma once
 
+#include "imxrt.h"
 #include <cstdint>
-#include <imxrt.h>
 
 namespace TeensyTimerTool
 {

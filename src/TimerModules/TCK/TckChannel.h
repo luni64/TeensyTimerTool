@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Arduino.h"
+//#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "TckChannelBase.h"
 
@@ -101,7 +101,6 @@ namespace TeensyTimerTool
     template <typename tckCounter>
     errorCode TckChannel<tckCounter>::setNextPeriod(float us)
     {
-        Serial.println("setnextperiod");
         nextPeriod = tckCounter::us2ticks(us);
         return errorCode::OK;
     }
