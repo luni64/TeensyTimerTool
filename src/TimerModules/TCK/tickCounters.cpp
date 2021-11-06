@@ -1,8 +1,7 @@
 
 #include "tickCounters.h"
-#include "boardDef.h"
 #include "Arduino.h"
-
+#include "boardDef.h"
 
 #if defined(TTT_TEENSY4X)
 #define TTT_F_CPU F_CPU_ACTUAL
@@ -72,7 +71,7 @@ namespace TeensyTimerTool
 
     float MicrosCounter::getMaxMicros()
     {
-        return 70*60*1E6;   // 70min, can't use full 2^32 µs = 72min range since we need some headroom to detect reaching target. This works if we call tick() at least once per 2min
+        return 70 * 60 * 1E6; // 70min, can't use full 2^32 µs = 72min range since we need some headroom to detect reaching target. This works if we call tick() at least once per 2min
     }
 
 #if defined(TTT_TEENSY4X)
@@ -96,7 +95,7 @@ namespace TeensyTimerTool
 
     uint64_t RtcCounter::us2ticks(float us)
     {
-        return us * (32'768 / 1E6);
+        return us * (32'768 / 1E6f);
     }
 
     float RtcCounter::getMaxMicros()

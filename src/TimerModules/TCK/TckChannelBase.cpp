@@ -1,9 +1,8 @@
 #if defined(TEENSYDUINO)
 
 #include "TckChannelBase.h"
-#include "TCK.h"
-
 #include "Arduino.h"
+#include "TCK.h"
 
 namespace TeensyTimerTool
 {
@@ -11,6 +10,6 @@ namespace TeensyTimerTool
     {
         TCK_t::removeTimer(this);
     }
-}
+} // namespace TeensyTimerTool
 
 #endif

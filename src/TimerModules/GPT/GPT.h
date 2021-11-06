@@ -9,28 +9,28 @@ namespace TeensyTimerTool
     class GPT_t
     {
      public:
-        static ITimerChannel* getTimer();
+        static ITimerChannel *getTimer();
         static void end();
 
      protected:
         static bool isInitialized;
         static void isr();
         static callback_t callback;
-        static GptChannel* channel;
+        static GptChannel *channel;
 
         // the following is calculated at compile time
         static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;
-        static IMXRT_GPT_t* const pGPT;
+        static IMXRT_GPT_t *const pGPT;
         static_assert(moduleNr < 2, "Wrong GPT Number");
     };
 
     // IMPLEMENTATION ===========================================================================
 
     template <unsigned moduleNr>
-    IMXRT_GPT_t* const GPT_t<moduleNr>::pGPT = reinterpret_cast<IMXRT_GPT_t*>(moduleNr == 0 ? &IMXRT_GPT1 : &IMXRT_GPT2);
+    IMXRT_GPT_t *const GPT_t<moduleNr>::pGPT = reinterpret_cast<IMXRT_GPT_t *>(moduleNr == 0 ? &IMXRT_GPT1 : &IMXRT_GPT2);
 
     template <unsigned moduleNr>
-    ITimerChannel* GPT_t<moduleNr>::getTimer()
+    ITimerChannel *GPT_t<moduleNr>::getTimer()
     {
         if (!isInitialized)
         {
@@ -73,8 +73,8 @@ namespace TeensyTimerTool
     {
         //Serial.printf("end %d\n", tmoduleNr);
         NVIC_DISABLE_IRQ(irq);
-        pGPT->CR = 0;
-        callback = nullptr;
+        pGPT->CR      = 0;
+        callback      = nullptr;
         isInitialized = false;
     }
 
@@ -85,5 +85,5 @@ namespace TeensyTimerTool
     callback_t GPT_t<m>::callback = nullptr;
 
     template <unsigned m>
-    GptChannel* GPT_t<m>::channel = nullptr;
-}
+    GptChannel *GPT_t<m>::channel = nullptr;
+} // namespace TeensyTimerTool

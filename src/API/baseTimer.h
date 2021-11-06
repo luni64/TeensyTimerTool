@@ -3,8 +3,8 @@
 //#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
-#include <type_traits>
 #include "helpers.h"
+#include <type_traits>
 
 #if defined(USE_TIME_LITERALS)
 #include "frequency.h"
@@ -29,11 +29,11 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const;
 
      protected:
-        BaseTimer(TimerGenerator* generator, bool periodic);
+        BaseTimer(TimerGenerator *generator, bool periodic);
         virtual ~BaseTimer();
 
-        TimerGenerator* timerGenerator;
-        ITimerChannel* timerChannel;
+        TimerGenerator *timerGenerator;
+        ITimerChannel *timerChannel;
         bool isPeriodic;
         uint32_t prescaler = 0;
     };
@@ -43,7 +43,7 @@ namespace TeensyTimerTool
     template <typename period_t>
     errorCode BaseTimer::begin(callback_t callback, period_t p, bool start)
     {
-        float period = period2us(p);  // transform from any period type to microseconds (float)
+        float period = period2us(p); // transform from any period type to microseconds (float)
 
         if (callback == nullptr) return postError(errorCode::callback);
         if (isPeriodic && period == 0) return postError(errorCode::reload);
@@ -98,4 +98,4 @@ namespace TeensyTimerTool
         postError(errorCode::notInitialized);
         return NAN;
     }
-}
+} // namespace TeensyTimerTool

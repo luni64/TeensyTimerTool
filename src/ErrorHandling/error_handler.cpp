@@ -4,14 +4,14 @@
 
 namespace TeensyTimerTool
 {
-    ErrorHandler::ErrorHandler(Stream& s) : stream(s)
+    ErrorHandler::ErrorHandler(Stream &s) : stream(s)
     {
         pinMode(LED_BUILTIN, OUTPUT);
     }
 
     void ErrorHandler::operator()(errorCode code) const
     {
-        const char* txt;
+        const char *txt;
 
         switch (code)
         {
@@ -76,4 +76,4 @@ namespace TeensyTimerTool
         errFunc = _errFunc;
     }
 
-}
+} // namespace TeensyTimerTool

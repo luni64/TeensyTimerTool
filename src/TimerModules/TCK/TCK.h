@@ -12,19 +12,19 @@ namespace TeensyTimerTool
     {
      public:
         template <typename counterType>
-        static inline ITimerChannel* getTimer();
-        static inline void removeTimer(TckChannelBase*);
+        static inline ITimerChannel *getTimer();
+        static inline void removeTimer(TckChannelBase *);
         static inline void tick();
 
      protected:
         static bool isInitialized;
-        static TckChannelBase* channels[NR_OF_TCK_TIMERS];
+        static TckChannelBase *channels[NR_OF_TCK_TIMERS];
     };
 
     // IMPLEMENTATION ==================================================================
 
     template <typename counterType>
-    ITimerChannel* TCK_t::getTimer()
+    ITimerChannel *TCK_t::getTimer()
     {
         if (!isInitialized)
         {
@@ -34,13 +34,14 @@ namespace TeensyTimerTool
             }
             isInitialized = true;
 
+            // start the cycle counter if not already running
             if (ARM_DWT_CYCCNT == ARM_DWT_CYCCNT)
             {
                 ARM_DEMCR |= ARM_DEMCR_TRCENA;
                 ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
             }
 
-            // initialize the yield hook
+// initialize the yield hook
 #if defined(TEENSYDUINO) && YIELD_TYPE == YIELD_STANDARD
             extern void initYieldHook();
             initYieldHook();
@@ -57,7 +58,7 @@ namespace TeensyTimerTool
         return nullptr;
     }
 
-    void TCK_t::removeTimer(TckChannelBase* channel)
+    void TCK_t::removeTimer(TckChannelBase *channel)
     {
         for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)
         {
@@ -79,4 +80,4 @@ namespace TeensyTimerTool
             }
         }
     }
-}
+} // namespace TeensyTimerTool

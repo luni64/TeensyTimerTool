@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ITimerChannel.h"
 #include "GPTmap.h"
+#include "ITimerChannel.h"
 #include "core_pins.h"
 
 namespace TeensyTimerTool
@@ -9,7 +9,7 @@ namespace TeensyTimerTool
     class GptChannel : public ITimerChannel
     {
      public:
-        inline GptChannel(IMXRT_GPT_t*, callback_t*);
+        inline GptChannel(IMXRT_GPT_t *, callback_t *);
         virtual ~GptChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
@@ -18,7 +18,7 @@ namespace TeensyTimerTool
 
         inline errorCode trigger(float delay) override;
         inline errorCode triggerDirect(uint32_t delay) override;
-        inline errorCode getTriggerReload(float delay, uint32_t* reload) override;
+        inline errorCode getTriggerReload(float delay, uint32_t *reload) override;
 
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
 
@@ -28,14 +28,14 @@ namespace TeensyTimerTool
         inline uint32_t microsecondToCycles(float micros) const;
         inline float getMaxMicros() const;
 
-        IMXRT_GPT_t* regs;
+        IMXRT_GPT_t *regs;
         uint32_t reload;
         float clock;
     };
 
     // IMPLEMENTATION ==============================================
 
-    GptChannel::GptChannel(IMXRT_GPT_t* registers, callback_t* cbStorage)
+    GptChannel::GptChannel(IMXRT_GPT_t *registers, callback_t *cbStorage)
         : ITimerChannel(cbStorage), regs(registers)
     {
         clock = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
@@ -46,7 +46,7 @@ namespace TeensyTimerTool
         this->periodic = periodic;
         if (periodic)
         {
-            reload = microsecondToCycles(period);
+            reload     = microsecondToCycles(period);
             regs->OCR1 = reload;
         }
         setCallback(cb);
@@ -69,8 +69,6 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-
-
     errorCode GptChannel::trigger(float delay) //should be optimized somehow
     {
         return triggerDirect(microsecondToCycles(delay));
@@ -78,15 +76,15 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::triggerDirect(uint32_t reload)
     {
-        regs->SR = 0x3F;         // clear all interupt flags
-        regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
-        regs->OCR1 = reload;     // set overflow value
-        regs->CR |= GPT_CR_EN;   // enable timer
+        regs->SR   = 0x3F;         // clear all interupt flags
+        regs->IR   = GPT_IR_OF1IE; // enable OF1 interrupt
+        regs->OCR1 = reload;       // set overflow value
+        regs->CR |= GPT_CR_EN;     // enable timer
 
         return errorCode::OK;
     }
 
-    errorCode GptChannel::getTriggerReload(float delay, uint32_t* reload)
+    errorCode GptChannel::getTriggerReload(float delay, uint32_t *reload)
     {
         *reload = microsecondToCycles(delay);
         return errorCode::OK;

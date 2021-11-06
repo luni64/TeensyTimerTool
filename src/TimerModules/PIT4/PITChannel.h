@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ITimerChannel.h"
 #include "Arduino.h"
+#include "ITimerChannel.h"
 
 namespace TeensyTimerTool
 {
@@ -33,8 +33,8 @@ namespace TeensyTimerTool
 
         inline void isr();
 
-        PITChannel() = delete;
-        PITChannel(const PITChannel&) = delete;
+        PITChannel()                   = delete;
+        PITChannel(const PITChannel &) = delete;
 
         const unsigned chNr;
         callback_t callback = nullptr;
@@ -49,19 +49,19 @@ namespace TeensyTimerTool
     PITChannel::PITChannel(unsigned nr)
         : ITimerChannel(nullptr), chNr(nr)
     {
-        callback = nullptr;
+        callback    = nullptr;
         clockFactor = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
     }
 
     errorCode PITChannel::begin(callback_t cb, float micros, bool periodic)
     {
         isPeriodic = periodic;
-        callback = cb;
+        callback   = cb;
 
         if (isPeriodic)
         {
             IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
-            IMXRT_PIT_CHANNELS[chNr].TFLG = 1;
+            IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
 
             setNextPeriod(micros);
             // float tmp = micros * clockFactor;
@@ -105,7 +105,7 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::setPeriod(float us)
     {
-        stop();             // need to stop/start timer to change current period (see ch 53.9.5.4)
+        stop(); // need to stop/start timer to change current period (see ch 53.9.5.4)
         setNextPeriod(us);
         start();
         return errorCode::OK;
@@ -128,7 +128,7 @@ namespace TeensyTimerTool
     errorCode PITChannel::trigger(float delay) //should be optimized somehow
     {
         IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
-        IMXRT_PIT_CHANNELS[chNr].TFLG = 1;
+        IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
 
         float tmp = delay * clockFactor;
         if (tmp > 0xFFFF'FFFF)

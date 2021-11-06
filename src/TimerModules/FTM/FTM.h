@@ -8,14 +8,14 @@ namespace TeensyTimerTool
     class FTM_t
     {
      public:
-        inline static ITimerChannel* getTimer();
+        inline static ITimerChannel *getTimer();
         FTM_t() = delete;
 
      private:
         static bool isInitialized;
         inline static void isr() FASTRUN;
 
-        static constexpr FTM_r_t* r = (FTM_r_t*)FTM_Info<moduleNr>::baseAdr;
+        static constexpr FTM_r_t *r          = (FTM_r_t *)FTM_Info<moduleNr>::baseAdr;
         static constexpr unsigned maxChannel = FTM_Info<moduleNr>::nrOfChannels;
         static FTM_ChannelInfo channelInfo[maxChannel];
 
@@ -25,20 +25,20 @@ namespace TeensyTimerTool
     // IMPLEMENTATION ==================================================================
 
     template <unsigned moduleNr>
-    ITimerChannel* FTM_t<moduleNr>::getTimer()
+    ITimerChannel *FTM_t<moduleNr>::getTimer()
     {
         if (!isInitialized)
         {
-            r->SC = FTM_SC_CLKS(0b00); // Disable clock
-            r->MOD = 0xFFFF;           // Set full counter range
+            r->SC  = FTM_SC_CLKS(0b00); // Disable clock
+            r->MOD = 0xFFFF;            // Set full counter range
             r->CNT = 0;
 
             for (unsigned chNr = 0; chNr < maxChannel; chNr++) // init channels
             {
-                channelInfo[chNr].isReserved = false;
-                channelInfo[chNr].callback = nullptr;
-                channelInfo[chNr].chRegs = &r->CH[chNr];
-                channelInfo[chNr].ticksPerMicrosecond =  1E-6f * F_BUS / (1 << FTM_Info<moduleNr>::prescale);
+                channelInfo[chNr].isReserved          = false;
+                channelInfo[chNr].callback            = nullptr;
+                channelInfo[chNr].chRegs              = &r->CH[chNr];
+                channelInfo[chNr].ticksPerMicrosecond = 1E-6f * F_BUS / (1 << FTM_Info<moduleNr>::prescale);
 
                 r->CH[chNr].SC &= ~FTM_CSC_CHF;  // FTM requires to clear flag by setting bit to 0
                 r->CH[chNr].SC &= ~FTM_CSC_CHIE; // Disable channel interupt
@@ -66,8 +66,8 @@ namespace TeensyTimerTool
     {
         for (unsigned i = 0; i < maxChannel; i++)
         {
-            FTM_ChannelInfo* ci = &channelInfo[i]; // pre resolving the references turns out to be slightly faster
-            FTM_CH_t* cr = ci->chRegs;
+            FTM_ChannelInfo *ci = &channelInfo[i]; // pre resolving the references turns out to be slightly faster
+            FTM_CH_t *cr        = ci->chRegs;
             if ((cr->SC & (FTM_CSC_CHIE | FTM_CSC_CHF)) == (FTM_CSC_CHIE | FTM_CSC_CHF)) // only handle if channel is active (CHIE set) and overflowed (CHF set)
             {
                 if (ci->isPeriodic)
@@ -76,7 +76,7 @@ namespace TeensyTimerTool
                     cr->CV = r->CNT + ci->reload; // set compare value to 'reload' counts ahead of counter
                 } else
                 {
-                    cr->SC &= ~FTM_CSC_CHIE;       //disable interrupt in on shot mode
+                    cr->SC &= ~FTM_CSC_CHIE; //disable interrupt in on shot mode
                 }
                 ci->callback();
             }
@@ -88,4 +88,4 @@ namespace TeensyTimerTool
 
     template <unsigned m>
     bool FTM_t<m>::isInitialized = false;
-}
+} // namespace TeensyTimerTool

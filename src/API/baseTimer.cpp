@@ -5,17 +5,17 @@
 namespace TeensyTimerTool
 {
 
-    BaseTimer::BaseTimer(TimerGenerator* generator, bool periodic)
+    BaseTimer::BaseTimer(TimerGenerator *generator, bool periodic)
         : timerGenerator(generator)
     {
         this->timerGenerator = generator;
-        this->timerChannel = nullptr;
-        this->isPeriodic = periodic;
+        this->timerChannel   = nullptr;
+        this->isPeriodic     = periodic;
     }
 
     BaseTimer::~BaseTimer()
     {
-        if(timerChannel != nullptr)
+        if (timerChannel != nullptr)
         {
             delete timerChannel;
         }
@@ -27,4 +27,4 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-}
+} // namespace TeensyTimerTool

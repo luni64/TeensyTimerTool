@@ -10,7 +10,7 @@ namespace TeensyTimerTool
     #if defined(TEENSYDUINO)
         #if defined(ARDUINO_TEENSY40) || defined(ARDUINO_TEENSY41) || defined(ARDUINO_TEENSY_MICROMOD)
             #define TTT_TEENSY4X
-        #elif defined(ARDUINO_TEENSY30) || defined(ARDUINO_TEENSY31) || defined(ARDUINO_TEENSY35) || defined(ARDUINO_TEENSY36)
+        #elif defined(ARDUINO_TEENSY30) || defined(ARDUINO_TEENSY31) || defined(ARDUINO_TEENSY32) || defined(ARDUINO_TEENSY35) || defined(ARDUINO_TEENSY36)
             #define TTT_TEENSY3X
         #endif
 
@@ -60,10 +60,6 @@ namespace TeensyTimerTool
 
         extern void(* const tick)();
 
-
-    // ESP32  ==========================================================================
-    #elif defined(ESP32)
-        //...
 
     #else
     #    error "Board not supported"

@@ -7,7 +7,7 @@ namespace TeensyTimerTool
     class PIT_t
     {
      public:
-        inline static ITimerChannel* getTimer();
+        inline static ITimerChannel *getTimer();
 
      protected:
         static bool isInitialized;
@@ -17,7 +17,7 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ===========================================================================
 
-    ITimerChannel* PIT_t::getTimer()
+    ITimerChannel *PIT_t::getTimer()
     {
         if (!isInitialized)
         {
@@ -67,4 +67,4 @@ namespace TeensyTimerTool
 
         asm volatile("dsb"); //wait until register changes propagated through the cache
     }
-}
+} // namespace TeensyTimerTool

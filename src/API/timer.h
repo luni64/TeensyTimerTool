@@ -6,11 +6,10 @@
 
 namespace TeensyTimerTool
 {
-    //class [[deprecated("Use PeriodicTimer or OneShotTimer instead")]] Timer : public BaseTimer
-    class Timer : public BaseTimer
+    class [[deprecated("Consider using PeriodicTimer or OneShotTimer instead")]] Timer : public BaseTimer
     {
      public:
-        Timer(TimerGenerator* gen = nullptr);
+        Timer(TimerGenerator *gen = nullptr);
 
         inline errorCode beginPeriodic(callback_t cb, uint32_t period)
         {
@@ -31,4 +30,4 @@ namespace TeensyTimerTool
     {
         timerChannel->trigger(delay);
     }
-}
+} // namespace TeensyTimerTool

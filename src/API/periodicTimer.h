@@ -13,7 +13,7 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(period_t p) { return postError(timerChannel->setPeriod(period2us(p))); };
 
         template <typename period_t>
-        inline errorCode setNextPeriod(period_t p) { return postError(timerChannel->setNextPeriod(period2us(p))); };    
+        inline errorCode setNextPeriod(period_t p) { return postError(timerChannel->setNextPeriod(period2us(p))); };
     };
 
     // IMPLEMENTATION =====================================================================

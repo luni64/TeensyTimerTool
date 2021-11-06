@@ -4,10 +4,10 @@
 
 namespace TeensyTimerTool
 {
-    bool PIT_t::isInitialized = false;
+    bool PIT_t::isInitialized    = false;
     PITChannel PIT_t::channel[4] = {{0}, {1}, {2}, {3}};
 
-     uint32_t PITChannel::clockFactor = 1;
-}
+    uint32_t PITChannel::clockFactor = 1;
+} // namespace TeensyTimerTool
 
 #endif

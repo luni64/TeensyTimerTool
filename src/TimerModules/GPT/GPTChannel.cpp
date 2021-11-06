@@ -11,14 +11,14 @@ namespace TeensyTimerTool
         stop();
         setCallback(nullptr);
 
-        if (regs == (IMXRT_GPT_t*)&IMXRT_GPT1)
+        if (regs == (IMXRT_GPT_t *)&IMXRT_GPT1)
             GPT_t<0>::end();
 
-        else if (regs == (IMXRT_GPT_t*)&IMXRT_GPT2)
+        else if (regs == (IMXRT_GPT_t *)&IMXRT_GPT2)
             GPT_t<1>::end();
         else
             postError(errorCode::GTP_err);
     }
-}
+} // namespace TeensyTimerTool
 
 #endif

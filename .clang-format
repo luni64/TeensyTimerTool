@@ -8,19 +8,22 @@ AccessModifierOffset: -3
 ColumnLimit: 0
 UseTab: Never
 
-AllowShortIfStatementsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: WithoutElse
 AllowShortLoopsOnASingleLine : true
 AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortEnumsOnASingleLine: true
+
 IndentCaseLabels: true
 
-PointerAlignment: Left
+PointerAlignment: Right
 
 AlignTrailingComments: true
+AlignConsecutiveAssignments: true
+AlignOperands : AlignAfterOperator
 
 NamespaceIndentation: All
-FixNamespaceComments: false
-
-IndentPPDirectives: AfterHash
+FixNamespaceComments: true
 
 CompactNamespaces: true
 
@@ -38,5 +41,7 @@ BraceWrapping:
   SplitEmptyFunction: false
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
+
+AlwaysBreakTemplateDeclarations: No
 
 IncludeBlocks: Merge

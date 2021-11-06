@@ -1,17 +1,17 @@
 #pragma once
 
-#include "error_codes.h"
 #include "Stream.h"
+#include "error_codes.h"
 
 namespace TeensyTimerTool
 {
     class ErrorHandler
     {
      public:
-        ErrorHandler(Stream& s);
+        ErrorHandler(Stream &s);
         void operator()(errorCode code) const;
 
      protected:
-         Stream& stream;
+        Stream &stream;
     };
-}
+} // namespace TeensyTimerTool

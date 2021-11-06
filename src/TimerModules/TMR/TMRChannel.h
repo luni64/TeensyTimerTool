@@ -1,17 +1,17 @@
 #pragma once
 #include "../../ITimerChannel.h"
 //#include "Arduino.h"
-#include <cmath>
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
 #include "imxrt.h"
+#include <cmath>
 
 namespace TeensyTimerTool
 {
     class TMRChannel : public ITimerChannel
     {
      public:
-        inline TMRChannel(IMXRT_TMR_CH_t* regs, callback_t* cbStorage);
+        inline TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage);
         inline virtual ~TMRChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
@@ -25,8 +25,8 @@ namespace TeensyTimerTool
         inline void setPrescaler(uint32_t psc); // psc 0..7 -> prescaler: 1..128
 
      protected:
-        IMXRT_TMR_CH_t* regs;
-        callback_t** pCallback = nullptr;
+        IMXRT_TMR_CH_t *regs;
+        callback_t **pCallback = nullptr;
         float pscValue;
         uint32_t pscBits;
 
@@ -36,7 +36,7 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ==============================================
 
-    TMRChannel::TMRChannel(IMXRT_TMR_CH_t* regs, callback_t* cbStorage)
+    TMRChannel::TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage)
         : ITimerChannel(cbStorage)
     {
         this->regs = regs;
@@ -63,7 +63,6 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-
     errorCode TMRChannel::begin(callback_t cb, float tcnt, bool periodic)
     {
         const float_t t = microsecondToCounter(tcnt);
@@ -77,11 +76,11 @@ namespace TeensyTimerTool
             reload = (uint16_t)t - 1;
         }
 
-        regs->CTRL = 0x0000;
-        regs->LOAD = 0x0000;
-        regs->COMP1 = reload;
+        regs->CTRL   = 0x0000;
+        regs->LOAD   = 0x0000;
+        regs->COMP1  = reload;
         regs->CMPLD1 = reload;
-        regs->CNTR = 0x0000;
+        regs->CNTR   = 0x0000;
         setCallback(cb);
 
         if (!periodic)
@@ -94,17 +93,16 @@ namespace TeensyTimerTool
         return t > 0xFFFF ? errorCode::periodOverflow : errorCode::OK;
     }
 
-
     errorCode TMRChannel::trigger(float tcnt) // quick and dirty, should be optimized
     {
         const float_t t = microsecondToCounter(tcnt);
         uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
 
-        regs->CTRL = 0x0000;
-        regs->LOAD = 0x0000;
-        regs->COMP1 = reload;
+        regs->CTRL   = 0x0000;
+        regs->LOAD   = 0x0000;
+        regs->COMP1  = reload;
         regs->CMPLD1 = reload;
-        regs->CNTR = 0x0000;
+        regs->CNTR   = 0x0000;
 
         regs->CSCTRL &= ~TMR_CSCTRL_TCF1;
         regs->CSCTRL |= TMR_CSCTRL_TCF1EN;
@@ -117,7 +115,7 @@ namespace TeensyTimerTool
     void TMRChannel::setPrescaler(uint32_t psc) // psc 0..7 -> prescaler: 1..128
     {
         pscValue = 1 << (psc & 0b0111);
-        pscBits = 0b1000 | (psc & 0b0111);
+        pscBits  = 0b1000 | (psc & 0b0111);
     }
 
     float TMRChannel::getMaxPeriod() const
@@ -164,7 +162,6 @@ namespace TeensyTimerTool
         // }
         return errorCode::notImplemented;
     }
-
 
     float_t TMRChannel::microsecondToCounter(const float_t us) const
     {
