@@ -4,10 +4,12 @@
 #include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
 #include <type_traits>
+#include "helpers.h"
 
 #if defined(USE_TIME_LITERALS)
 #include "frequency.h"
 #include <chrono>
+#include <cmath>
 using namespace std::chrono_literals;
 using namespace std::chrono;
 #endif
@@ -17,8 +19,8 @@ namespace TeensyTimerTool
     class BaseTimer
     {
      public:
-        template <typename T>
-        inline errorCode begin(callback_t callback, T period, bool start = true);
+        template <typename period_t>
+        inline errorCode begin(callback_t callback, period_t period, bool start = true);
         inline errorCode setPrescaler(int psc);
         inline errorCode end();
         inline errorCode start();
@@ -27,9 +29,6 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const;
 
      protected:
-        template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
-        T getPeriod(T v) { return v; }
-
         BaseTimer(TimerGenerator* generator, bool periodic);
         virtual ~BaseTimer();
 
@@ -37,27 +36,14 @@ namespace TeensyTimerTool
         ITimerChannel* timerChannel;
         bool isPeriodic;
         uint32_t prescaler = 0;
-
-#if defined(USE_TIME_LITERALS)
-     public:
-        template <typename dur = seconds>
-        inline float getMaxDuration() const { return getMaxPeriod() * dur::period::den / dur::period::num; }
-
-     protected:
-        template <class T, std::enable_if_t<std::chrono::__is_duration<T>::value, int>* = nullptr>
-        float getPeriod(T v) { return (duration_cast<duration<float, std::micro>>(v).count()); }
-
-        template <class T, std::enable_if_t<TeensyTimerTool::__is_frequency<T>::value, int>* = nullptr>
-        float getPeriod(T v) { return 1'000'000 / duration_cast<hertz>(v).count(); }
-#endif
     };
 
     // INLINE IMPLEMENTATION ================================================
 
-    template <typename T>
-    errorCode BaseTimer::begin(callback_t callback, T p, bool start)
+    template <typename period_t>
+    errorCode BaseTimer::begin(callback_t callback, period_t p, bool start)
     {
-        auto period = getPeriod(p);
+        float period = period2us(p);  // transform from any period type to microseconds (float)
 
         if (callback == nullptr) return postError(errorCode::callback);
         if (isPeriodic && period == 0) return postError(errorCode::reload);
@@ -110,6 +96,6 @@ namespace TeensyTimerTool
             return timerChannel->getMaxPeriod();
         }
         postError(errorCode::notInitialized);
-        return 0;
+        return NAN;
     }
 }

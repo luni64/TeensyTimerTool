@@ -7,16 +7,15 @@ namespace TeensyTimerTool
     class PeriodicTimer : public BaseTimer
     {
      public:
-        PeriodicTimer(TimerGenerator* generator = nullptr)
-            : BaseTimer(generator, true) {}
+        PeriodicTimer(TimerGenerator *generator = nullptr) : BaseTimer(generator, true) {}
 
-        template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
-        errorCode setPeriod(T p) { return postError(timerChannel->setPeriod((float)p)); }
+        template <typename period_t>
+        inline errorCode setPeriod(period_t p) { return postError(timerChannel->setPeriod(period2us(p))); };
 
-        template <class T, std::enable_if_t<std::is_arithmetic<T>::value, int>* = nullptr>
-        errorCode setNextPeriod(T p) { return postError(timerChannel->setNextPeriod((float)p)); }
+        template <typename period_t>
+        inline errorCode setNextPeriod(period_t p) { return postError(timerChannel->setNextPeriod(period2us(p))); };    
     };
 
     // IMPLEMENTATION =====================================================================
 
-}
+} // namespace TeensyTimerTool
