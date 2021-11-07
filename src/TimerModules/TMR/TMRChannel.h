@@ -22,6 +22,7 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const override;
 
         inline errorCode setPeriod(float us) override;
+        inline errorCode setNextPeriod(float us) override;
         inline void setPrescaler(uint32_t psc); // psc 0..7 -> prescaler: 1..128
 
      protected:
@@ -30,7 +31,7 @@ namespace TeensyTimerTool
         float pscValue;
         uint32_t pscBits;
 
-        inline float_t microsecondToCounter(const float_t us) const;
+        errorCode us2Ticks(const float us, uint16_t *ticks) const;
         inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
@@ -63,24 +64,17 @@ namespace TeensyTimerTool
         return errorCode::OK;
     }
 
-    errorCode TMRChannel::begin(callback_t cb, float tcnt, bool periodic)
+    errorCode TMRChannel::begin(callback_t cb, float period, bool periodic)
     {
-        const float_t t = microsecondToCounter(tcnt);
         uint16_t reload;
-        if (t > 0xFFFF)
-        {
-            postError(errorCode::periodOverflow);
-            reload = 0xFFFE;
-        } else
-        {
-            reload = (uint16_t)t - 1;
-        }
+        errorCode status = us2Ticks(period, &reload);
 
         regs->CTRL   = 0x0000;
         regs->LOAD   = 0x0000;
         regs->COMP1  = reload;
         regs->CMPLD1 = reload;
         regs->CNTR   = 0x0000;
+        regs->CSCTRL = TMR_CSCTRL_CL1(1);
         setCallback(cb);
 
         if (!periodic)
@@ -90,13 +84,16 @@ namespace TeensyTimerTool
             regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_LENGTH;
 
         start();
-        return t > 0xFFFF ? errorCode::periodOverflow : errorCode::OK;
+        return status;
     }
 
-    errorCode TMRChannel::trigger(float tcnt) // quick and dirty, should be optimized
+    errorCode TMRChannel::trigger(float us) // quick and dirty, should be optimized
     {
-        const float_t t = microsecondToCounter(tcnt);
-        uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
+        // const float_t t = us2Ticks(tcnt);
+        // uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
+
+        uint16_t reload;
+        errorCode status = us2Ticks(us, &reload);
 
         regs->CTRL   = 0x0000;
         regs->LOAD   = 0x0000;
@@ -109,7 +106,7 @@ namespace TeensyTimerTool
 
         regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_ONCE | TMR_CTRL_LENGTH;
 
-        return errorCode::OK;
+        return status;
     }
 
     void TMRChannel::setPrescaler(uint32_t psc) // psc 0..7 -> prescaler: 1..128
@@ -123,10 +120,13 @@ namespace TeensyTimerTool
         return pscValue / 150'000'000.0f * 0xFFFE;
     }
 
-    // void TMRChannel::_setNextPeriod(const uint16_t cnt)
-    // {
-    //     regs->CMPLD1 = cnt;
-    // }
+    errorCode TMRChannel::setNextPeriod(float us)
+    {
+        uint16_t reload;
+        errorCode status = us2Ticks(us, &reload);
+        regs->CMPLD1     = reload;
+        return status;
+    }
 
     // errorCode TMRChannel::_setCurrentPeriod(const uint16_t cnt)
     // {
@@ -151,21 +151,33 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::setPeriod(float us)
     {
-        //const float_t t = microsecondToCounter(us);
+        uint16_t newReload;
+        errorCode status = us2Ticks(us, &newReload);
 
-        // if (t <= 0xFFFF)
-        // {
-        //     return _setCurrentPeriod(t);
-        // } else
-        // {
-        //     return errorCode::periodOverflow;
-        // }
-        return errorCode::notImplemented;
+        regs->CMPLD1 = newReload;     // counter will load this value to COMP1 at next trigger
+                                      //
+        noInterrupts();               // interrupting this code could lead to wrong cntr settings
+        if (regs->CNTR > newReload)   // already too late for new period
+            regs->CNTR = regs->COMP1; //   -> force trigger;  will also load COMP1 with value from CMPLD1
+        else                          // not too late
+            regs->COMP1 = newReload;  //   -> change current compare value to new one (counter _might_ be > newReload in between.. watch and fix if necessary)
+        interrupts();
+
+        return status;
     }
 
-    float_t TMRChannel::microsecondToCounter(const float_t us) const
+    errorCode TMRChannel::us2Ticks(const float us, uint16_t *ticks) const
     {
-        return us * 150.0f / pscValue;
+        constexpr uint16_t maxTicks = 0xFFFE;
+
+        float tmpTicks = us * 150.0f / pscValue;
+        if (tmpTicks > maxTicks)
+        {
+            *ticks = maxTicks;
+            return errorCode::periodOverflow;
+        }
+        *ticks = (uint16_t)tmpTicks;
+        return errorCode::OK;
     }
 
     float_t TMRChannel::counterToMicrosecond(const float_t cnt) const
