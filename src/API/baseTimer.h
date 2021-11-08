@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "Arduino.h"
+#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "ITimerChannel.h"
 #include "helpers.h"
@@ -80,21 +80,25 @@ namespace TeensyTimerTool
 
     errorCode BaseTimer::start()
     {
-        timerChannel->start();
-        return errorCode::OK; // hack, implement return value in timer interface
+        if (timerChannel)
+            return postError(timerChannel->start());
+
+        return postError(errorCode::notInitialized);
     }
 
     errorCode BaseTimer::stop()
     {
-        return postError(timerChannel->stop());
+        if (timerChannel)
+            return postError(timerChannel->stop());
+
+        return postError(errorCode::notInitialized);
     }
 
     float BaseTimer::getMaxPeriod() const
     {
         if (timerChannel != nullptr)
-        {
             return timerChannel->getMaxPeriod();
-        }
+
         postError(errorCode::notInitialized);
         return NAN;
     }

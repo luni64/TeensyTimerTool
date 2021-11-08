@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Arduino.h"
 #include "GPTmap.h"
 #include "ITimerChannel.h"
 #include "core_pins.h"
@@ -112,8 +112,8 @@ namespace TeensyTimerTool
         return errorCode::notImplemented;
     }
 
-    errorCode GptChannel::setPeriod(float us)   // not good, will generate one too long period if called before cnt == oldPeriod
-    {                                           // need to redo the timing using free running timer to get setPeriod and setNewPeriod working correctly
+    errorCode GptChannel::setPeriod(float us) // not good, will generate one too long period if called before cnt == oldPeriod
+    {                                         // need to redo the timing using free running timer to get setPeriod and setNewPeriod working correctly
         uint32_t newPeriod = us2ticks(us);
         // uint32_t now      = regs->CNT;
 
