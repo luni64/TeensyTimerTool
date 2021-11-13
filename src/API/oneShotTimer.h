@@ -31,18 +31,27 @@ namespace TeensyTimerTool
     template <typename period_t>
     errorCode OneShotTimer::trigger(period_t delay)
     {
-        return timerChannel->trigger(period2us(delay));
+        if (timerChannel)
+            return postError(timerChannel->trigger(period2us(delay)));
+
+        return postError(errorCode::notInitialized);
     }
 
     template <typename T>
     errorCode OneShotTimer::triggerDirect(T reload)
     {
-        return timerChannel->triggerDirect(reload);
+        if (timerChannel)
+            return postError(timerChannel->triggerDirect(reload));
+
+        return postError(errorCode::notInitialized);
     }
 
     template <typename T>
     errorCode OneShotTimer::getTriggerReload(float delay, T *reload)
     {
-        return timerChannel->getTriggerReload(delay, reload);
+        if (timerChannel)
+            return postError(timerChannel->getTriggerReload(delay, reload));
+
+        return postError(errorCode::notInitialized);
     }
 } // namespace TeensyTimerTool

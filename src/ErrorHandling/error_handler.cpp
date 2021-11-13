@@ -21,7 +21,7 @@ namespace TeensyTimerTool
 
             // warnings
             case errorCode::periodOverflow:
-                txt = "Period overflow, set to maximum";
+                txt = "Period overflow. Period was set to maximum value";
                 break;
             case errorCode::wrongType:
                 txt = "Wrong parameter type";
@@ -41,7 +41,7 @@ namespace TeensyTimerTool
                 txt = "Function not implemented for this timer";
                 break;
             case errorCode::notInitialized:
-                txt = "Timer not initialized or available";
+                txt = "Timer not initialized or available. Did you call begin?";
                 break;
 
             default:

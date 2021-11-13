@@ -12,7 +12,7 @@ namespace TeensyTimerTool
 
     //---------------------------------------------------------------------
     // Software counter based on the 32bit ARM cycle counter
-    // Resolution 1/FCPU_ACTUAL (6.66ns @600MHz)
+    // Resolution 1/FCPU_ACTUAL (1.66ns @600MHz)
     //
     struct CycleCounter32 : CycleCounterBase
     {
@@ -40,8 +40,8 @@ namespace TeensyTimerTool
     //------------------------------------------------------------------
     // Software counter based on the 64bit period counter
     // of the built in real time clock (RTC).
-    // Resolution: 1/32768s
-    //
+    // Resolution: 1/32768s (30.5 µs)
+    // 
     struct RtcCounter
     {
         using counter_t = uint64_t;
