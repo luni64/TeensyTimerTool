@@ -38,10 +38,13 @@ namespace TeensyTimerTool
                 txt = "Timer pool contains no free timer";
                 break;
             case errorCode::notImplemented:
-                txt = "Function not implemented for this timer";
+                txt = "Function not implemented for this timer.";
                 break;
             case errorCode::notInitialized:
                 txt = "Timer not initialized or available. Did you call begin?";
+                break;
+            case errorCode::pulseLengthOverflow:
+                txt = "Pulse timing overflow (t_high or t_low > 55.9ms)";
                 break;
 
             default:

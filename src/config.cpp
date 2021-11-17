@@ -12,10 +12,15 @@ using tick_t = void (*)();
 
 namespace TeensyTimerTool
 {
-    TimerGenerator *const TMR1 = TMR_t<0>::getTimer;
-    TimerGenerator *const TMR2 = TMR_t<1>::getTimer;
-    TimerGenerator *const TMR3 = TMR_t<2>::getTimer;
-    TimerGenerator *const TMR4 = TMR_t<3>::getTimer;
+    TimerGenerator *const TMR1   = TMR_t<0>::getTimer<>;
+    TimerGenerator *const TMR1_1 = TMR_t<0>::getTimer<0>;
+    TimerGenerator *const TMR1_2 = TMR_t<0>::getTimer<1>;
+    TimerGenerator *const TMR1_3 = TMR_t<0>::getTimer<2>;
+    TimerGenerator *const TMR1_4 = TMR_t<0>::getTimer<3>;
+
+    TimerGenerator *const TMR2   = TMR_t<1>::getTimer<>;
+    TimerGenerator *const TMR3   = TMR_t<2>::getTimer<>;
+    TimerGenerator *const TMR4   = TMR_t<3>::getTimer<>;
 
     TimerGenerator *const GPT1 = GPT_t<0>::getTimer;
     TimerGenerator *const GPT2 = GPT_t<1>::getTimer;

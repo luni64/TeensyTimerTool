@@ -5,11 +5,14 @@
 
 namespace TeensyTimerTool
 {
-    template <unsigned moduleNr>
+    template <int moduleNr>
     class TMR_t
     {
      public:
+        template<int channel = -1>
         static ITimerChannel *getTimer();
+
+        static ITimerChannel *doGetTimer();
 
      protected:
         static bool isInitialized;
@@ -31,16 +34,23 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ==================================================================
 
-    template <unsigned moduleNr> IMXRT_TMR_t *const TMR_t<moduleNr>::pTMR    = moduleNr == 0 ? &IMXRT_TMR1 : moduleNr == 1 ? &IMXRT_TMR2
+    template <int moduleNr> IMXRT_TMR_t *const TMR_t<moduleNr>::pTMR    = moduleNr == 0 ? &IMXRT_TMR1 : moduleNr == 1 ? &IMXRT_TMR2
                                                                                                        : moduleNr == 2     ? &IMXRT_TMR3
                                                                                                                            : &IMXRT_TMR4;
-    template <unsigned moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH0 = &pTMR->CH[0];
-    template <unsigned moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH1 = &pTMR->CH[1];
-    template <unsigned moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH2 = &pTMR->CH[2];
-    template <unsigned moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH3 = &pTMR->CH[3];
+    template <int moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH0 = &pTMR->CH[0];
+    template <int moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH1 = &pTMR->CH[1];
+    template <int moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH2 = &pTMR->CH[2];
+    template <int moduleNr> IMXRT_TMR_CH_t *const TMR_t<moduleNr>::pCH3 = &pTMR->CH[3];
 
-    template <unsigned moduleNr>
+    template <int moduleNr>
+    template <int channel>
     ITimerChannel *TMR_t<moduleNr>::getTimer()
+    {
+        return doGetTimer();
+    }
+
+    template<int moduleNr>
+    ITimerChannel* TMR_t<moduleNr>::doGetTimer()
     {
         if (!isInitialized)
         {
@@ -66,7 +76,7 @@ namespace TeensyTimerTool
         return nullptr;
     }
 
-    template <unsigned m>
+    template <int m>
     void TMR_t<m>::isr()
     {
         // no loop to gain some time by avoiding indirections and pointer calculations
@@ -96,9 +106,9 @@ namespace TeensyTimerTool
         asm volatile("dsb"); //wait until register changes propagated through the cache
     }
 
-    template <unsigned m>
+    template <int m>
     bool TMR_t<m>::isInitialized = false;
 
-    template <unsigned m>
+    template <int m>
     callback_t TMR_t<m>::callbacks[4];
 } // namespace TeensyTimerTool

@@ -4,7 +4,9 @@
 namespace TeensyTimerTool
 {
     class ITimerChannel;
-    using TimerGenerator = ITimerChannel*(); //returns a pointer to a free timer channel or nullptr
+    class IPulseGenChannel;
+    using TimerGenerator = ITimerChannel*();            // returns a pointer to a free timer channel or nullptr
+    //using PlsGenerator   = IPulseGenChannel *(uint8_t); // returns a pointer to a pulse generator for the given output pin
 
     // TEENSYDUINO  ==========================================================================
     #if defined(TEENSYDUINO)
@@ -35,7 +37,9 @@ namespace TeensyTimerTool
             extern TimerGenerator *const TCK, * const TCK32, * const TCK64;
 
         #elif defined(TTT_TEENSY4X)
-            extern TimerGenerator *const TMR1, *const TMR2, *const TMR3, *const TMR4;
+            extern TimerGenerator *const TMR1, *const TMR1_1, *const TMR1_2, *const TMR1_3, *const TMR1_4;
+            extern TimerGenerator *const TMR2, *const TMR3, *const TMR4;
+            extern TimerGenerator *const TMR1_1, *const TMR1_2, *const TMR1_3, *const TMR1_4;
             extern TimerGenerator *const GPT1, *const GPT2;
             extern TimerGenerator *const PIT;
             extern TimerGenerator *const TCK, * const TCK32, * const TCK64, *const TCK_RTC;

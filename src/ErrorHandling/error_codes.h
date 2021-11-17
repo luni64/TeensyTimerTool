@@ -32,7 +32,11 @@ namespace TeensyTimerTool
         FTM_err2 = 401,
 
         //TCK Errors
-        TCK_err  = 900,
-        TCK_err2 = 901,
+        TCK_err  = 500,
+        TCK_err2 = 501,
+
+        //Pulse Generator
+        pulseLengthOverflow = 801,
+        bufferSizeOdd       = 802,
     };
 }
