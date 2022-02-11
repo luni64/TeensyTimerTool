@@ -14,7 +14,7 @@
     "maintainer": true
   },
   "homepage": "https://github.com/luni64/TeensyTimerTool",
-  "version": "0.4.1",
+  "version": "0.4.3",
   "frameworks": "arduino",
   "platforms": "Teensy"
 }
