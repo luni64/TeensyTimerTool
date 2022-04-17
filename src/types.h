@@ -1,6 +1,7 @@
 #pragma once
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
+#include "Arduino.h"
 
 #if not defined(PLAIN_VANILLA_CALLBACKS)
 
@@ -26,4 +27,10 @@ namespace TeensyTimerTool
     extern void attachErrFunc(errorFunc_t);
     extern errorCode postError(errorCode);
 } // namespace TeensyTimerTool
+#endif
+
+#if defined(TTT_TEENSY4X)
+#define TTT_F_CPU F_CPU_ACTUAL
+#else
+#define TTT_F_CPU F_CPU
 #endif

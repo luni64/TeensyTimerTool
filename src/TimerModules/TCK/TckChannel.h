@@ -26,6 +26,7 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(float us) override;
 
         float getMaxPeriod() const override { return tckCounter::getMaxMicros() / 1E6f; } // seconds
+        float getRemainingTime() const override { return (currentPeriod - (tckCounter::getCount() - startCnt)) / (float)TTT_F_CPU; }
 
      protected:
         inline bool tick();

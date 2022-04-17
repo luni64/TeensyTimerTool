@@ -41,7 +41,7 @@ namespace TeensyTimerTool
     // Software counter based on the 64bit period counter
     // of the built in real time clock (RTC).
     // Resolution: 1/32768s (30.5 µs)
-    // 
+    //
     struct RtcCounter
     {
         using counter_t = uint64_t;
