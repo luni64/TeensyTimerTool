@@ -1,13 +1,8 @@
 
 #include "tickCounters.h"
 #include "Arduino.h"
+#include "types.h"
 #include "boardDef.h"
-
-#if defined(TTT_TEENSY4X)
-#define TTT_F_CPU F_CPU_ACTUAL
-#else
-#define TTT_F_CPU F_CPU
-#endif
 
 namespace TeensyTimerTool
 {

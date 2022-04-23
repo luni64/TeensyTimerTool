@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include <cmath>
 
 namespace TeensyTimerTool
 {
@@ -20,6 +21,7 @@ namespace TeensyTimerTool
         virtual errorCode setPrescaler(int psc) { return postError(errorCode::notImplemented); }
 
         virtual float getMaxPeriod() const = 0;
+        virtual float getRemainingTime() const { postError(errorCode::notImplemented); return NAN; }
         virtual errorCode setPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
         virtual errorCode setNextPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
         virtual uint32_t getPeriod() { return 0; }

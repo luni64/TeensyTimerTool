@@ -27,6 +27,7 @@ namespace TeensyTimerTool
         inline errorCode stop();
 
         inline float getMaxPeriod() const;
+        inline float getRemainingTime() const;
 
      protected:
         BaseTimer(TimerGenerator *generator, bool periodic);
@@ -98,6 +99,15 @@ namespace TeensyTimerTool
     {
         if (timerChannel != nullptr)
             return timerChannel->getMaxPeriod();
+
+        postError(errorCode::notInitialized);
+        return NAN;
+    }
+
+    float BaseTimer::getRemainingTime() const
+    {
+         if (timerChannel != nullptr)
+             return timerChannel->getRemainingTime();
 
         postError(errorCode::notInitialized);
         return NAN;
