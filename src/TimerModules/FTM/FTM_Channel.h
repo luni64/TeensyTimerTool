@@ -15,8 +15,12 @@ namespace TeensyTimerTool
 
         inline float getMaxPeriod() const override;
 
-        inline errorCode begin(callback_t cb, float period, bool periodic) { return doBegin(cb, period, periodic); } ///hacky improve in later version
+        inline errorCode begin(callback_t cb, float period, bool periodic) { return doBegin(cb, period, periodic); } /// hacky improve in later version
         inline errorCode begin(callback_t cb, uint32_t period, bool periodic) { return doBegin(cb, period, periodic); };
+
+        //inline errorCode setPeriod(float us) override FASTRUN;
+        inline errorCode setNextPeriod(float us) override FASTRUN;
+
 
         inline errorCode trigger(float tcnt) override FASTRUN;
         inline errorCode triggerDirect(uint32_t reload) override FASTRUN;
@@ -70,6 +74,20 @@ namespace TeensyTimerTool
         ci->chRegs->SC &= ~FTM_CSC_CHIE; // enable interrupts
         ci->chRegs->SC &= ~FTM_CSC_CHF;  // reset timer flag
 
+        return errorCode::OK;
+    }
+
+    // errorCode FTM_Channel::setPeriod(float us)
+    // {
+    //     stop();
+    //     ci->reload = ticksFromMicros(us);
+    //     start();
+    //     return errorCode::OK;
+    // }
+
+    errorCode FTM_Channel::setNextPeriod(float us)
+    {
+        ci->reload = ticksFromMicros(us);
         return errorCode::OK;
     }
 
