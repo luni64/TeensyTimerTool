@@ -27,7 +27,6 @@ void setup()
 
     t1.begin(isr1, 5.02s);   // instead of 5020000 (µs)
     t2.begin(isr2, 25ms);    // instead of   25000 (µs)
-    t2.begin(isr3, 100_kHz); // instead of      10 (µs)
 }
 
 void loop()

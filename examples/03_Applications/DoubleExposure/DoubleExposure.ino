@@ -1,11 +1,11 @@
-#include "ResponsiveAnalogRead.h"
 #include "SystemController.h"
 
-constexpr unsigned potPin = A0;
-ResponsiveAnalogRead pot(potPin, false);
+// --> Uncomment if you have a control voltage on the pot pin  <--
+// #include "ResponsiveAnalogRead.h"
+// constexpr unsigned potPin = A0;
+// ResponsiveAnalogRead pot(potPin, false);
 
 SystemController sysControl;
-
 
 void setup()
 {
@@ -17,12 +17,12 @@ void setup()
     sysControl.setExposureDelay(500); // same with 500µs delay between exposures
     sysControl.shoot();
 
-    sysControl.continousMode(true);   // start continously shooting
+    sysControl.continuosMode(true);   // start continuously shooting
     delay(1000);
-    sysControl.continousMode(false);  // stop after one second
+    sysControl.continuosMode(false);  // stop after one second
 
     delay(500);
-    sysControl.continousMode(true);   // start again
+    sysControl.continuosMode(true);   // start again
 }
 
 void loop()

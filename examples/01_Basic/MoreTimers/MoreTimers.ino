@@ -1,11 +1,15 @@
+//-----------------------
+// REQUIRES T4.x
+//-----------------------
+
 #include "TeensyTimerTool.h"
 
 using namespace TeensyTimerTool;
 
-Timer t1(TCK);  // Tick-Timer does not use any hardware timer (20 32bit channels)
-Timer t2(TMR1); // First channel on TMR1 aka QUAD timer module. (TMR1 - TMR4, four 16bit channels each)
-Timer t3(GPT1); // GPT1 module (one 32bit channel per module)
-Timer t4(TMR1); // Second channel on TMR1
+PeriodicTimer t1(TCK);  // Tick-Timer does not use any hardware timer (20 32bit channels)
+PeriodicTimer t2(TMR1); // First channel on TMR1 aka QUAD timer module. (TMR1 - TMR4, four 16bit channels each)
+PeriodicTimer t3(GPT1); // GPT1 module (one 32bit channel per module)
+OneShotTimer t4(TMR1);  // Second channel on TMR1
 
 // Callbacks ===================================================================================
 
@@ -38,15 +42,14 @@ void LED_OFF()
 
 void setup()
 {
-    for(unsigned pin = 0; pin <=13; pin++) pinMode(pin,OUTPUT);    
+    for (unsigned pin = 0; pin <= 13; pin++) pinMode(pin, OUTPUT);
 
-    t1.beginPeriodic(pulse200ns,   50'000); // 200ns pulse every 500 ms
-    t2.beginPeriodic(pulse400ns,      100); // 400ns pulse every 100 µs  
-    t3.beginPeriodic(LED_ON,    1'000'000); // Switch LED on every second
-    t4.beginOneShot(LED_OFF);               // One shot timer to switch LED Off
+    t1.begin(pulse200ns, 50'000); // 200ns pulse every 500 ms
+    t2.begin(pulse400ns, 100);    // 400ns pulse every 100 µs
+    t3.begin(LED_ON, 1'000'000);  // Switch LED on every second
+    t4.begin(LED_OFF);            // One shot timer to switch LED Off
 }
 
 void loop()
-{   
+{
 }
-

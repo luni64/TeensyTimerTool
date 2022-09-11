@@ -6,11 +6,11 @@ using namespace TeensyTimerTool;
 using namespace pins;
 
 pin<13> LED(OUTPUT);
-Timer timer;
+OneShotTimer timer;
 
 void setup()
 {
-    timer.beginOneShot([] { LED = LOW; });
+    timer.begin([] { LED = LOW; });
 }
 
 void loop()

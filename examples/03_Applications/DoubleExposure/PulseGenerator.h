@@ -7,7 +7,7 @@ class PulseGenerator
 {
  public:
     PulseGenerator();                             // constructor, initializes non hardware related stuff
-    void begin(unsigned pin);                     // intializes hardware related stuff
+    void begin(unsigned pin);                     // initializes hardware related stuff
     void schedulePulse(float delay, float width); // schedules a 'width µs' wide pulse after a waiting time of 'delay µs'. Non blocking.
 
  protected:
@@ -49,7 +49,7 @@ void PulseGenerator::callback()
     if (digitalReadFast(pin) == LOW)
     {
         digitalWriteFast(pin, HIGH);
-        pulseTimer.trigger(width);              // retrigger
+        pulseTimer.trigger(width);              // re-trigger
     } else
     {
         digitalWriteFast(pin, LOW);

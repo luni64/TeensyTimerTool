@@ -25,7 +25,7 @@ void setup()
     timer[3].trigger(milliseconds(50) + microseconds(5000)); // 55ms
     t_0 = millis();
 
-    pt1.begin([]{digitalToggleFast(LED_BUILTIN)})
+    pt1.begin([] { digitalToggleFast(LED_BUILTIN); }, 0.5s);
 }
 
 void loop()

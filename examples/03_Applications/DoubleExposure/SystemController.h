@@ -9,7 +9,7 @@ class SystemController
     inline void begin();
     inline void shoot();
 
-    inline void continousMode(bool on);
+    inline void continuosMode(bool on);
     inline void setExposureDelay(unsigned delay);
 
  protected:
@@ -26,10 +26,10 @@ void SystemController::begin()
     constexpr unsigned repetitionRate = 15; // Hz
 
     constexpr unsigned preTrig1_pin = 1;
-    constexpr unsigned trig1_pin = 2;
+    constexpr unsigned trig1_pin    = 2;
     constexpr unsigned preTrig2_pin = 3;
-    constexpr unsigned trig2_pin = 4;
-    constexpr unsigned cam_pin = 5;
+    constexpr unsigned trig2_pin    = 4;
+    constexpr unsigned cam_pin      = 5;
 
     lCtrl1.begin(preTrig1_pin, trig1_pin, cam_pin);
     lCtrl2.begin(preTrig2_pin, trig2_pin, cam_pin);
@@ -45,13 +45,12 @@ void SystemController::shoot()
     lCtrl2.shoot();
 }
 
-void SystemController::continousMode(bool on)
+void SystemController::continuosMode(bool on)
 {
     if (on)
     {
         mainTimer.start();
-    }
-    else
+    } else
     {
         mainTimer.stop();
     }
