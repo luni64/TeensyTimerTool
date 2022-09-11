@@ -4,7 +4,6 @@
 #include <type_traits>
 
 #if defined(USE_TIME_LITERALS)
-#include "frequency.h"
 #include <chrono>
 #endif
 
@@ -27,15 +26,11 @@ namespace TeensyTimerTool
     template <class period_t, std::enable_if_t<std::chrono::__is_duration<period_t>::value, int> * = nullptr>
     float constexpr period2us(period_t v)
     {
+        using namespace std::chrono;
         return (duration_cast<duration<float, std::micro>>(v).count());
     }
 
-    // Frequency types (Hz, MHz...)
-    template <class period_t, std::enable_if_t<TeensyTimerTool::__is_frequency<period_t>::value, int> * = nullptr>
-    float constexpr period2us(period_t v)
-    {
-        return 1'000'000 / duration_cast<hertz>(v).count();
-    }
+
 #endif
 
 } // namespace TeensyTimerTool
