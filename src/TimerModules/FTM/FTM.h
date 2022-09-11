@@ -15,9 +15,9 @@ namespace TeensyTimerTool
         static bool isInitialized;
         inline static void isr() FASTRUN;
 
-        static constexpr FTM_r_t *r          = (FTM_r_t *)FTM_Info<moduleNr>::baseAdr;
         static constexpr unsigned maxChannel = FTM_Info<moduleNr>::nrOfChannels;
         static FTM_ChannelInfo channelInfo[maxChannel];
+        static FTM_r_t * const r;
 
         static_assert(moduleNr < 4, "Module number < 4 required");
     };
@@ -88,4 +88,8 @@ namespace TeensyTimerTool
 
     template <unsigned m>
     bool FTM_t<m>::isInitialized = false;
+
+    template <unsigned m>
+    FTM_r_t* const FTM_t<m>::r = (FTM_r_t *)FTM_Info<m>::baseAdr;
 } // namespace TeensyTimerTool
+
