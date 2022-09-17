@@ -1,21 +1,19 @@
 
 #include "TeensyTimerTool.h"
-#include "pins.h"
-
 using namespace TeensyTimerTool;
-using namespace pins;
 
-pin<13> LED(OUTPUT);
 OneShotTimer timer;
 
 void setup()
 {
-    timer.begin([] { LED = LOW; });
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    timer.begin([] { digitalWriteFast(LED_BUILTIN, LOW); });
 }
 
 void loop()
 {
-    LED = HIGH;
-    timer.trigger(25'000);
-    delay(1'000);
+    digitalWriteFast(LED_BUILTIN, HIGH); // switch on LED
+    timer.trigger(25'000);               // switch off after 25ms
+    delay(1'000);                        // repeat every second
 }

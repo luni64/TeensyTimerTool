@@ -1,36 +1,37 @@
 #pragma once
+#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
-#include "Arduino.h"
 
+// we can not use staticFunctional with too old compilers
 #if not defined(PLAIN_VANILLA_CALLBACKS)
-
-#include <functional>
-inline void std::__throw_bad_function_call()
-{
-    while (1) {} // do whatever you want to do instead of an exception
-}
+    #if (__GNUC__ < 7)
+        #warning "can't use staticFunctional with GCC < V7! Fallback to function pointer callbacks"
+    #else
+        #define USE_MODERN_CALLBACKS
+        #include "staticFunctional.h"
+    #endif
+#endif
 namespace TeensyTimerTool
 {
-    using callback_t  = std::function<void(void)>;
-    using errorFunc_t = std::function<void(errorCode)>;
+    #if defined(USE_MODERN_CALLBACKS)
+        using staticFunctional::function;
+        using callback_t  = function<void(void)>;
+        using errorFunc_t = function<void(errorCode)>;
 
-    extern void attachErrFunc(errorFunc_t);
-    extern errorCode postError(errorCode);
+        extern void attachErrFunc(errorFunc_t);
+        extern errorCode postError(errorCode);
+    #else
+        using callback_t  = void (*)();
+        using errorFunc_t = void (*)(errorCode);
+
+        extern void attachErrFunc(errorFunc_t);
+        extern errorCode postError(errorCode);
+    #endif
+
+    #if defined(TTT_TEENSY4X)
+    #define TTT_F_CPU F_CPU_ACTUAL
+    #else
+    #define TTT_F_CPU F_CPU
+    #endif
 } // namespace TeensyTimerTool
-#else
-namespace TeensyTimerTool
-{
-    using callback_t  = void (*)();
-    using errorFunc_t = void (*)(errorCode);
-
-    extern void attachErrFunc(errorFunc_t);
-    extern errorCode postError(errorCode);
-} // namespace TeensyTimerTool
-#endif
-
-#if defined(TTT_TEENSY4X)
-#define TTT_F_CPU F_CPU_ACTUAL
-#else
-#define TTT_F_CPU F_CPU
-#endif
