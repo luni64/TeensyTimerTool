@@ -3,21 +3,16 @@
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
 
-// we can not use staticFunctional with too old compilers
+
 #if not defined(PLAIN_VANILLA_CALLBACKS)
-    #if (__GNUC__ < 7)
-        #warning "can't use staticFunctional with GCC < V7! Fallback to function pointer callbacks"
-    #else
         #define USE_MODERN_CALLBACKS
-        #include "staticFunctional.h"
-    #endif
+        #include "inplace_function.h"
 #endif
 namespace TeensyTimerTool
 {
     #if defined(USE_MODERN_CALLBACKS)
-        using staticFunctional::function;
-        using callback_t  = function<void(void)>;
-        using errorFunc_t = function<void(errorCode)>;
+        using callback_t  = stdext::inplace_function<void(void)>;
+        using errorFunc_t = stdext::inplace_function<void(errorCode)>;
 
         extern void attachErrFunc(errorFunc_t);
         extern errorCode postError(errorCode);
