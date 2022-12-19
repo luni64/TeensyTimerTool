@@ -3,9 +3,9 @@ using namespace TeensyTimerTool;
 
 
 
-//Timer t[]{FTM0, FTM0, FTM2};                             // two channels from FTM0, one from FTM2
-//Timer t[3];                                              // use 3 timers from the pool
-OneShotTimer t[]{FTM0, FTM0, FTM0, FTM0, FTM0, FTM0, FTM0, FTM0}; // all 8 channels of FTM0
+//Timer t[]{FTM0, FTM0, FTM2};             // two channels from FTM0, one from FTM2
+//Timer t[3];                              // use 3 timers from the pool
+OneShotTimer t[]{TCK, TCK, TCK, TCK, TCK}; // 5 software timers
 
 constexpr unsigned nrOfTimers = sizeof(t) / sizeof(t[0]);
 
