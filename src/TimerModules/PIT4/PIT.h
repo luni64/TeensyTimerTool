@@ -8,6 +8,7 @@ namespace TeensyTimerTool
     {
      public:
         inline static ITimerChannel *getTimer();
+        static constexpr unsigned maxChannels = 4;
 
      protected:
         static bool isInitialized;
