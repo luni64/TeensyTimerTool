@@ -1,0 +1,172 @@
+#include "Arduino.h"
+#include "TeensyTimerTool.h"
+#include "TimerModules/GPT/GPT.h"
+#include "TimerModules/PIT4/PIT.h"
+#include "TimerModules/TCK/TCK.h"
+#include "TimerModules/TCK/tickCounters.h"
+#include "TimerModules/TMR/TMR.h"
+#include "boardDef.h"
+#include <algorithm>
+#include <vector>
+
+using namespace TeensyTimerTool;
+using namespace std;
+
+using channels_t = vector<ITimerChannel*>;
+
+bool testOneShot(TimerGenerator* module)
+{
+    int cnt = 0;
+    OneShotTimer t(module);
+
+    errorCode err = t.begin([&cnt] { cnt++; });
+    
+
+    return true;
+
+    if (err != errorCode::OK) return false;
+
+    t.trigger(100);
+    delay(1);
+
+    t.trigger(100);
+    delay(1);
+
+    return cnt == 2;
+}
+
+bool testPeriodic(TimerGenerator* module)
+{
+    volatile int cnt = 0;
+    PeriodicTimer t(module);
+
+    t.begin([&cnt] { cnt++; }, 100);
+
+    delay(5);
+    t.stop();
+
+    return cnt >= 49 && cnt <= 51;
+}
+
+channels_t makeTimers(TimerGenerator* const makeTimer, unsigned nr)
+{
+    std::vector<ITimerChannel*> channelList;
+
+    for (unsigned i = 0; i < nr; i++)
+    {
+        channelList.push_back(makeTimer());
+    }
+    return channelList;
+}
+
+bool testChannelAllocation(TimerGenerator* const generator, unsigned nrOfChannels)
+{
+    channels_t channels = makeTimers(generator, nrOfChannels + 1);               // try to allocate more channels than available
+    unsigned nrOfFails  = std::count(channels.begin(), channels.end(), nullptr); // should give exactly one failure (nullptr)
+
+    if (nrOfFails != 1)
+    {
+        // Serial.printf("nrOfFails %d\n", nrOfFails);
+        return false;
+    }
+
+    delete channels[0];        // destructor should deactivate and remove channel from list of allocated timers
+    channels[0] = generator(); // we should be able to allocate another channel now
+    if (channels[0] == nullptr)
+    {
+        Serial.println("reallocation");
+        return false;
+    }
+
+    for (ITimerChannel* channel : channels)
+    {
+        delete channel;
+    }
+
+    return true;
+}
+
+uint32_t t0, t1;
+
+void setup()
+{
+    while (!Serial) {}
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    bool result;
+
+    Serial.println("TCK tests: ------------------------------------------");
+
+    result = testOneShot(TCK);
+    Serial.printf("OneShot Timer \t %s\n", result ? "PASSED" : "FAIL");
+
+    result = testPeriodic(TCK);
+    Serial.printf("Periodic Timer\t %s\n", result ? "PASSED" : "FAIL");
+
+    result = testChannelAllocation(TCK, 20);
+    Serial.printf("Allocation     \t %s\n", result ? "PASSED" : "FAIL");
+
+    Serial.println("\nTMR tests: ------------------------------------------");
+    result = testOneShot(TMR1);
+    Serial.printf("OneShot Timer \t %s\n", result ? "PASSED" : "FAIL");
+
+    result = testPeriodic(TMR1);
+    Serial.printf("Periodic Timer\t %s\n", result ? "PASSED" : "FAIL");
+
+    result = testChannelAllocation(TMR1, 4);
+    Serial.printf("Allocation     \t %s\n", result ? "PASSED" : "FAIL");
+
+    Serial.println("\nGPT1 tests: ------------------------------------------");
+    result = testOneShot(GPT1);
+    Serial.printf("OneShot Timer \t %s\n", result ? "PASSED" : "FAIL");
+
+    result = testPeriodic(GPT1);
+    Serial.printf("Periodic Timer\t %s\n", result ? "PASSED" : "FAIL");
+
+    result = testChannelAllocation(GPT1, 1);
+    Serial.printf("Allocation     \t %s\n", result ? "PASSED" : "FAIL");
+
+    Serial.println("\nPIT tests: ------------------------------------------");
+    result = testOneShot(PIT);
+    Serial.printf("OneShot Timer \t %s\n", result ? "PASSED" : "FAIL");
+
+    // result = testPeriodic(PIT);
+    // Serial.printf("Periodic Timer\t %s\n", result ? "PASSED" : "FAIL");
+
+    // result = testChannelAllocation(PIT, 1);
+    // Serial.printf("Allocation     \t %s\n", result ? "PASSED" : "FAIL");
+
+    // result = testChannelAllocation(TMR1, 4);
+    // Serial.printf("TMR1\t %s\n", result ? "OK" : "FAIL");
+
+    // result = testChannelAllocation(TMR2, 4);
+    // Serial.printf("TMR2\t %s\n", result ? "OK" : "FAIL");
+
+    // result = testChannelAllocation(TMR3, 4);
+    // Serial.printf("TMR3\t %s\n", result ? "OK" : "FAIL");
+
+    // result = testChannelAllocation(TMR4, 4);
+    // Serial.printf("TMR4\t %s\n", result ? "OK" : "FAIL");
+
+    // result = testChannelAllocation(GPT1, 1);
+    // Serial.printf("GPT1\t %s\n", result ? "OK" : "FAIL");
+
+    // result = testChannelAllocation(GPT2, 1);
+    // Serial.printf("GPT2\t %s\n", result ? "OK" : "FAIL");
+
+    // result = testChannelAllocation(PIT, 4);
+    // Serial.printf("PIT\t %s\n", result ? "OK" : "FAIL");
+}
+
+void loop()
+{
+    return;
+
+    // // return;
+    // delay(110);
+    // for (unsigned i = 0; i < channels.size(); i++)
+    // {
+    //     Serial.printf("%d ", dt[i]);
+    // }
+    // Serial.println();
+}
