@@ -1,6 +1,6 @@
 #pragma once
 #include "../../ITimerChannel.h"
-//#include "Arduino.h"
+// #include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
 #include "imxrt.h"
@@ -15,8 +15,9 @@ namespace TeensyTimerTool
         inline virtual ~TMRChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
-        inline errorCode start() override;
-        inline errorCode stop() override;
+        inline virtual errorCode end() override; // stop timer and release hardware channel
+        inline errorCode start() override;       // start timer (fails if begin was not called prior to starting)
+        inline errorCode stop() override;        // stops the timer but does not release the hardware channel
 
         inline errorCode trigger(float tcnt) override;
         inline float getMaxPeriod() const override;
@@ -27,11 +28,10 @@ namespace TeensyTimerTool
 
      protected:
         IMXRT_TMR_CH_t *regs;
-        callback_t **pCallback = nullptr;
         float pscValue;
         uint32_t pscBits;
 
-        errorCode us2Ticks(const float us, uint16_t *ticks) const;
+        inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
         inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
@@ -46,7 +46,7 @@ namespace TeensyTimerTool
 
     TMRChannel::~TMRChannel()
     {
-        regs->CTRL = 0x0000; // stop timer and mark it free
+        end();
     }
 
     errorCode TMRChannel::start()
@@ -60,7 +60,22 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::stop()
     {
-        regs->CSCTRL &= ~TMR_CSCTRL_TCF1EN;
+        if (regs == nullptr) return errorCode::notInitialized;
+
+        regs->CSCTRL &= ~TMR_CSCTRL_TCF1EN; // disable interupts
+        regs->CTRL = 0x0000;                // stop timer
+
+        return errorCode::OK;
+    }
+
+    errorCode TMRChannel::end()
+    {
+        if (regs == nullptr) return errorCode::notInitialized;
+
+        stop();               // stop timer
+        setCallback(nullptr); // mark channel free in TMR module
+        this->regs = nullptr; // prevent further access
+
         return errorCode::OK;
     }
 
@@ -87,11 +102,10 @@ namespace TeensyTimerTool
         return status;
     }
 
-    errorCode TMRChannel::trigger(float us) // quick and dirty, should be optimized
+    errorCode TMRChannel::trigger(float us)
     {
-        // const float_t t = us2Ticks(tcnt);
-        // uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
-
+        if (regs == nullptr) return errorCode::notInitialized;
+        
         uint16_t reload;
         errorCode status = us2Ticks(us, &reload);
 

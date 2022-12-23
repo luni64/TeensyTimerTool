@@ -17,6 +17,7 @@ namespace TeensyTimerTool
 
         virtual errorCode start() = 0;
         virtual errorCode stop()  = 0;
+        virtual errorCode end() { return postError(errorCode::notImplemented); };
 
         virtual errorCode setPrescaler(int psc) { return postError(errorCode::notImplemented); }
 

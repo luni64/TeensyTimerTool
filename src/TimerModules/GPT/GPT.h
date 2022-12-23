@@ -10,9 +10,10 @@ namespace TeensyTimerTool
     {
      public:
         static ITimerChannel *getTimer();
-        static void end();
+        static constexpr unsigned maxChannels = 1;
 
      protected:
+        static void end();
         static bool isInitialized;
         static void isr();
         static callback_t callback;
@@ -22,6 +23,8 @@ namespace TeensyTimerTool
         static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_GPT1 : IRQ_GPT2;
         static IMXRT_GPT_t *const pGPT;
         static_assert(moduleNr < 2, "Wrong GPT Number");
+
+        friend GptChannel;
     };
 
     // IMPLEMENTATION ===========================================================================
