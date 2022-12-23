@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "Arduino.h"
 #include "TckChannel.h"
 #include "core_pins.h"
 
@@ -13,12 +12,15 @@ namespace TeensyTimerTool
      public:
         template <typename counterType>
         static inline ITimerChannel *getTimer();
-        static inline void removeTimer(TckChannelBase *);
         static inline void tick();
+        static constexpr unsigned maxChannels = NR_OF_TCK_TIMERS;
 
      protected:
+        static inline void removeTimer(ITimerChannel *);
         static bool isInitialized;
         static TckChannelBase *channels[NR_OF_TCK_TIMERS];
+
+        friend TckChannelBase;
     };
 
     // IMPLEMENTATION ==================================================================
@@ -58,7 +60,7 @@ namespace TeensyTimerTool
         return nullptr;
     }
 
-    void TCK_t::removeTimer(TckChannelBase *channel)
+    void TCK_t::removeTimer(ITimerChannel *channel)
     {
         for (unsigned chNr = 0; chNr < NR_OF_TCK_TIMERS; chNr++)
         {
