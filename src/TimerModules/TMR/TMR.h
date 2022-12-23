@@ -10,6 +10,7 @@ namespace TeensyTimerTool
     {
      public:
         static ITimerChannel *getTimer();
+        static constexpr unsigned maxChannels = 4;
 
      protected:
         static bool isInitialized;
@@ -52,14 +53,17 @@ namespace TeensyTimerTool
             attachInterruptVector(irq, isr); // start
             NVIC_ENABLE_IRQ(irq);
             isInitialized = true;
+            callbacks[0]  = [] {}; // attach an empty callback to mark the channel reserved
             return new TMRChannel(pCH0, &callbacks[0]);
         }
 
         for (unsigned chNr = 0; chNr < 4; chNr++)
         {
             IMXRT_TMR_CH_t *pCh = &pTMR->CH[chNr];
-            if (pCh->CTRL == 0x0000)
+            // if (pCh->CTRL == 0x0000)
+            if (callbacks[chNr] == nullptr)
             {
+                callbacks[chNr] = [] {}; // attach an empty callback to mark the channel reserved
                 return new TMRChannel(pCh, &callbacks[chNr]);
             }
         }
@@ -93,7 +97,7 @@ namespace TeensyTimerTool
             pCH3->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[3]();
         }
-        asm volatile("dsb"); //wait until register changes propagated through the cache
+        asm volatile("dsb"); // wait until register changes propagated through the cache
     }
 
     template <unsigned m>
