@@ -1,5 +1,15 @@
 #pragma once
 
+#if defined (abs)
+#pragma push_macro("abs")
+#undef abs
+#endif
+
+#if defined (round)
+#pragma push_macro("round")
+#undef round
+#endif
+
 #include "config.h"
 #include <type_traits>
 
@@ -32,5 +42,7 @@ namespace TeensyTimerTool
 
 
 #endif
-
 } // namespace TeensyTimerTool
+
+#pragma pop_macro("round")
+#pragma pop_macro("abs")
