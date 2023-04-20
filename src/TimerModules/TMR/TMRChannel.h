@@ -31,7 +31,7 @@ namespace TeensyTimerTool
         float pscValue;
         uint32_t pscBits;
 
-        errorCode us2Ticks(const float us, uint16_t *ticks) const;
+        inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
         inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
