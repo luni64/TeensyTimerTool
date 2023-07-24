@@ -9,6 +9,7 @@ using tick_t = void (*)();
 #include "TimerModules/GPT/GPT.h"
 #include "TimerModules/PIT4/PIT.h"
 #include "TimerModules/TMR/TMR.h"
+#include "TimerModules/RTC/RTC.h"
 
 namespace TeensyTimerTool
 {
@@ -26,6 +27,8 @@ namespace TeensyTimerTool
     TimerGenerator *const TCK32   = TCK_t::getTimer<CycleCounter32>; // same as TCK
     TimerGenerator *const TCK64   = TCK_t::getTimer<CycleCounter64>;
     TimerGenerator *const TCK_RTC = TCK_t::getTimer<RtcCounter>;
+
+    TimerGenerator *const RTC = RTC_t::getTimer;
 
     constexpr tick_t tick = &TCK_t::tick;
 } // namespace TeensyTimerTool

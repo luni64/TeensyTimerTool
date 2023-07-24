@@ -9,7 +9,7 @@ namespace TeensyTimerTool
     {
      public:
         virtual errorCode begin(callback_t callback, float period, bool oneShot) = 0;
-        virtual errorCode trigger(float delay)                                   = 0;
+        virtual errorCode trigger(float delay)    {return errorCode::notImplemented;} ;
         virtual errorCode triggerDirect(uint32_t reload) { return postError(errorCode::notImplemented); };
         virtual errorCode triggerDirect(uint64_t reload) { return postError(errorCode::notImplemented); };
         virtual errorCode getTriggerReload(float delay, uint32_t *reload) { return postError(errorCode::notImplemented); };
