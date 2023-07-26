@@ -39,6 +39,7 @@ namespace TeensyTimerTool
             extern TimerGenerator *const GPT1, *const GPT2;
             extern TimerGenerator *const PIT;
             extern TimerGenerator *const TCK, * const TCK32, * const TCK64, *const TCK_RTC;
+            extern TimerGenerator *const RTC;
 
         #else
             #error BOARD NOT SUPPORTED
