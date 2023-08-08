@@ -1,3 +1,5 @@
+#include "../../boardDef.h"
+#if defined(TTT_TEENSY4X)
 #include "RTC.h"
 #include "RtcChannel.h"
 
@@ -15,7 +17,7 @@ namespace TeensyTimerTool::RTC_t
             if (callback != nullptr) callback();
             asm volatile("DSB");
         }
-    }
+    } // namespace
 
     ITimerChannel *getTimer()
     {
@@ -28,3 +30,4 @@ namespace TeensyTimerTool::RTC_t
         return &channel;
     }
 } // namespace TeensyTimerTool::RTC_t
+#endif
