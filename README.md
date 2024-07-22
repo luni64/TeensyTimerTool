@@ -1,3 +1,6 @@
+## Please note: The current version requires Teensyduino 1.59beta or higher. If you use 1.58 or lower please use TeensyTimerTool 1.3.0.    
+
+
 [![PlatformIO Registry](https://badges.registry.platformio.org/packages/luni64/library/TeensyTimerTool.svg)](https://registry.platformio.org/libraries/luni64/TeensyTimerTool)
 [![arduino-library-badge](https://www.ardu-badge.com/badge/TeensyTimerTool.svg?)](https://www.ardu-badge.com/TeensyTimerTool)
 
