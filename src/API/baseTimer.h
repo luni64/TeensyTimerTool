@@ -21,7 +21,7 @@ namespace TeensyTimerTool
      public:
         template <typename period_t>
         inline errorCode begin(callback_t callback, period_t period, bool start = true);
-        inline errorCode setPrescaler(int psc);
+        errorCode setPrescaler(int psc);
         inline errorCode end();
         inline errorCode start();
         inline errorCode stop();
