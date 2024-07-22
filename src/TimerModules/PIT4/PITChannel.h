@@ -14,11 +14,9 @@ namespace TeensyTimerTool
         inline virtual ~PITChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
-        //inline errorCode begin(callback_t cb, uint32_t tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
 
-        //inline errorCode trigger(uint32_t) override;
         inline errorCode trigger(float) override;
         inline errorCode setNextPeriod(float us) override;
         inline errorCode setPeriod(float us) override;
@@ -28,20 +26,17 @@ namespace TeensyTimerTool
         bool isPeriodic;
 
      protected:
-        //IMXRT_GPT_t* regs;
-        //uint32_t reload;
-
         inline void isr();
 
-        PITChannel()                   = delete;
-        PITChannel(const PITChannel &) = delete;
+        inline uint32_t us2ticks(float micros) const;
+        float clock;
 
         const unsigned chNr;
         callback_t callback = nullptr;
 
-        static uint32_t clockFactor;
-
         friend PIT_t;
+        PITChannel()                   = delete;
+        PITChannel(const PITChannel &) = delete;
     };
 
     // IMPLEMENTATION ==============================================
@@ -49,12 +44,12 @@ namespace TeensyTimerTool
     PITChannel::PITChannel(unsigned nr)
         : ITimerChannel(nullptr), chNr(nr)
     {
-        callback    = nullptr;
-        clockFactor = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
+        callback = nullptr;        
     }
 
     errorCode PITChannel::begin(callback_t cb, float micros, bool periodic)
     {
+        clock = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);        
         isPeriodic = periodic;
         callback   = cb;
 
@@ -62,19 +57,21 @@ namespace TeensyTimerTool
         {
             IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
             IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
-
             setNextPeriod(micros);
-            // float tmp = micros * clockFactor;
-            // if (tmp > 0xFFFF'FFFF)
-            // {
-            //     postError(errorCode::periodOverflow);
-            //     IMXRT_PIT_CHANNELS[chNr].LDVAL = 0xFFFF'FFFE;
-            // } else
-            // {
-            //     IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)tmp - 1;
-            // }
         }
         return errorCode::OK;
+    }
+
+    uint32_t PITChannel::us2ticks(float micros) const
+    {
+        if (micros > getMaxPeriod())
+        {
+            micros = getMaxPeriod();
+            postError(errorCode::periodOverflow);
+        }
+
+        //Serial.printf("pit p:%f %d\n", clock, (uint32_t)(clock * micros) - 1);
+        return (uint32_t)(clock * micros) - 1;
     }
 
     errorCode PITChannel::start()
@@ -91,15 +88,7 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::setNextPeriod(float us)
     {
-        float cts = us * clockFactor;
-        if (cts > 0xFFFF'FFFF)
-        {
-            postError(errorCode::periodOverflow);
-            IMXRT_PIT_CHANNELS[chNr].LDVAL = 0xFFFF'FFFE;
-        } else
-        {
-            IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)cts - 1;
-        }
+        IMXRT_PIT_CHANNELS[chNr].LDVAL = us2ticks(us);
         return errorCode::OK;
     }
 
@@ -125,19 +114,12 @@ namespace TeensyTimerTool
         callback = nullptr;
     }
 
-    errorCode PITChannel::trigger(float delay) //should be optimized somehow
+    errorCode PITChannel::trigger(float delay) // should be optimized somehow
     {
         IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
         IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
 
-        float tmp = delay * clockFactor;
-        if (tmp > 0xFFFF'FFFF)
-        {
-            postError(errorCode::periodOverflow);
-            IMXRT_PIT_CHANNELS[chNr].LDVAL = 0xFFFF'FFFE;
-        } else
-            IMXRT_PIT_CHANNELS[chNr].LDVAL = (uint32_t)tmp - 1;
-
+        setNextPeriod(delay);
         start();
 
         return errorCode::OK;
@@ -145,7 +127,7 @@ namespace TeensyTimerTool
 
     float PITChannel::getMaxPeriod() const
     {
-        return (float)0xFFFF'FFFE / clockFactor / 1'000'000;
+        return (float)0xFFFF'FFFE / clock / 1'000'000;
     }
 
 } // namespace TeensyTimerTool

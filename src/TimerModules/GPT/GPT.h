@@ -60,7 +60,7 @@ namespace TeensyTimerTool
     template <unsigned tmoduleNr>
     void GPT_t<tmoduleNr>::isr()
     {
-        if (!channel->periodic)
+        if (!channel->isPeriodic)
             pGPT->CR &= ~GPT_CR_EN; // stop timer in one shot mode
                                     //
         pGPT->SR = 0x3F;            // reset all interrupt flags
