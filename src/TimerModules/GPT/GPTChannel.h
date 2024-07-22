@@ -114,8 +114,7 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::setPeriod(float us) // not good, will generate one too long period if called before cnt == oldPeriod
     {                                         // need to redo the timing using free running timer to get setPeriod and setNewPeriod working correctly
-        regs->OCR1 = us2ticks(us);
-        Serial.println(regs->OCR1);
+        regs->OCR1 = us2ticks(us);        
         return errorCode::OK;
     }
 
