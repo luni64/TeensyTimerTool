@@ -24,6 +24,7 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const override;
 
         inline errorCode setPeriod(float us) override;
+        inline errorCode setPeriodKeepElapsed(float us) override;
         inline errorCode setNextPeriod(float us) override;
         inline errorCode setPrescaler(int psc) override; // psc 0..7 (PSC_1..PSC_128) -> prescaler: 1..128
 
@@ -161,7 +162,22 @@ namespace TeensyTimerTool
     //     }
     // }
 
-    errorCode TMRChannel::setPeriod(float us)
+    errorCode TMRChannel::setPeriod(float us) // restart: the new period starts now
+    {
+        uint16_t newReload;
+        errorCode status = us2Ticks(us, &newReload);
+
+        noInterrupts();
+        regs->CMPLD1 = newReload;
+        regs->COMP1  = newReload;
+        regs->CNTR   = 0x0000;
+        regs->CSCTRL &= ~TMR_CSCTRL_TCF1; // discard a compare event of the old period
+        interrupts();
+
+        return status;
+    }
+
+    errorCode TMRChannel::setPeriodKeepElapsed(float us) // behaviour of setPeriod() before v1.5
     {
         uint16_t newReload;
         errorCode status = us2Ticks(us, &newReload);

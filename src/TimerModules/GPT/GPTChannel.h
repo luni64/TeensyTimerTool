@@ -137,8 +137,8 @@ namespace TeensyTimerTool
         return errorCode::notImplemented;
     }
 
-    errorCode GptChannel::setPeriod(float us) // not good, will generate one too long period if called before cnt == oldPeriod
-    {                                         // need to redo the timing using free running timer to get setPeriod and setNewPeriod working correctly
+    errorCode GptChannel::setPeriod(float us) // restart: in restart mode a write to OCR1 resets the counter (RM 52.5.1.1)
+    {
         uint32_t reload;
         errorCode status = us2ticks(us, &reload);
         regs->OCR1       = reload;

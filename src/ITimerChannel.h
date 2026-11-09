@@ -22,7 +22,8 @@ namespace TeensyTimerTool
 
         virtual float getMaxPeriod() const = 0;
         virtual float getRemainingTime() const { postError(errorCode::notImplemented); return NAN; }
-        virtual errorCode setPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
+        virtual errorCode setPeriod(float microSeconds) { return postError(errorCode::notImplemented); };     // restarts the current period
+        virtual errorCode setPeriodKeepElapsed(float microSeconds) { return errorCode::notImplemented; }; // elapsed time counts (fires at once if already past)
         virtual errorCode setNextPeriod(float microSeconds) { return postError(errorCode::notImplemented); };
         virtual uint32_t getPeriod() { return 0; }
 

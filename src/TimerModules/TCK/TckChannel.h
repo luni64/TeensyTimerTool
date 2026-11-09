@@ -24,6 +24,7 @@ namespace TeensyTimerTool
 
         inline errorCode setNextPeriod(float us) override;
         inline errorCode setPeriod(float us) override;
+        inline errorCode setPeriodKeepElapsed(float us) override;
 
         float getMaxPeriod() const override { return tckCounter::getMaxMicros() / 1E6f; } // seconds
         float getRemainingTime() const override // seconds
@@ -115,7 +116,18 @@ namespace TeensyTimerTool
     }
 
     template <typename tckCounter>
-    errorCode TckChannel<tckCounter>::setPeriod(float us)
+    errorCode TckChannel<tckCounter>::setPeriod(float us) // restart: the new period starts now
+    {
+        counter_t newPeriod;
+        errorCode status = us2ticks(us, &newPeriod);
+        startCnt         = tckCounter::getCount();
+        currentPeriod    = newPeriod;
+        nextPeriod       = newPeriod;
+        return status;
+    }
+
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::setPeriodKeepElapsed(float us) // behaviour of setPeriod() before v1.5
     {
         counter_t newPeriod;
         errorCode status = us2ticks(us, &newPeriod);
