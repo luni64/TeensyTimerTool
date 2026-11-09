@@ -28,6 +28,9 @@ namespace TeensyTimerTool
                 break;
 
             // general errors
+            case errorCode::argument:
+                txt = "Invalid argument";
+                break;
             case errorCode::reload:
                 txt = "Period must not be zero";
                 break;

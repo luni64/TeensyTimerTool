@@ -23,7 +23,7 @@ namespace TeensyTimerTool
 
         inline errorCode setPeriod(float us) override;
         inline errorCode setNextPeriod(float us) override;
-        inline void setPrescaler(uint32_t psc); // psc 0..7 -> prescaler: 1..128
+        inline errorCode setPrescaler(int psc) override; // psc 0..7 (PSC_1..PSC_128) -> prescaler: 1..128
 
      protected:
         IMXRT_TMR_CH_t *regs;
@@ -109,10 +109,20 @@ namespace TeensyTimerTool
         return status;
     }
 
-    void TMRChannel::setPrescaler(uint32_t psc) // psc 0..7 -> prescaler: 1..128
+    errorCode TMRChannel::setPrescaler(int psc) // psc 0..7 -> prescaler: 1..128
     {
-        pscValue = 1 << (psc & 0b0111);
-        pscBits  = 0b1000 | (psc & 0b0111);
+        if (psc < PSC_1 || psc > PSC_128) return errorCode::argument; // PSC_AUTO not supported for TMR
+
+        pscValue = 1 << psc;
+        pscBits  = 0b1000 | psc;
+
+        // Running timer: switch the clock source too, so that later setPeriod() / setNextPeriod() calls
+        // (computed with the new pscValue) match the counter clock. The current reload stays in ticks.
+        if (regs->CTRL != 0)
+        {
+            regs->CTRL = (regs->CTRL & ~TMR_CTRL_PCS(0b1111)) | TMR_CTRL_PCS(pscBits);
+        }
+        return errorCode::OK;
     }
 
     float TMRChannel::getMaxPeriod() const

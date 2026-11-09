@@ -21,7 +21,7 @@ namespace TeensyTimerTool
      public:
         template <typename period_t>
         inline errorCode begin(callback_t callback, period_t period, bool start = true);
-        inline errorCode setPrescaler(int psc);
+        errorCode setPrescaler(int psc); // currently TMR (QUAD) timers only; applied at begin() if called before
         inline errorCode end();
         inline errorCode start();
         inline errorCode stop();
@@ -36,7 +36,8 @@ namespace TeensyTimerTool
         TimerGenerator *timerGenerator;
         ITimerChannel *timerChannel;
         bool isPeriodic;
-        uint32_t prescaler = 0;
+        int prescaler     = 0;
+        bool hasPrescaler = false; // true if setPrescaler() was called (PSC_AUTO is -1, can't be a marker)
     };
 
     // INLINE IMPLEMENTATION ================================================
@@ -48,6 +49,8 @@ namespace TeensyTimerTool
 
         if (callback == nullptr) return postError(errorCode::callback);
         if (isPeriodic && period == 0) return postError(errorCode::reload);
+
+        errorCode pscResult = errorCode::OK;
 
         if (timerChannel == nullptr)
         {
@@ -63,6 +66,8 @@ namespace TeensyTimerTool
                 }
             }
             if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
+
+            if (hasPrescaler) pscResult = timerChannel->setPrescaler(prescaler); // prescaler requested before a channel was available
         }
 
         errorCode result = timerChannel->begin(callback, period, isPeriodic);
@@ -70,6 +75,7 @@ namespace TeensyTimerTool
         if (result == errorCode::OK)
         {
             if (isPeriodic && start) timerChannel->start();
+            result = pscResult; // timer runs, but report a failed setPrescaler() (e.g. notImplemented)
         }
         return postError(result);
     }

@@ -23,8 +23,13 @@ namespace TeensyTimerTool
 
     errorCode BaseTimer::setPrescaler(int psc)
     {
-        this->prescaler = psc;
-        return errorCode::OK;
+        prescaler    = psc;
+        hasPrescaler = true;
+
+        // no channel yet -> will be applied in begin()
+        if (timerChannel == nullptr) return errorCode::OK;
+
+        return postError(timerChannel->setPrescaler(psc));
     }
 
 } // namespace TeensyTimerTool
