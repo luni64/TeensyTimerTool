@@ -27,6 +27,8 @@ namespace TeensyTimerTool::RTC_t
             NVIC_ENABLE_IRQ(IRQ_SNVS_IRQ);
             initialized = true;
         }
+        if (channel.allocated) return nullptr; // only one RTC channel -> noFreeChannel
+        channel.allocated = true;
         return &channel;
     }
 } // namespace TeensyTimerTool::RTC_t

@@ -85,7 +85,7 @@ namespace TeensyTimerTool
         else
             regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_LENGTH;
 
-        start();
+        // don't start() here, BaseTimer::begin() starts the timer unless begin(..., false) was requested
         return status;
     }
 

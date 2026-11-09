@@ -22,9 +22,13 @@ namespace TeensyTimerTool
         {
             stop();
             *pCallback = nullptr;
+            allocated  = false;
         }
 
+        bool allocated = false; // RTC has only one channel, see RTC_t::getTimer()
+
      protected:
+        inline errorCode setPeriodNoStart(float us);
         float period;
     };
 
@@ -45,14 +49,22 @@ namespace TeensyTimerTool
         if (!periodic) return errorCode::notImplemented;
 
         stop();
-        *pCallback   = cb;
-        this->period = constrain(period, 1E6f / 32768.0f, 1E6f);
-        return errorCode::OK;
+        *pCallback = cb;
+        return setPeriodNoStart(period);
+    }
+
+    errorCode RtcChannel::setPeriodNoStart(float us)
+    {
+        errorCode status = us > 1E6f ? errorCode::periodOverflow : errorCode::OK;
+        period           = constrain(us, 1E6f / 32768.0f, 1E6f);
+        return status;
     }
 
     errorCode RtcChannel::start()
     {
-        unsigned val = 32 - __builtin_clz(period * (32768 / 1E6) - 1); // next smallest power of 2;
+        // periodic interrupt with 2^val RTC ticks: next power of 2 >= requested ticks, i.e. the next longer period
+        uint32_t ticks = (uint32_t)ceilf(period * (32768 / 1E6f) - 1E-3f); // tolerance for float rounding of exact powers
+        unsigned val   = ticks <= 1 ? 0 : 32 - __builtin_clz(ticks - 1);
         SNVS_HPCR = SNVS_HPCR_PI_FREQ(val);
 
         SNVS_HPCR |= SNVS_HPCR_PI_EN; // enable periodic interrupt
@@ -70,9 +82,9 @@ namespace TeensyTimerTool
     errorCode RtcChannel::setPeriod(float _us)
     {
         stop();
-        period  = constrain(_us, 1E6f / 32788.0f, 1E6f);
+        errorCode status = setPeriodNoStart(_us);
         start();
-        return errorCode::OK;
+        return status;
     }
 
 } // namespace TeensyTimerTool

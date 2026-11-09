@@ -80,9 +80,14 @@ namespace TeensyTimerTool
         return postError(result);
     }
 
-    errorCode BaseTimer::end()
+    errorCode BaseTimer::end() // stop the timer and release its channel; begin() allocates a new one
     {
-        return postError(errorCode::notImplemented);
+        if (timerChannel != nullptr)
+        {
+            timerChannel->release();
+            timerChannel = nullptr;
+        }
+        return errorCode::OK; // idempotent, end() on a not running timer is fine
     }
 
     errorCode BaseTimer::start()

@@ -16,7 +16,7 @@ namespace TeensyTimerTool
 
     uint32_t CycleCounter32::us2ticks(float us)
     {
-        return us * (TTT_F_CPU / 1E6f);
+        return us * (TTT_F_CPU / 1E6f) + 0.5f; // nearest tick
     }
 
     float CycleCounter32::getMaxMicros()
@@ -43,7 +43,7 @@ namespace TeensyTimerTool
 
     uint64_t CycleCounter64::us2ticks(float us)
     {
-        return us * (TTT_F_CPU / 1E6f);
+        return us * (TTT_F_CPU / 1E6f) + 0.5f; // nearest tick
     }
 
     float CycleCounter64::getMaxMicros()
@@ -61,7 +61,7 @@ namespace TeensyTimerTool
 
     uint32_t MicrosCounter::us2ticks(float us)
     {
-        return us;
+        return us + 0.5f; // nearest tick
     }
 
     float MicrosCounter::getMaxMicros()
@@ -90,7 +90,7 @@ namespace TeensyTimerTool
 
     uint64_t RtcCounter::us2ticks(float us)
     {
-        return us * (32'768 / 1E6f);
+        return us * (32'768 / 1E6f) + 0.5f; // nearest tick
     }
 
     float RtcCounter::getMaxMicros()

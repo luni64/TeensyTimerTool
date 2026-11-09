@@ -26,10 +26,16 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(float us) override;
 
         float getMaxPeriod() const override { return tckCounter::getMaxMicros() / 1E6f; } // seconds
-        float getRemainingTime() const override { return (currentPeriod - (tckCounter::getCount() - startCnt)) / (float)TTT_F_CPU; }
+        float getRemainingTime() const override // seconds
+        {
+            counter_t elapsed = tckCounter::getCount() - startCnt;
+            if (elapsed >= currentPeriod) return 0;
+            return (currentPeriod - elapsed) / (float)tckCounter::us2ticks(1E6f); // ticks per second of the used counter (was F_CPU for all)
+        }
 
      protected:
         inline bool tick();
+        inline errorCode us2ticks(float us, counter_t *ticks) const; // clamps to the max period, at least one tick
         callback_t callback;
         counter_t startCnt, currentPeriod, nextPeriod;
 
@@ -50,15 +56,16 @@ namespace TeensyTimerTool
     {
         this->triggered = false;
 
-        this->periodic = periodic;
+        this->periodic   = periodic;
+        errorCode status = errorCode::OK;
         if (periodic)
         {
-            this->currentPeriod = tckCounter::us2ticks(period);
-            this->nextPeriod    = this->currentPeriod;
+            status           = us2ticks(period, &this->currentPeriod);
+            this->nextPeriod = this->currentPeriod;
         }
         this->callback = cb;
 
-        return errorCode::OK;
+        return status;
     }
 
     template <typename tckCounter>
@@ -89,28 +96,30 @@ namespace TeensyTimerTool
     template <typename tckCounter>
     errorCode TckChannel<tckCounter>::trigger(float delay) // µs
     {
-        return triggerDirect(tckCounter::us2ticks(delay));
+        counter_t reload;
+        errorCode status = us2ticks(delay, &reload);
+        triggerDirect(reload);
+        return status;
     }
 
     template <typename tckCounter>
     errorCode TckChannel<tckCounter>::getTriggerReload(float delay, counter_t *reload)
     {
-        *reload = tckCounter::us2ticks(delay);
-        return errorCode::OK;
+        return us2ticks(delay, reload);
     }
 
     template <typename tckCounter>
     errorCode TckChannel<tckCounter>::setNextPeriod(float us)
     {
-        nextPeriod = tckCounter::us2ticks(us);
-        return errorCode::OK;
+        return us2ticks(us, &nextPeriod);
     }
 
     template <typename tckCounter>
     errorCode TckChannel<tckCounter>::setPeriod(float us)
     {
-        counter_t newPeriod = tckCounter::us2ticks(us);
-        counter_t now       = tckCounter::getCount();
+        counter_t newPeriod;
+        errorCode status = us2ticks(us, &newPeriod);
+        counter_t now    = tckCounter::getCount();
 
         if (now - startCnt >= newPeriod) // new period already expired
         {                                //
@@ -119,6 +128,19 @@ namespace TeensyTimerTool
         }                                //
         currentPeriod = newPeriod;       // in any case next callback will
         nextPeriod    = newPeriod;       // be invoked after newly set period
+        return status;
+    }
+
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::us2ticks(float us, counter_t *ticks) const
+    {
+        if (us > tckCounter::getMaxMicros())
+        {
+            *ticks = tckCounter::us2ticks(tckCounter::getMaxMicros());
+            return errorCode::periodOverflow;
+        }
+        *ticks = tckCounter::us2ticks(us);
+        if (*ticks == 0) *ticks = 1; // tick() never fires a zero period
         return errorCode::OK;
     }
 
