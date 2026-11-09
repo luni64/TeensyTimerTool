@@ -18,16 +18,16 @@ void setup()
     pinMode(LED_BUILTIN, OUTPUT);
     while (!Serial) {}
 
-    myRTCtimer.begin([] { digitalToggleFast(LED_BUILTIN); }, 25ms);  // blink with 20Hz for 1.5s
+    myRTCtimer.begin([] { digitalToggleFast(LED_BUILTIN); }, 25ms); // 25ms -> next RTC period is 31.25ms, i.e. blink with 16Hz for 1.5s
     delay(1500);
 
     myRTCtimer.stop(); // stop for 2s
     delay(2000);
 
-    myRTCtimer.setPeriod(0.5s); // blink with 1Hz for 5s
+    myRTCtimer.setPeriod(0.5s); // exact RTC period, blink with 1Hz for 5s
     delay(5000);
 
-    myRTCtimer.setPeriod(50ms); // blink with 10Hz
+    myRTCtimer.setPeriod(50ms); // 50ms -> next RTC period is 62.5ms, i.e. blink with 8Hz
 }
 
 void loop()

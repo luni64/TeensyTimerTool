@@ -44,8 +44,8 @@ void setup()
 {
     for (unsigned pin = 0; pin <= 13; pin++) pinMode(pin, OUTPUT);
 
-    t1.begin(pulse200ns, 50'000); // 200ns pulse every 500 ms
-    t2.begin(pulse400ns, 100);    // 400ns pulse every 100 µs
+    t1.begin(pulse200ns, 50'000); // 200ns pulse every 50 ms
+    t2.begin(pulse400ns, 100);    // 400ns pulse every 100 µs (TMR resolution with default prescaler 128: 0.853µs -> 99.84µs)
     t3.begin(LED_ON, 1'000'000);  // Switch LED on every second
     t4.begin(LED_OFF);            // One shot timer to switch LED Off
 }

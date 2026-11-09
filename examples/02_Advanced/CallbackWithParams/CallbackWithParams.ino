@@ -19,6 +19,7 @@ int number = 0;
 
 void setup()
 {
+    while (!Serial) {} // wait for PC to connect the virtual serial port
     t.begin([] { callback(number, 5); }, 50ms);
 }
 

@@ -13,6 +13,8 @@ void onTimer(int nr){
 }
 
 void setup(){
+    while (!Serial) {} // wait for PC to connect the virtual serial port
+
     // start all 10 timers with random period. Pass timer number to callback
     for (int i = 0; i < 10; i++)
     {

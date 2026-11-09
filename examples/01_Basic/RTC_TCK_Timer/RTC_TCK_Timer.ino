@@ -17,6 +17,8 @@ void callback()
 
     uint32_t now          = micros() - start;
     uint32_t expected     = idx++ * period;
+    if (expected == 0) return; // first call defines the start time, no drift yet
+
     int32_t delta         = now - expected;
     float drift           = 1E6 * delta / expected;  // ppm
 
@@ -25,6 +27,7 @@ void callback()
 
 void setup()
 {
+    while (!Serial) {} // wait for PC to connect the virtual serial port
     t1.begin(callback, period);
 }
 
