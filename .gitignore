@@ -35,3 +35,7 @@
 *.out
 *.app
 *.elf
+
+# local test runner configuration
+test/config.toml
+__pycache__/
