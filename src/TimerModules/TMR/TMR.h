@@ -70,25 +70,28 @@ namespace TeensyTimerTool
     void TMR_t<m>::isr()
     {
         // no loop to gain some time by avoiding indirections and pointer calculations
-        if (callbacks[0] != nullptr && pCH0->CSCTRL & TMR_CSCTRL_TCF1)
+        // Check the enable bit too: stop() only clears TCF1EN, the counter keeps running and keeps setting TCF1.
+        // Without the check, a stopped channel's callback would be called whenever another channel of the module fires.
+        constexpr uint16_t mask = TMR_CSCTRL_TCF1 | TMR_CSCTRL_TCF1EN;
+        if (callbacks[0] != nullptr && (pCH0->CSCTRL & mask) == mask)
         {
             pCH0->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[0]();
         }
 
-        if (callbacks[1] != nullptr && pCH1->CSCTRL & TMR_CSCTRL_TCF1)
+        if (callbacks[1] != nullptr && (pCH1->CSCTRL & mask) == mask)
         {
             pCH1->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[1]();
         }
 
-        if (callbacks[2] != nullptr && pCH2->CSCTRL & TMR_CSCTRL_TCF1)
+        if (callbacks[2] != nullptr && (pCH2->CSCTRL & mask) == mask)
         {
             pCH2->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[2]();
         }
 
-        if (callbacks[3] != nullptr && pCH3->CSCTRL & TMR_CSCTRL_TCF1)
+        if (callbacks[3] != nullptr && (pCH3->CSCTRL & mask) == mask)
         {
             pCH3->CSCTRL &= ~TMR_CSCTRL_TCF1;
             callbacks[3]();
