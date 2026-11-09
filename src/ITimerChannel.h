@@ -28,6 +28,10 @@ namespace TeensyTimerTool
 
         inline void setCallback(callback_t);
 
+        // Called when the owning timer object is destroyed. Channels allocated with new (default) delete
+        // themselves, statically allocated channels (PIT, RTC) override this to stop and free their slot.
+        virtual void release() { delete this; }
+
         virtual ~ITimerChannel(){};
 
      protected:

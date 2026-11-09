@@ -23,6 +23,8 @@ namespace TeensyTimerTool
 
         inline float getMaxPeriod() const override;
 
+        inline void release() override; // channels are static members of PIT_t, stop and mark free instead of delete
+
         bool isPeriodic;
 
      protected:
@@ -118,6 +120,12 @@ namespace TeensyTimerTool
     PITChannel::~PITChannel()
     {
         callback = nullptr;
+    }
+
+    void PITChannel::release()
+    {
+        stop();
+        callback = nullptr; // marks the channel as free (see PIT_t::getTimer)
     }
 
     errorCode PITChannel::trigger(float delay) // should be optimized somehow

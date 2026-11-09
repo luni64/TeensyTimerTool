@@ -17,7 +17,7 @@ namespace TeensyTimerTool
     {
         if (timerChannel != nullptr)
         {
-            delete timerChannel;
+            timerChannel->release(); // don't delete directly, some channels are statically allocated
         }
     }
 

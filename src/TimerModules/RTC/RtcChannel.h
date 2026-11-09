@@ -18,6 +18,12 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(float us) override;
         float getMaxPeriod() const override { return 1.0; } // seconds
 
+        void release() override // channel is a static object in RTC.cpp, stop it instead of delete
+        {
+            stop();
+            *pCallback = nullptr;
+        }
+
      protected:
         float period;
     };
