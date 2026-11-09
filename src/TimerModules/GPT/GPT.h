@@ -47,6 +47,7 @@ namespace TeensyTimerTool
                 CCM_CSCMR1 |= CCM_CSCMR1_PERCLK_CLK_SEL;                                           // use 24MHz
                                                                                                    //
             pGPT->CR = GPT_CR_CLKSRC(0x001) | GPT_CR_ENMOD;                                        // stopped, restart mode and peripheral clock source
+            pGPT->PR = 0;                                                                          // prescaler 1, might be left over from a previous timer
 
             attachInterruptVector(irq, isr);
             NVIC_ENABLE_IRQ(irq);

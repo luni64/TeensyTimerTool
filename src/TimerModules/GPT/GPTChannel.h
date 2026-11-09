@@ -25,14 +25,18 @@ namespace TeensyTimerTool
 
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
 
+        inline errorCode setPrescaler(int psc) override; // psc 0..12 (PSC_1..PSC_4096) -> prescaler: 1..4096
+
         bool isPeriodic;
 
      protected:
-        inline uint32_t us2ticks(float micros) const;
+        inline errorCode us2ticks(float micros, uint32_t *reload) const;
         inline float getMaxMicros() const;
+        inline static float perclkMHz();
 
-        IMXRT_GPT_t *regs;        
-        float clock;
+        IMXRT_GPT_t *regs;
+        float clock;          // counter clock in MHz (perclk / prescaler)
+        uint32_t pscDiv = 1;  // prescaler divider 1..4096
     };
 
     // IMPLEMENTATION ==============================================
@@ -44,15 +48,16 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::begin(callback_t cb, float period, bool periodic)
     {
-        clock      = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);
+        clock      = perclkMHz() / pscDiv;
         isPeriodic = periodic;
+        errorCode status = errorCode::OK;
         if (isPeriodic)
         {
-            setPeriod(period);
+            status = setPeriod(period);
         }
         setCallback(cb);
 
-        return errorCode::OK;
+        return status;
     }
 
     errorCode GptChannel::start()
@@ -72,7 +77,10 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::trigger(float delay) // should be optimized somehow
     {
-        return triggerDirect(us2ticks(delay));
+        uint32_t reload;
+        errorCode status = us2ticks(delay, &reload);
+        triggerDirect(reload);
+        return status;
     }
 
     errorCode GptChannel::triggerDirect(uint32_t reload)
@@ -87,19 +95,36 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::getTriggerReload(float delay, uint32_t *reload)
     {
-        *reload = us2ticks(delay);
-        return errorCode::OK;
+        return us2ticks(delay, reload);
     }
 
-    uint32_t GptChannel::us2ticks(float micros) const
+    // reload = ticks - 1, rounded to the nearest tick, at least one tick.
+    // Doesn't post errors, callers return the status which the API layer posts.
+    errorCode GptChannel::us2ticks(float micros, uint32_t *reload) const
     {
         if (micros > getMaxMicros())
         {
-            micros = getMaxPeriod();
-            postError(errorCode::periodOverflow);
+            *reload = 0xFFFF'FFFE;
+            return errorCode::periodOverflow;
         }
-        //Serial.printf("gpt p:%f %d\n", clock, (uint32_t)(clock * micros) - 1);
-        return (uint32_t)(clock * micros) - 1;
+        float ticks = clock * micros + 0.5f;
+        *reload     = ticks < 2.0f ? 0 : (uint32_t)ticks - 1;
+        return errorCode::OK;
+    }
+
+    float GptChannel::perclkMHz()
+    {
+        return (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24.0f : (F_BUS_ACTUAL / 1000000);
+    }
+
+    errorCode GptChannel::setPrescaler(int psc)
+    {
+        if (psc < PSC_1 || psc > PSC_4096) return errorCode::argument; // PSC_AUTO not supported for GPT
+
+        pscDiv   = 1u << psc;
+        regs->PR = pscDiv - 1; // takes effect immediately, prescaler counter restarts (RM 52.7.1.3)
+        clock    = perclkMHz() / pscDiv;
+        return errorCode::OK;
     }
 
     float GptChannel::getMaxMicros() const
@@ -114,8 +139,10 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::setPeriod(float us) // not good, will generate one too long period if called before cnt == oldPeriod
     {                                         // need to redo the timing using free running timer to get setPeriod and setNewPeriod working correctly
-        regs->OCR1 = us2ticks(us);        
-        return errorCode::OK;
+        uint32_t reload;
+        errorCode status = us2ticks(us, &reload);
+        regs->OCR1       = reload;
+        return status;
     }
 
 } // namespace TeensyTimerTool

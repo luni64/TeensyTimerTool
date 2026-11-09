@@ -44,6 +44,7 @@ namespace TeensyTimerTool
 
 // TMR (QUAD)
     constexpr int TMR_DEFAULT_PSC = PSC_128;  // Allowed prescaling values: PSC_1, PSC_2, PSC_4 ... PSC_128, clock = 150MHz
+                                              // (can be changed per timer at runtime with setPrescaler())
 
 // FTM
     constexpr int FTM_DEFAULT_PSC[] =         // Allowed prescaling values: PSC_AUTO, PSC_1, PSC_2, PSC_4 ... PSC_128, clock = FBUS
@@ -57,6 +58,7 @@ namespace TeensyTimerTool
 
 // GPT & PID
     constexpr bool USE_GPT_PIT_150MHz = false;// changes the clock source for GPT and PIT from 24MHz (standard) to 150MHz, might have side effects!
+                                              // GPT prescaler is 1 by default, use setPrescaler(PSC_1 ... PSC_4096) at runtime. PIT has no prescaler.
 
 // TCK
     constexpr unsigned NR_OF_TCK_TIMERS = 20; // How many TCK timers shall be available

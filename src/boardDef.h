@@ -58,6 +58,11 @@ namespace TeensyTimerTool
         constexpr int PSC_32 = 5;
         constexpr int PSC_64 = 6;
         constexpr int PSC_128 = 7;
+        constexpr int PSC_256 = 8;   // PSC_256 ... PSC_4096: GPT only
+        constexpr int PSC_512 = 9;
+        constexpr int PSC_1024 = 10;
+        constexpr int PSC_2048 = 11;
+        constexpr int PSC_4096 = 12;
 
         extern void(* const tick)();
 

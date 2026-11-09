@@ -8,6 +8,8 @@
 
 namespace TeensyTimerTool
 {
+    static_assert(TMR_DEFAULT_PSC >= PSC_1 && TMR_DEFAULT_PSC <= PSC_128, "TMR_DEFAULT_PSC (config) must be one of PSC_1 ... PSC_128");
+
     class TMRChannel : public ITimerChannel
     {
      public:
