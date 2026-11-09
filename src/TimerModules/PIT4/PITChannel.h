@@ -64,13 +64,13 @@ namespace TeensyTimerTool
 
     uint32_t PITChannel::us2ticks(float micros) const
     {
-        if (micros > getMaxPeriod())
+        // getMaxPeriod() returns seconds, micros is in µs
+        if (micros > getMaxPeriod() * 1E6f)
         {
-            micros = getMaxPeriod();
             postError(errorCode::periodOverflow);
+            return 0xFFFF'FFFE;
         }
 
-        //Serial.printf("pit p:%f %d\n", clock, (uint32_t)(clock * micros) - 1);
         return (uint32_t)(clock * micros) - 1;
     }
 
