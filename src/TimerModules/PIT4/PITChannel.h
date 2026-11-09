@@ -28,7 +28,7 @@ namespace TeensyTimerTool
      protected:
         inline void isr();
 
-        inline uint32_t us2ticks(float micros) const;
+        inline errorCode us2ticks(float micros, uint32_t *reload) const;
         float clock;
 
         const unsigned chNr;
@@ -53,25 +53,29 @@ namespace TeensyTimerTool
         isPeriodic = periodic;
         callback   = cb;
 
+        errorCode status = errorCode::OK;
         if (isPeriodic)
         {
             IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
             IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
-            setNextPeriod(micros);
+            status                         = setNextPeriod(micros);
         }
-        return errorCode::OK;
+        return status;
     }
 
-    uint32_t PITChannel::us2ticks(float micros) const
+    // reload = ticks - 1 (period is LDVAL + 1 ticks), rounded to the nearest tick, at least one tick.
+    // Doesn't post errors, callers return the status which the API layer posts.
+    errorCode PITChannel::us2ticks(float micros, uint32_t *reload) const
     {
         // getMaxPeriod() returns seconds, micros is in µs
         if (micros > getMaxPeriod() * 1E6f)
         {
-            postError(errorCode::periodOverflow);
-            return 0xFFFF'FFFE;
+            *reload = 0xFFFF'FFFE;
+            return errorCode::periodOverflow;
         }
-
-        return (uint32_t)(clock * micros) - 1;
+        float ticks = clock * micros + 0.5f;
+        *reload     = ticks < 2.0f ? 0 : (uint32_t)ticks - 1;
+        return errorCode::OK;
     }
 
     errorCode PITChannel::start()
@@ -88,16 +92,18 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::setNextPeriod(float us)
     {
-        IMXRT_PIT_CHANNELS[chNr].LDVAL = us2ticks(us);
-        return errorCode::OK;
+        uint32_t reload;
+        errorCode status               = us2ticks(us, &reload);
+        IMXRT_PIT_CHANNELS[chNr].LDVAL = reload;
+        return status;
     }
 
     errorCode PITChannel::setPeriod(float us)
     {
         stop(); // need to stop/start timer to change current period (see ch 53.9.5.4)
-        setNextPeriod(us);
+        errorCode status = setNextPeriod(us);
         start();
-        return errorCode::OK;
+        return status;
     }
 
     void PITChannel::isr()
@@ -119,10 +125,10 @@ namespace TeensyTimerTool
         IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
         IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
 
-        setNextPeriod(delay);
+        errorCode status = setNextPeriod(delay);
         start();
 
-        return errorCode::OK;
+        return status;
     }
 
     float PITChannel::getMaxPeriod() const

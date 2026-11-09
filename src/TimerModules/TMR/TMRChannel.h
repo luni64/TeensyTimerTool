@@ -129,7 +129,7 @@ namespace TeensyTimerTool
 
     float TMRChannel::getMaxPeriod() const
     {
-        return pscValue / 150'000'000.0f * 0xFFFE;
+        return pscValue / 150'000'000.0f * 0xFFFF; // max reload 0xFFFE -> 0xFFFF ticks
     }
 
     errorCode TMRChannel::setNextPeriod(float us)
@@ -178,17 +178,19 @@ namespace TeensyTimerTool
         return status;
     }
 
-    errorCode TMRChannel::us2Ticks(const float us, uint16_t *ticks) const
+    // Returns the compare value for a period of 'us'. The counter runs 0..COMP1, i.e. a period is COMP1 + 1 ticks.
+    // Rounded to the nearest tick, at least one tick.
+    errorCode TMRChannel::us2Ticks(const float us, uint16_t *reload) const
     {
-        constexpr uint16_t maxTicks = 0xFFFE;
+        constexpr uint16_t maxReload = 0xFFFE;
 
-        float tmpTicks = us * 150.0f / pscValue;
-        if (tmpTicks > maxTicks)
+        float ticks = us * 150.0f / pscValue + 0.5f;
+        if (ticks >= maxReload + 2.0f)
         {
-            *ticks = maxTicks;
+            *reload = maxReload;
             return errorCode::periodOverflow;
         }
-        *ticks = (uint16_t)tmpTicks;
+        *reload = ticks < 2.0f ? 0 : (uint16_t)ticks - 1;
         return errorCode::OK;
     }
 
