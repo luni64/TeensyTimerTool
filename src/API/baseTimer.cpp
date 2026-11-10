@@ -13,6 +13,28 @@ namespace TeensyTimerTool
         this->isPeriodic     = periodic;
     }
 
+    BaseTimer::BaseTimer(BaseTimer &&other) noexcept
+        : timerGenerator(other.timerGenerator), timerChannel(other.timerChannel), isPeriodic(other.isPeriodic),
+          prescaler(other.prescaler), hasPrescaler(other.hasPrescaler)
+    {
+        other.timerChannel = nullptr; // the channel moves, the generator / prescaler settings are copied
+    }
+
+    BaseTimer &BaseTimer::operator=(BaseTimer &&other) noexcept
+    {
+        if (this != &other)
+        {
+            if (timerChannel != nullptr) timerChannel->release(); // the assigned-to timer gives up its own channel
+            timerGenerator     = other.timerGenerator;
+            timerChannel       = other.timerChannel;
+            isPeriodic         = other.isPeriodic;
+            prescaler          = other.prescaler;
+            hasPrescaler       = other.hasPrescaler;
+            other.timerChannel = nullptr;
+        }
+        return *this;
+    }
+
     BaseTimer::~BaseTimer()
     {
         if (timerChannel != nullptr)

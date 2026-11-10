@@ -29,8 +29,15 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const;
         inline float getRemainingTime() const;
 
+        // A timer owns its channel: no copies (the channel would be released twice), but timers can be
+        // moved (e.g. stored in a std::vector). The moved-from timer is empty, begin() allocates a new channel.
+        BaseTimer(const BaseTimer &)            = delete;
+        BaseTimer &operator=(const BaseTimer &) = delete;
+
      protected:
         BaseTimer(TimerGenerator *generator, bool periodic);
+        BaseTimer(BaseTimer &&other) noexcept;
+        BaseTimer &operator=(BaseTimer &&other) noexcept;
         virtual ~BaseTimer();
 
         TimerGenerator *timerGenerator;
