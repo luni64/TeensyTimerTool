@@ -35,3 +35,6 @@
 *.out
 *.app
 *.elf
+
+# MkDocs build output (mkdocs build)
+site/

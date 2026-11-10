@@ -1,0 +1,71 @@
+# MkDocs configuration for the TeensyTimerTool documentation (https://luni64.github.io/TeensyTimerTool/).
+# Sources in docs/, built and deployed by .github/workflows/docs.yml.
+# Local preview: pip install mkdocs-material, then "mkdocs serve" in this folder.
+
+site_name: TeensyTimerTool
+site_description: Generic, easy to use interface to the hardware and software timers of the PJRC Teensy boards
+site_url: https://luni64.github.io/TeensyTimerTool/
+repo_url: https://github.com/luni64/TeensyTimerTool
+repo_name: luni64/TeensyTimerTool
+edit_uri: edit/master/docs/
+
+docs_dir: docs
+
+nav:
+  - Getting started: index.md
+  - Basic usage: basic-usage.md
+  - Choosing a timer: choosing-a-timer.md
+  - Callbacks: callbacks.md
+  - Error handling: error-handling.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+  - Advanced:
+      - advanced/index.md
+      - Avoiding PWM timer clashes: advanced/pwm-timer-clashes.md
+  - Upgrading from 1.4: upgrading.md
+
+theme:
+  name: material
+  features:
+    - navigation.top
+    - navigation.sections
+    - navigation.indexes
+    - search.suggest
+    - toc.follow
+    - content.code.copy
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7
+        name: Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Light mode
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  # Code of the examples is included from the library's examples folder, e.g.
+  #   --8<-- "01_Basic/HelloPeriodic/HelloPeriodic.ino"
+  # so the documentation always shows the real, compiled example code.
+  - pymdownx.snippets:
+      base_path: [examples]
+      check_paths: true
