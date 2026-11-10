@@ -141,7 +141,7 @@ namespace TeensyTimerTool
 
     float GptChannel::perclkMHz()
     {
-        return (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24.0f : (F_BUS_ACTUAL / 1000000);
+        return (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24.0f : F_BUS_ACTUAL / 1E6f; // F_BUS needn't be whole MHz (e.g. 75.6)
     }
 
     errorCode GptChannel::setPrescaler(int psc)

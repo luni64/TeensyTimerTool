@@ -22,12 +22,12 @@ namespace TeensyTimerTool
 
         inline errorCode trigger(float tcnt) override;
         inline float getMaxPeriod() const override;
-        double getPeriod() const override { return (regs->CMPLD1 + 1.0) * pscValue / 150E6; } // CMPLD1: latest period set, COMP1 + 1 ticks
-        double getResolution() const override { return pscValue / 150E6; }
+        double getPeriod() const override { return (regs->CMPLD1 + 1.0) / (ticksPerUs * 1E6); } // CMPLD1: latest period set, COMP1 + 1 ticks
+        double getResolution() const override { return 1.0 / (ticksPerUs * 1E6); }
         float getRemainingTime() const override // counts up 0..COMP1; TCF1EN: callback pending
         {
             if (!(regs->CSCTRL & TMR_CSCTRL_TCF1EN)) return 0;
-            return (regs->COMP1 + 1.0f - regs->CNTR) * pscValue / 150E6f;
+            return (regs->COMP1 + 1.0f - regs->CNTR) / (ticksPerUs * 1E6f);
         }
 
         inline errorCode setPeriod(float us) override;
@@ -40,7 +40,8 @@ namespace TeensyTimerTool
         callback_t **pCallback = nullptr;
         bool *pOneShot; // read by the ISR (a CTRL read would cost ~100 CPU cycles)
         float pscValue;
-        float ticksPerUs; // 150 / pscValue, avoids a float division in trigger() / setPeriod()
+        float ticksPerUs; // F_BUS [MHz] / pscValue, avoids a float division in trigger() / setPeriod()
+        inline void updateClock() { ticksPerUs = F_BUS_ACTUAL / 1E6f / pscValue; } // begin(), setPrescaler(): F_BUS follows F_CPU
         uint32_t pscBits;
 
         inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
@@ -76,6 +77,7 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::begin(callback_t cb, float period, bool periodic)
     {
+        updateClock(); // the TMR runs on F_BUS (IPG clock): 150 MHz at 600 MHz, but e.g. 132 MHz at 528 MHz
         uint16_t reload;
         errorCode status = us2Ticks(period, &reload);
 
@@ -118,7 +120,7 @@ namespace TeensyTimerTool
         if (psc < PSC_1 || psc > PSC_128) return errorCode::argument; // PSC_AUTO not supported for TMR
 
         pscValue   = 1 << psc;
-        ticksPerUs = 150.0f / pscValue;
+        updateClock();
         pscBits  = 0b1000 | psc;
 
         // Running timer: switch the clock source too, so that later setPeriod() / setNextPeriod() calls
@@ -132,7 +134,7 @@ namespace TeensyTimerTool
 
     float TMRChannel::getMaxPeriod() const
     {
-        return pscValue / 150'000'000.0f * 0xFFFF; // max reload 0xFFFE -> 0xFFFF ticks
+        return 0xFFFF / (ticksPerUs * 1E6f); // max reload 0xFFFE -> 0xFFFF ticks
     }
 
     errorCode TMRChannel::setNextPeriod(float us)
@@ -214,7 +216,7 @@ namespace TeensyTimerTool
 
     float_t TMRChannel::counterToMicrosecond(const float_t cnt) const
     {
-        return cnt * pscValue / 150.0f;
+        return cnt / ticksPerUs;
     }
 
 } // namespace TeensyTimerTool

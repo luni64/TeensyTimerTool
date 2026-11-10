@@ -65,7 +65,7 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::begin(callback_t cb, float micros, bool periodic)
     {
-        clock = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24 : (F_BUS_ACTUAL / 1000000);        
+        clock = (CCM_CSCMR1 & CCM_CSCMR1_PERCLK_CLK_SEL) ? 24.0f : F_BUS_ACTUAL / 1E6f; // MHz, F_BUS needn't be whole MHz (e.g. 75.6)
         isPeriodic = periodic;
         callback   = cb;
 
