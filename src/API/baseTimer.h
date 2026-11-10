@@ -91,10 +91,10 @@ namespace TeensyTimerTool
 
         errorCode result = timerChannel->begin(callback, period, isPeriodic);
 
-        if (result == errorCode::OK)
+        if ((int)result <= 0) // OK or a warning (e.g. periodOverflow: runs with the max. period)
         {
             if (isPeriodic && start) timerChannel->start();
-            result = pscResult; // timer runs, but report a failed setPrescaler() (e.g. notImplemented)
+            if (result == errorCode::OK) result = pscResult; // timer runs, but report a failed setPrescaler() (e.g. notImplemented)
         }
         return postError(result);
     }
