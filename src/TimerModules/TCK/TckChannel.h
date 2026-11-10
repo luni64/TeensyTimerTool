@@ -34,6 +34,9 @@ namespace TeensyTimerTool
             return (currentPeriod - elapsed) / (float)tckCounter::us2ticks(1E6f); // ticks per second of the used counter (was F_CPU for all)
         }
 
+        double getPeriod() const override { return (double)nextPeriod / tckCounter::us2ticks(1E6f); } // latest period set
+        double getResolution() const override { return 1.0 / tckCounter::us2ticks(1E6f); }
+
      protected:
         inline bool tick();
         inline errorCode us2ticks(float us, counter_t *ticks) const; // clamps to the max period, at least one tick

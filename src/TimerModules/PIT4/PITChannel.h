@@ -22,6 +22,8 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(float us) override;
 
         inline float getMaxPeriod() const override;
+        double getPeriod() const override { return (IMXRT_PIT_CHANNELS[chNr].LDVAL + 1.0) / (clock * 1E6); } // period = LDVAL + 1 ticks
+        double getResolution() const override { return 1.0 / (clock * 1E6); }
 
         inline void release() override; // channels are static members of PIT_t, stop and mark free instead of delete
 

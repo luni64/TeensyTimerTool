@@ -26,6 +26,11 @@ namespace TeensyTimerTool
             return postError(mode == PeriodMode::restart ? timerChannel->setPeriod(us) : timerChannel->setPeriodKeepElapsed(us));
         }
 
+        // the period set by the latest begin() / setPeriod() / setNextPeriod(), rounded to timer ticks;
+        // seconds as float, or a std::chrono::duration (see BaseTimer::getMaxPeriod)
+        template <typename T = float>
+        T getPeriod() const { return query<T>(&ITimerChannel::getPeriod); }
+
         template <typename period_t>
         inline errorCode setNextPeriod(period_t p)
         {

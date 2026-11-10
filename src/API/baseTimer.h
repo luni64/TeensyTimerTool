@@ -26,8 +26,12 @@ namespace TeensyTimerTool
         inline errorCode start();
         inline errorCode stop();
 
-        inline float getMaxPeriod() const;
-        inline float getRemainingTime() const;
+        // Getters return seconds as float by default, or any std::chrono::duration, e.g.
+        // getMaxPeriod<std::chrono::microseconds>() (integer durations are rounded to the nearest unit).
+        // On errors: NAN for float/double, zero() for durations; the error is posted.
+        template <typename T = float> T getMaxPeriod() const;
+        template <typename T = float> T getRemainingTime() const; // time to the next callback, 0 if due / none pending
+        template <typename T = float> T getResolution() const;    // one timer tick (with the current prescaler)
 
         // A timer owns its channel: no copies (the channel would be released twice), but timers can be
         // moved (e.g. stored in a std::vector). The moved-from timer is empty, begin() allocates a new channel.
@@ -35,6 +39,9 @@ namespace TeensyTimerTool
         BaseTimer &operator=(const BaseTimer &) = delete;
 
      protected:
+        template <typename T> static T fromSeconds(double s);
+        template <typename T> T query(double (ITimerChannel::*getter)() const) const;
+
         BaseTimer(TimerGenerator *generator, bool periodic);
         BaseTimer(BaseTimer &&other) noexcept;
         BaseTimer &operator=(BaseTimer &&other) noexcept;
@@ -118,25 +125,71 @@ namespace TeensyTimerTool
         return postError(errorCode::notInitialized);
     }
 
-    float BaseTimer::getMaxPeriod() const
+    template <typename T>
+    T BaseTimer::fromSeconds(double s)
     {
-        if (timerChannel != nullptr)
-            return timerChannel->getMaxPeriod();
-
-        postError(errorCode::notInitialized);
-        return NAN;
+        if constexpr (std::is_arithmetic_v<T>)
+            return (T)s;
+#if defined(USE_TIME_LITERALS)
+        else
+        {
+            static_assert(std::chrono::__is_duration<T>::value, "getters return float, double or a std::chrono::duration");
+            using namespace std::chrono;
+            if (std::isnan(s)) return T::zero();
+            duration<double> d(s);
+            if (d >= duration_cast<duration<double>>(T::max())) return T::max(); // e.g. TCK64 max. period in ns
+            if constexpr (std::is_floating_point_v<typename T::rep>)
+                return duration_cast<T>(d);
+            else
+                return std::chrono::round<T>(d);
+        }
+#else
+        else
+            static_assert(std::is_arithmetic_v<T>, "std::chrono getters need USE_TIME_LITERALS");
+#endif
     }
 
-    float BaseTimer::getRemainingTime() const
+    // calls a channel getter (seconds, NAN = not implemented), posts errors, converts to T
+    template <typename T>
+    T BaseTimer::query(double (ITimerChannel::*getter)() const) const
     {
-        if (timerChannel != nullptr)
+        if (timerChannel == nullptr)
         {
-            float t = timerChannel->getRemainingTime();
-            if (std::isnan(t)) postError(errorCode::notImplemented);
-            return t;
+            postError(errorCode::notInitialized);
+            return fromSeconds<T>(NAN);
         }
+        double s = (timerChannel->*getter)();
+        if (std::isnan(s)) postError(errorCode::notImplemented);
+        return fromSeconds<T>(s);
+    }
 
-        postError(errorCode::notInitialized);
-        return NAN;
+    template <typename T>
+    T BaseTimer::getMaxPeriod() const
+    {
+        if (timerChannel == nullptr)
+        {
+            postError(errorCode::notInitialized);
+            return fromSeconds<T>(NAN);
+        }
+        return fromSeconds<T>(timerChannel->getMaxPeriod());
+    }
+
+    template <typename T>
+    T BaseTimer::getRemainingTime() const
+    {
+        if (timerChannel == nullptr)
+        {
+            postError(errorCode::notInitialized);
+            return fromSeconds<T>(NAN);
+        }
+        double s = timerChannel->getRemainingTime();
+        if (std::isnan(s)) postError(errorCode::notImplemented);
+        return fromSeconds<T>(s);
+    }
+
+    template <typename T>
+    T BaseTimer::getResolution() const
+    {
+        return query<T>(&ITimerChannel::getResolution);
     }
 } // namespace TeensyTimerTool

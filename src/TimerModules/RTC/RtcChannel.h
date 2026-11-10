@@ -17,6 +17,8 @@ namespace TeensyTimerTool
         inline errorCode stop() override;
         inline errorCode setPeriod(float us) override;
         float getMaxPeriod() const override { return 1.0; } // seconds
+        double getPeriod() const override { return (1u << piFreq()) / 32768.0; }
+        double getResolution() const override { return 1.0 / 32768; }
 
         void release() override // channel is a static object in RTC.cpp, stop it instead of delete
         {
@@ -29,6 +31,7 @@ namespace TeensyTimerTool
 
      protected:
         inline errorCode setPeriodNoStart(float us);
+        inline unsigned piFreq() const; // periodic interrupt: 2^piFreq() RTC ticks
         float period;
     };
 
@@ -60,12 +63,16 @@ namespace TeensyTimerTool
         return status;
     }
 
-    errorCode RtcChannel::start()
+    unsigned RtcChannel::piFreq() const
     {
         // periodic interrupt with 2^val RTC ticks: next power of 2 >= requested ticks, i.e. the next longer period
         uint32_t ticks = (uint32_t)ceilf(period * (32768 / 1E6f) - 1E-3f); // tolerance for float rounding of exact powers
-        unsigned val   = ticks <= 1 ? 0 : 32 - __builtin_clz(ticks - 1);
-        SNVS_HPCR = SNVS_HPCR_PI_FREQ(val);
+        return ticks <= 1 ? 0 : 32 - __builtin_clz(ticks - 1);
+    }
+
+    errorCode RtcChannel::start()
+    {
+        SNVS_HPCR = SNVS_HPCR_PI_FREQ(piFreq());
 
         SNVS_HPCR |= SNVS_HPCR_PI_EN; // enable periodic interrupt
         while (!(SNVS_HPCR & SNVS_HPCR_PI_EN)) {}

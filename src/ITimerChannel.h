@@ -27,7 +27,8 @@ namespace TeensyTimerTool
         virtual errorCode setPeriod(float microSeconds) { return errorCode::notImplemented; };     // restarts the current period
         virtual errorCode setPeriodKeepElapsed(float microSeconds) { return errorCode::notImplemented; }; // elapsed time counts (fires at once if already past)
         virtual errorCode setNextPeriod(float microSeconds) { return errorCode::notImplemented; };
-        virtual uint32_t getPeriod() { return 0; }
+        virtual double getPeriod() const { return NAN; }     // seconds, latest period set (rounded to ticks); NAN: not implemented
+        virtual double getResolution() const { return NAN; } // seconds, one timer tick (current prescaler); NAN: not implemented
 
         inline void setCallback(callback_t);
 

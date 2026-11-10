@@ -24,6 +24,8 @@ namespace TeensyTimerTool
         inline errorCode setPeriod(float us) override;
 
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
+        double getPeriod() const override { return (regs->OCR1 + 1.0) / (clock * 1E6); } // restart mode: OCR1 + 1 ticks
+        double getResolution() const override { return 1.0 / (clock * 1E6); }
 
         inline errorCode setPrescaler(int psc) override; // psc 0..12 (PSC_1..PSC_4096) -> prescaler: 1..4096
 
