@@ -17,7 +17,7 @@ namespace TeensyTimerTool
     // to touch the compare register. Consequence: setNextPeriod() and setPeriod(.., keepElapsed) are not supported,
     // since every write to OCR1 resets the counter (RM 52.5.1.1). Free-run mode could do it, but its ISR needs to
     // read and check the counter at every compare, which costs ~4 times the cost of the plain ISR (measured).
-    class GptChannel : public ITimerChannel
+    class GptChannel final : public ITimerChannel // final: internal calls of virtual functions are direct calls
     {
      public:
         inline GptChannel(IMXRT_GPT_t *, callback_t *);
@@ -127,14 +127,15 @@ namespace TeensyTimerTool
 
     // reload = ticks - 1, rounded to the nearest tick, at least one tick.
     // Doesn't post errors, callers return the status which the API layer posts.
+    // Hot path of trigger(): one multiply, no division (a float division costs 14 cycles)
     errorCode GptChannel::us2ticks(float micros, uint32_t *reload) const
     {
-        if (micros > getMaxMicros())
+        float ticks = clock * micros + 0.5f;
+        if (ticks >= 4294967296.0f) // 2^32: more than 0xFFFF'FFFF ticks (max reload 0xFFFF'FFFE)
         {
             *reload = 0xFFFF'FFFE;
             return errorCode::periodOverflow;
         }
-        float ticks = clock * micros + 0.5f;
         *reload     = ticks < 2.0f ? 0 : (uint32_t)ticks - 1;
         return errorCode::OK;
     }

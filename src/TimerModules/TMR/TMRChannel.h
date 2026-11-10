@@ -10,7 +10,7 @@ namespace TeensyTimerTool
 {
     static_assert(TMR_DEFAULT_PSC >= PSC_1 && TMR_DEFAULT_PSC <= PSC_128, "TMR_DEFAULT_PSC (config) must be one of PSC_1 ... PSC_128");
 
-    class TMRChannel : public ITimerChannel
+    class TMRChannel final : public ITimerChannel // final: internal calls of virtual functions are direct calls
     {
      public:
         inline TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage, bool *oneShotStorage);
@@ -21,6 +21,8 @@ namespace TeensyTimerTool
         inline errorCode stop() override;
 
         inline errorCode trigger(float tcnt) override;
+        inline errorCode triggerDirect(uint32_t reload) override; // reload 0..0xFFFE (compare value, period = reload + 1 ticks)
+        inline errorCode getTriggerReload(float delay, uint32_t *reload) override;
         inline float getMaxPeriod() const override;
         double getPeriod() const override { return (regs->CMPLD1 + 1.0) / (ticksPerUs * 1E6); } // CMPLD1: latest period set, COMP1 + 1 ticks
         double getResolution() const override { return 1.0 / (ticksPerUs * 1E6); }
@@ -45,6 +47,7 @@ namespace TeensyTimerTool
         uint32_t pscBits;
 
         inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
+        inline void startTrigger(uint16_t reload);
         inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
@@ -100,19 +103,45 @@ namespace TeensyTimerTool
         return status;
     }
 
-    errorCode TMRChannel::trigger(float us) // register writes only (see TMR_t::isr)
+    // trigger() / triggerDirect(): register writes only (see TMR_t::isr). trigger() computes the reload after
+    // the first write: the CPU stalls when a peripheral write is still pending, the conversion runs in this time.
+    errorCode TMRChannel::trigger(float us)
     {
+        regs->CTRL = 0x0000; // stop
         uint16_t reload;
         errorCode status = us2Ticks(us, &reload);
+        startTrigger(reload);
+        return status;
+    }
 
-        regs->CTRL   = 0x0000;
+    errorCode TMRChannel::triggerDirect(uint32_t reload) // reload 0..0xFFFE
+    {
+        errorCode status = errorCode::OK;
+        if (reload > 0xFFFE)
+        {
+            reload = 0xFFFE;
+            status = errorCode::periodOverflow;
+        }
+        regs->CTRL = 0x0000; // stop
+        startTrigger(reload);
+        return status;
+    }
+
+    errorCode TMRChannel::getTriggerReload(float delay, uint32_t *reload)
+    {
+        uint16_t r;
+        errorCode status = us2Ticks(delay, &r);
+        *reload          = r;
+        return status;
+    }
+
+    void TMRChannel::startTrigger(uint16_t reload) // timer stopped (CTRL = 0)
+    {
         regs->COMP1  = reload; // LOAD is 0 since begin()
         regs->CMPLD1 = reload;
         regs->CNTR   = 0x0000;
         regs->CSCTRL = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1
         regs->CTRL   = TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_ONCE | TMR_CTRL_LENGTH;
-
-        return status;
     }
 
     errorCode TMRChannel::setPrescaler(int psc) // psc 0..7 -> prescaler: 1..128
