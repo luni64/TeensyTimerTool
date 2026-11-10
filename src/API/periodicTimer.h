@@ -8,7 +8,7 @@ namespace TeensyTimerTool
     enum class PeriodMode {
         restart,     // default: the new period starts now, the time elapsed so far is discarded
         keepElapsed, // the time elapsed so far counts; fires immediately if it already exceeds the new period
-                     // (behaviour of TMR and TCK timers before v1.5; supported by PIT, GPT, TMR, TCK, TCK64, TCK_RTC)
+                     // (behaviour of TMR and TCK timers before v1.5; supported by PIT, TMR, TCK, TCK64, TCK_RTC)
     };
 
     class PeriodicTimer : public BaseTimer
