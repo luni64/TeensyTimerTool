@@ -124,8 +124,12 @@ namespace TeensyTimerTool
 
     float BaseTimer::getRemainingTime() const
     {
-         if (timerChannel != nullptr)
-             return timerChannel->getRemainingTime();
+        if (timerChannel != nullptr)
+        {
+            float t = timerChannel->getRemainingTime();
+            if (std::isnan(t)) postError(errorCode::notImplemented);
+            return t;
+        }
 
         postError(errorCode::notInitialized);
         return NAN;
