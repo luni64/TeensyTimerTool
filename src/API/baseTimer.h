@@ -21,7 +21,7 @@ namespace TeensyTimerTool
      public:
         template <typename period_t>
         inline errorCode begin(callback_t callback, period_t period, bool start = true);
-        errorCode setPrescaler(int psc); // currently TMR (QUAD) timers only; applied at begin() if called before
+        errorCode setPrescaler(int psc); // TMR (PSC_1..PSC_128) and GPT (PSC_1..PSC_4096), others: notImplemented; applied at begin() if called before
         inline errorCode end();
         inline errorCode start();
         inline errorCode stop();
