@@ -46,7 +46,7 @@ namespace TeensyTimerTool
             else                                                                                   //
                 CCM_CSCMR1 |= CCM_CSCMR1_PERCLK_CLK_SEL;                                           // use 24MHz
                                                                                                    //
-            pGPT->CR = GPT_CR_CLKSRC(0x001) | GPT_CR_ENMOD;                                        // stopped, restart mode and peripheral clock source
+            pGPT->CR = GptChannel::CR_STOPPED;                                                     // stopped, free-run mode (counter reset when enabled), peripheral clock
             pGPT->PR = 0;                                                                          // prescaler 1, might be left over from a previous timer
 
             attachInterruptVector(irq, isr);
@@ -61,12 +61,19 @@ namespace TeensyTimerTool
     template <unsigned tmoduleNr>
     void GPT_t<tmoduleNr>::isr()
     {
-        if (!channel->isPeriodic)
-            pGPT->CR &= ~GPT_CR_EN; // stop timer in one shot mode
-                                    //
-        pGPT->SR = 0x3F;            // reset all interrupt flags
-        callback();                 // we only enabled the OF1 interrupt-> no need to find out which interrupt was actually called
-        asm volatile("dsb");        // wait until register changes propagated through the cache
+        uint32_t sr = pGPT->SR;
+        pGPT->SR    = 0x3F; // reset all interrupt flags
+        // A latched interrupt can arrive after stop() / while the channel is released: no compare flag,
+        // no callback -> ignore (was a call through a null callback -> hard fault)
+        if ((sr & GPT_SR_OF1) && callback != nullptr && channel != nullptr)
+        {
+            if (!channel->isPeriodic)
+                pGPT->CR = GptChannel::CR_STOPPED; // stop timer in one shot mode
+            else                        //
+                channel->nextCompare(); // free-run mode: compare value of the next period
+            callback();
+        }
+        asm volatile("dsb"); // wait until register changes propagated through the cache
     }
 
     template <unsigned tmoduleNr>
@@ -75,7 +82,11 @@ namespace TeensyTimerTool
         //Serial.printf("end %d\n", tmoduleNr);
         NVIC_DISABLE_IRQ(irq);
         pGPT->CR      = 0;
+        pGPT->IR      = 0;
+        pGPT->SR      = 0x3F;
+        NVIC_CLEAR_PENDING(irq);
         callback      = nullptr;
+        channel       = nullptr;
         isInitialized = false;
     }
 

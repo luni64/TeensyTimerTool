@@ -9,11 +9,9 @@ namespace TeensyTimerTool
     GptChannel::~GptChannel()
     {
         stop();
-        setCallback(nullptr);
-
+        // end() disables the IRQ and clears a pending one before the callback is removed
         if (regs == (IMXRT_GPT_t *)&IMXRT_GPT1)
             GPT_t<0>::end();
-
         else if (regs == (IMXRT_GPT_t *)&IMXRT_GPT2)
             GPT_t<1>::end();
         else
