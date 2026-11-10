@@ -9,6 +9,7 @@ namespace TeensyTimerTool
         periodOverflow = -100,
         wrongType      = -101,
         triggeredLate  = -102, //warn if new setted period is shorter than elapsed time
+        prescalerIgnored = -103, // setPrescaler() before begin() on a timer without prescaler; the timer runs without
 
         //General errors
         argument       = 100,

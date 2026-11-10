@@ -112,8 +112,12 @@ namespace TeensyTimerTool
     {
         if (callback != nullptr)
         {
+            if (!isPeriodic) // switch off before the callback: a short delay could expire again while the
+            {                // callback runs, and the callback may re-trigger the timer
+                IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
+                IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
+            }
             callback();
-            if (!isPeriodic) IMXRT_PIT_CHANNELS[chNr].TCTRL = 0; // switch off timer
         }
     }
 

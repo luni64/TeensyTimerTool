@@ -26,6 +26,9 @@ namespace TeensyTimerTool
             case errorCode::wrongType:
                 txt = "Wrong parameter type";
                 break;
+            case errorCode::prescalerIgnored:
+                txt = "Timer has no prescaler, setPrescaler() ignored";
+                break;
 
             // general errors
             case errorCode::argument:

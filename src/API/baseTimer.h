@@ -55,6 +55,7 @@ namespace TeensyTimerTool
         float period = period2us(p); // transform from any period type to microseconds (float)
 
         if (callback == nullptr) return postError(errorCode::callback);
+        if (period < 0) return postError(errorCode::argument);
         if (isPeriodic && period == 0) return postError(errorCode::reload);
 
         errorCode pscResult = errorCode::OK;
@@ -74,7 +75,11 @@ namespace TeensyTimerTool
             }
             if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
 
-            if (hasPrescaler) pscResult = timerChannel->setPrescaler(prescaler); // prescaler requested before a channel was available
+            if (hasPrescaler) // prescaler requested before a channel was available
+            {
+                pscResult = timerChannel->setPrescaler(prescaler);
+                if (pscResult == errorCode::notImplemented) pscResult = errorCode::prescalerIgnored; // warning, timer runs
+            }
         }
 
         errorCode result = timerChannel->begin(callback, period, isPeriodic);

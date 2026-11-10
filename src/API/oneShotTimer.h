@@ -12,6 +12,8 @@ namespace TeensyTimerTool
         inline OneShotTimer(TimerGenerator *generator = nullptr);
 
         inline errorCode begin(callback_t cb);
+        inline errorCode start(); // not a one-shot operation (use trigger()): notImplemented
+        // stop() (from BaseTimer) cancels a pending trigger
         template <typename T> errorCode trigger(T delay);
         template <typename T> errorCode triggerDirect(T reload);
         template <typename T> errorCode getTriggerReload(float delay, T *reload);
@@ -28,13 +30,18 @@ namespace TeensyTimerTool
         return BaseTimer::begin(callback, 0, false);
     }
 
+    errorCode OneShotTimer::start()
+    {
+        return postError(errorCode::notImplemented);
+    }
+
     template <typename period_t>
     errorCode OneShotTimer::trigger(period_t delay)
     {
-        if (timerChannel)
-            return postError(timerChannel->trigger(period2us(delay)));
-
-        return postError(errorCode::notInitialized);
+        if (timerChannel == nullptr) return postError(errorCode::notInitialized);
+        float us = period2us(delay);
+        if (us < 0) return postError(errorCode::argument);
+        return postError(timerChannel->trigger(us));
     }
 
     template <typename T>
