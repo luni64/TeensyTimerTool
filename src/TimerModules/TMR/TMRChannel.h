@@ -13,7 +13,7 @@ namespace TeensyTimerTool
     class TMRChannel : public ITimerChannel
     {
      public:
-        inline TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage);
+        inline TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage, bool *oneShotStorage);
         inline virtual ~TMRChannel();
 
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
@@ -38,7 +38,9 @@ namespace TeensyTimerTool
      protected:
         IMXRT_TMR_CH_t *regs;
         callback_t **pCallback = nullptr;
+        bool *pOneShot; // read by the ISR (a CTRL read would cost ~100 CPU cycles)
         float pscValue;
+        float ticksPerUs; // 150 / pscValue, avoids a float division in trigger() / setPeriod()
         uint32_t pscBits;
 
         inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
@@ -47,8 +49,8 @@ namespace TeensyTimerTool
 
     // IMPLEMENTATION ==============================================
 
-    TMRChannel::TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage)
-        : ITimerChannel(cbStorage)
+    TMRChannel::TMRChannel(IMXRT_TMR_CH_t *regs, callback_t *cbStorage, bool *oneShotStorage)
+        : ITimerChannel(cbStorage), pOneShot(oneShotStorage)
     {
         this->regs = regs;
         setPrescaler(TMR_DEFAULT_PSC);
@@ -61,16 +63,14 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::start()
     {
-        regs->CNTR = 0x0000;
-
-        regs->CSCTRL &= ~TMR_CSCTRL_TCF1;
-        regs->CSCTRL |= TMR_CSCTRL_TCF1EN;
+        regs->CNTR   = 0x0000;
+        regs->CSCTRL = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1, no read-modify-write (slow peripheral reads)
         return errorCode::OK;
     }
 
     errorCode TMRChannel::stop()
     {
-        regs->CSCTRL &= ~TMR_CSCTRL_TCF1EN;
+        regs->CSCTRL = TMR_CSCTRL_CL1(1); // disable the interrupt, clear TCF1
         return errorCode::OK;
     }
 
@@ -85,6 +85,7 @@ namespace TeensyTimerTool
         regs->CMPLD1 = reload;
         regs->CNTR   = 0x0000;
         regs->CSCTRL = TMR_CSCTRL_CL1(1);
+        *pOneShot    = !periodic;
         setCallback(cb);
 
         if (!periodic)
@@ -97,24 +98,17 @@ namespace TeensyTimerTool
         return status;
     }
 
-    errorCode TMRChannel::trigger(float us) // quick and dirty, should be optimized
+    errorCode TMRChannel::trigger(float us) // register writes only (see TMR_t::isr)
     {
-        // const float_t t = us2Ticks(tcnt);
-        // uint16_t reload = t > 0xFFFF ? 0xFFFF : (uint16_t)t;
-
         uint16_t reload;
         errorCode status = us2Ticks(us, &reload);
 
         regs->CTRL   = 0x0000;
-        regs->LOAD   = 0x0000;
-        regs->COMP1  = reload;
+        regs->COMP1  = reload; // LOAD is 0 since begin()
         regs->CMPLD1 = reload;
         regs->CNTR   = 0x0000;
-
-        regs->CSCTRL &= ~TMR_CSCTRL_TCF1;
-        regs->CSCTRL |= TMR_CSCTRL_TCF1EN;
-
-        regs->CTRL = TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_ONCE | TMR_CTRL_LENGTH;
+        regs->CSCTRL = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1
+        regs->CTRL   = TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_ONCE | TMR_CTRL_LENGTH;
 
         return status;
     }
@@ -123,7 +117,8 @@ namespace TeensyTimerTool
     {
         if (psc < PSC_1 || psc > PSC_128) return errorCode::argument; // PSC_AUTO not supported for TMR
 
-        pscValue = 1 << psc;
+        pscValue   = 1 << psc;
+        ticksPerUs = 150.0f / pscValue;
         pscBits  = 0b1000 | psc;
 
         // Running timer: switch the clock source too, so that later setPeriod() / setNextPeriod() calls
@@ -207,7 +202,7 @@ namespace TeensyTimerTool
     {
         constexpr uint16_t maxReload = 0xFFFE;
 
-        float ticks = us * 150.0f / pscValue + 0.5f;
+        float ticks = us * ticksPerUs + 0.5f;
         if (ticks >= maxReload + 2.0f)
         {
             *reload = maxReload;

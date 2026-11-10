@@ -23,7 +23,7 @@ namespace TeensyTimerTool
         inline errorCode setPeriodKeepElapsed(float us) override;
 
         inline float getMaxPeriod() const override;
-        double getPeriod() const override { return (IMXRT_PIT_CHANNELS[chNr].LDVAL + 1.0) / (clock * 1E6); } // period = LDVAL + 1 ticks
+        double getPeriod() const override { return (ldval + 1.0) / (clock * 1E6); } // period = LDVAL + 1 ticks
         double getResolution() const override { return 1.0 / (clock * 1E6); }
         float getRemainingTime() const override // counts down CVAL..0; one-shots are disabled when they fire
         {
@@ -40,7 +40,12 @@ namespace TeensyTimerTool
 
         inline errorCode us2ticks(float micros, uint32_t *reload) const;
         float clock;
-        uint32_t curReload = 0; // LDVAL of the current period (LDVAL itself may already hold the next one)
+        // RAM copies of register values. PIT registers sit behind the slow peripheral bus, every access costs ~100 CPU
+        // cycles (24 MHz timer clock), and a read additionally waits for all pending register writes. The ISR,
+        // start() and trigger() therefore don't read registers. The copies are valid since only this class writes
+        // LDVAL. Interrupt flags are never copied: they are always cleared by a register write (see PIT_t::isr).
+        uint32_t ldval     = 0; // LDVAL, i.e. reload of the following periods
+        uint32_t curReload = 0; // reload of the current period (LDVAL itself may already hold the next one)
 
         const unsigned chNr;
         callback_t callback = nullptr;
@@ -91,7 +96,7 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::start()
     {
-        curReload                      = IMXRT_PIT_CHANNELS[chNr].LDVAL;
+        curReload                      = ldval;
         IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
         return errorCode::OK;
     }
@@ -99,6 +104,7 @@ namespace TeensyTimerTool
     errorCode PITChannel::stop()
     {
         IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
+        IMXRT_PIT_CHANNELS[chNr].TFLG  = 1; // a flag set just before would call this callback when another channel fires
         return errorCode::OK;
     }
 
@@ -106,6 +112,7 @@ namespace TeensyTimerTool
     {
         uint32_t reload;
         errorCode status               = us2ticks(us, &reload);
+        ldval                          = reload;
         IMXRT_PIT_CHANNELS[chNr].LDVAL = reload;
         return status;
     }
@@ -125,6 +132,7 @@ namespace TeensyTimerTool
         auto &ch         = IMXRT_PIT_CHANNELS[chNr];
         if (!(ch.TCTRL & PIT_TCTRL_TEN))
         {
+            ldval    = reload;
             ch.LDVAL = reload; // not running: start() starts the new period
             return status;
         }
@@ -134,6 +142,7 @@ namespace TeensyTimerTool
         ch.LDVAL         = rest;
         ch.TCTRL         = PIT_TCTRL_TEN | PIT_TCTRL_TIE; // loads LDVAL (the remainder)
         ch.LDVAL         = reload;                        // following periods
+        ldval            = reload;
         curReload        = reload;                        // CVAL counts down from rest: elapsed = reload - CVAL
         return status;
     }
@@ -148,7 +157,7 @@ namespace TeensyTimerTool
                 IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
             }
             else
-                curReload = IMXRT_PIT_CHANNELS[chNr].LDVAL; // the hardware loaded LDVAL for the new period
+                curReload = ldval; // the hardware loaded LDVAL for the new period
             callback();
         }
     }

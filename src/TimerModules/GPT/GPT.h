@@ -46,7 +46,7 @@ namespace TeensyTimerTool
             else                                                                                   //
                 CCM_CSCMR1 |= CCM_CSCMR1_PERCLK_CLK_SEL;                                           // use 24MHz
                                                                                                    //
-            pGPT->CR = GptChannel::CR_STOPPED;                                                     // stopped, free-run mode (counter reset when enabled), peripheral clock
+            pGPT->CR = GptChannel::CR_STOPPED;                                                     // stopped, restart mode (counter reset when enabled), peripheral clock
             pGPT->PR = 0;                                                                          // prescaler 1, might be left over from a previous timer
 
             attachInterruptVector(irq, isr);
@@ -58,22 +58,31 @@ namespace TeensyTimerTool
         return nullptr;
     }
 
+    // Periodic: only register writes (see GPTChannel.h), no status read, the only enabled interrupt is OF1.
+    // One-shot: one status read (~100 CPU cycles) to detect a stale interrupt: re-triggering just when the previous
+    // trigger expires leaves its interrupt pending; stopping the timer then would cancel the new trigger.
+    // The callback check is a RAM access; callbacks are removed only after the interrupt was disabled and its
+    // pending request cleared (end()).
     template <unsigned tmoduleNr>
     void GPT_t<tmoduleNr>::isr()
     {
-        uint32_t sr = pGPT->SR;
-        pGPT->SR    = 0x3F; // reset all interrupt flags
-        // A latched interrupt can arrive after stop() / while the channel is released: no compare flag,
-        // no callback -> ignore (was a call through a null callback -> hard fault)
-        if ((sr & GPT_SR_OF1) && callback != nullptr && channel != nullptr)
+        if (callback != nullptr)
         {
             if (!channel->isPeriodic)
-                pGPT->CR = GptChannel::CR_STOPPED; // stop timer in one shot mode
-            else                        //
-                channel->nextCompare(); // free-run mode: compare value of the next period
+            {
+                if (!(pGPT->SR & GPT_SR_OF1)) // stale interrupt of a trigger which was replaced by a new trigger()
+                {
+                    asm volatile("dsb");
+                    return;
+                }
+                pGPT->CR = GptChannel::CR_STOPPED; // one-shot: stop before clearing the flags, a short delay would fire again
+            }
+            pGPT->SR = 0x3F;                       // reset all interrupt flags
             callback();
         }
-        asm volatile("dsb"); // wait until register changes propagated through the cache
+        else
+            pGPT->SR = 0x3F;
+        asm volatile("dsb"); // wait until the flag reset reached the GPT, otherwise the ISR is called again
     }
 
     template <unsigned tmoduleNr>

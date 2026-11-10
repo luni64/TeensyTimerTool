@@ -15,6 +15,7 @@ namespace TeensyTimerTool
         static bool isInitialized;
         static void isr();
         static callback_t callbacks[4];
+        static bool oneShot[4]; // set by the channels (begin), avoids reading CTRL in the ISR
 
         // the following is calculated at compile time
         static constexpr IRQ_NUMBER_t irq = moduleNr == 0 ? IRQ_QTIMER1 : moduleNr == 1 ? IRQ_QTIMER2
@@ -52,7 +53,7 @@ namespace TeensyTimerTool
             attachInterruptVector(irq, isr); // start
             NVIC_ENABLE_IRQ(irq);
             isInitialized = true;
-            return new TMRChannel(pCH0, &callbacks[0]);
+            return new TMRChannel(pCH0, &callbacks[0], &oneShot[0]);
         }
 
         for (unsigned chNr = 0; chNr < 4; chNr++)
@@ -60,7 +61,7 @@ namespace TeensyTimerTool
             IMXRT_TMR_CH_t *pCh = &pTMR->CH[chNr];
             if (pCh->CTRL == 0x0000)
             {
-                return new TMRChannel(pCh, &callbacks[chNr]);
+                return new TMRChannel(pCh, &callbacks[chNr], &oneShot[chNr]);
             }
         }
         return nullptr;
@@ -74,28 +75,33 @@ namespace TeensyTimerTool
         // Without the check, a stopped channel's callback would be called whenever another channel of the module fires.
         // One-shot (ONCE): clear TCF1EN before the callback, i.e. TCF1EN set <=> callback pending (getRemainingTime);
         // the callback may re-trigger the channel.
+        // Efficiency: register accesses go through the peripheral bus (~20 CPU cycles per TMR access, RAM ~5).
+        // CSCTRL is read once per channel in use (the callback check comes first) and written as a constant instead of
+        // read-modify-write: the library only uses CL1 and TCF1EN, and writing 0 to TCF1 clears the flag. Whether the
+        // channel is a one-shot comes from a RAM copy (set in TMRChannel::begin) instead of reading CTRL.
+        // The flag is always cleared by a register write; the DSB at the end makes sure it reached the timer.
         constexpr uint16_t mask = TMR_CSCTRL_TCF1 | TMR_CSCTRL_TCF1EN;
         if (callbacks[0] != nullptr && (pCH0->CSCTRL & mask) == mask)
         {
-            pCH0->CSCTRL &= (pCH0->CTRL & TMR_CTRL_ONCE) ? ~(TMR_CSCTRL_TCF1 | TMR_CSCTRL_TCF1EN) : ~TMR_CSCTRL_TCF1;
+            pCH0->CSCTRL = oneShot[0] ? TMR_CSCTRL_CL1(1) : TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1
             callbacks[0]();
         }
 
         if (callbacks[1] != nullptr && (pCH1->CSCTRL & mask) == mask)
         {
-            pCH1->CSCTRL &= (pCH1->CTRL & TMR_CTRL_ONCE) ? ~(TMR_CSCTRL_TCF1 | TMR_CSCTRL_TCF1EN) : ~TMR_CSCTRL_TCF1;
+            pCH1->CSCTRL = oneShot[1] ? TMR_CSCTRL_CL1(1) : TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1
             callbacks[1]();
         }
 
         if (callbacks[2] != nullptr && (pCH2->CSCTRL & mask) == mask)
         {
-            pCH2->CSCTRL &= (pCH2->CTRL & TMR_CTRL_ONCE) ? ~(TMR_CSCTRL_TCF1 | TMR_CSCTRL_TCF1EN) : ~TMR_CSCTRL_TCF1;
+            pCH2->CSCTRL = oneShot[2] ? TMR_CSCTRL_CL1(1) : TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1
             callbacks[2]();
         }
 
         if (callbacks[3] != nullptr && (pCH3->CSCTRL & mask) == mask)
         {
-            pCH3->CSCTRL &= (pCH3->CTRL & TMR_CTRL_ONCE) ? ~(TMR_CSCTRL_TCF1 | TMR_CSCTRL_TCF1EN) : ~TMR_CSCTRL_TCF1;
+            pCH3->CSCTRL = oneShot[3] ? TMR_CSCTRL_CL1(1) : TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1
             callbacks[3]();
         }
         asm volatile("dsb"); //wait until register changes propagated through the cache
@@ -106,4 +112,7 @@ namespace TeensyTimerTool
 
     template <unsigned m>
     callback_t TMR_t<m>::callbacks[4];
+
+    template <unsigned m>
+    bool TMR_t<m>::oneShot[4];
 } // namespace TeensyTimerTool

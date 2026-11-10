@@ -6,6 +6,17 @@
 
 namespace TeensyTimerTool
 {
+    // Efficiency notes (also valid for GPT.h)
+    // The GPT registers sit behind the slow peripheral bus: every register access, read or write, costs ~100 CPU
+    // cycles with the default 24 MHz timer clock (~44 cycles with USE_GPT_PIT_150MHz), a RAM access ~5 cycles.
+    // A register read additionally waits until all pending register writes have reached the peripheral.
+    // Therefore the time critical paths (periodic ISR, trigger, start) only write registers, constant values without
+    // read-modify-write. The one-shot ISR reads the status once (see GPT_t::isr), the getters read registers.
+    //
+    // The timer runs in restart mode: the counter resets at the compare, periods are exact and the ISR doesn't need
+    // to touch the compare register. Consequence: setNextPeriod() and setPeriod(.., keepElapsed) are not supported,
+    // since every write to OCR1 resets the counter (RM 52.5.1.1). Free-run mode could do it, but its ISR needs to
+    // read and check the counter at every compare, which costs ~4 times the cost of the plain ISR (measured).
     class GptChannel : public ITimerChannel
     {
      public:
@@ -20,107 +31,76 @@ namespace TeensyTimerTool
         inline errorCode triggerDirect(uint32_t delay) override;
         inline errorCode getTriggerReload(float delay, uint32_t *reload) override;
 
-        inline errorCode setNextPeriod(float us) override;
         inline errorCode setPeriod(float us) override;
-        inline errorCode setPeriodKeepElapsed(float us) override;
 
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
-        double getPeriod() const override { return nextTicks / (clock * 1E6); } // latest period set
+        double getPeriod() const override { return (regs->OCR1 + 1.0) / (clock * 1E6); } // restart mode: OCR1 + 1 ticks
         double getResolution() const override { return 1.0 / (clock * 1E6); }
-        float getRemainingTime() const override // counter runs up to the compare value OCR1; one-shots are disabled after firing
+        float getRemainingTime() const override // restart mode: counts up 0..OCR1; one-shots are disabled after firing
         {
             if (!(regs->CR & GPT_CR_EN)) return 0;
-            return ((uint32_t)(regs->OCR1 - regs->CNT) + 1.0f) / (clock * 1E6f);
+            return (regs->OCR1 + 1.0f - regs->CNT) / (clock * 1E6f);
         }
 
         inline errorCode setPrescaler(int psc) override; // psc 0..12 (PSC_1..PSC_4096) -> prescaler: 1..4096
 
         bool isPeriodic;
-        static constexpr uint32_t CR_STOPPED = GPT_CR_CLKSRC(0x001) | GPT_CR_ENMOD | GPT_CR_FRR; // free-run, reset on enable, perclk
-        inline void nextCompare() // called by the ISR at each compare (periodic)
-        {
-            if (nextTicks == 1) // the compare can't be set one tick ahead (gives 3 ticks), restart the counter instead
-            {
-                restart(0);
-                return;
-            }
-            curTicks = nextTicks;
-            setCompare(regs->OCR1 + nextTicks);
-        }
+        static constexpr uint32_t CR_STOPPED = GPT_CR_CLKSRC(0x001) | GPT_CR_ENMOD; // restart mode, counter reset when enabled, perclk
+        static constexpr uint32_t CR_RUNNING = CR_STOPPED | GPT_CR_EN;
 
      protected:
         inline errorCode us2ticks(float micros, uint32_t *reload) const;
-        inline void restart(uint32_t reload); // counter -> 0, first compare after reload + 1 ticks
-        uint32_t nextTicks = 1;               // length of the following periods in ticks
-        uint32_t curTicks  = 1;               // length of the current period in ticks (OCR1 - curTicks: its start)
-        inline void setCompare(uint32_t ocr); // compare at ocr, or as soon as possible if (almost) passed
         inline float getMaxMicros() const;
         inline static float perclkMHz();
 
         IMXRT_GPT_t *regs;
-        float clock;          // counter clock in MHz (perclk / prescaler)
-        uint32_t pscDiv = 1;  // prescaler divider 1..4096
+        IRQ_NUMBER_t irq;
+        float clock;         // counter clock in MHz (perclk / prescaler)
+        uint32_t pscDiv = 1; // prescaler divider 1..4096
     };
 
     // IMPLEMENTATION ==============================================
 
     GptChannel::GptChannel(IMXRT_GPT_t *registers, callback_t *cbStorage)
-        : ITimerChannel(cbStorage), regs(registers)
+        : ITimerChannel(cbStorage), regs(registers), irq(registers == (IMXRT_GPT_t *)&IMXRT_GPT1 ? IRQ_GPT1 : IRQ_GPT2)
     {
     }
 
     errorCode GptChannel::begin(callback_t cb, float period, bool periodic)
     {
-        stop(); // begin() on a running timer: start() restarts it
-        clock      = perclkMHz() / pscDiv;
-        isPeriodic = periodic;
+        clock            = perclkMHz() / pscDiv;
+        isPeriodic       = periodic;
         errorCode status = errorCode::OK;
         if (isPeriodic)
         {
-            uint32_t reload;
-            status     = us2ticks(period, &reload);
-            nextTicks  = reload + 1;
-            regs->OCR1 = reload;
+            status = setPeriod(period);
         }
         setCallback(cb);
 
         return status;
     }
 
-    // The GPT runs in free-run mode: the counter counts on after a compare and the ISR advances OCR1 by
-    // the next period (exact periods, setNextPeriod). With ENMOD, enabling the timer resets the counter to 0.
-    // A compare value which the counter has (almost) passed would only match after a full counter wrap.
-    void GptChannel::setCompare(uint32_t ocr)
+    errorCode GptChannel::start() // a running timer continues (EN 1->1: no counter reset)
     {
-        const int32_t margin = 1 + (int32_t)(clock * 0.5f); // ~0.5 µs, at least 1 tick
-        regs->OCR1           = ocr;
-        if ((int32_t)(ocr - regs->CNT) < margin) regs->OCR1 = regs->CNT + margin;
-    }
-
-    void GptChannel::restart(uint32_t reload)
-    {
-        curTicks = reload + 1;
-        regs->CR   = CR_STOPPED;             // disable (no read-modify-write: saves a slow peripheral read)
-        regs->OCR1 = reload;                 // first compare after reload + 1 ticks
-        regs->SR   = 0x3F;                   // clear all interrupt flags
-        regs->IR   = GPT_IR_OF1IE;
-        regs->CR   = CR_STOPPED | GPT_CR_EN; // enable, counter starts at 0 (ENMOD)
-    }
-
-    errorCode GptChannel::start()
-    {
-        restart(nextTicks - 1);
+        regs->SR = 0x3F;         // clear all interrupt flags
+        regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
+        regs->CR = CR_RUNNING;   // enable timer, counter starts at 0 (ENMOD)
         return errorCode::OK;
     }
 
     errorCode GptChannel::stop()
     {
-        regs->CR = CR_STOPPED; // disable timer
+        regs->CR = CR_STOPPED;
         regs->IR = 0;
+        regs->SR = 0x3F;
+        // A compare just before the IR write may have left the interrupt pending: wait until the writes reached
+        // the GPT (otherwise the still active request would set the pending bit again), then discard it.
+        asm volatile("dsb");
+        NVIC_CLEAR_PENDING(irq);
         return errorCode::OK;
     }
 
-    errorCode GptChannel::trigger(float delay) // should be optimized somehow
+    errorCode GptChannel::trigger(float delay)
     {
         uint32_t reload;
         errorCode status = us2ticks(delay, &reload);
@@ -130,8 +110,13 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::triggerDirect(uint32_t reload)
     {
-        nextTicks = reload + 1;
-        restart(reload); // the ISR disables the timer after the compare
+        regs->OCR1 = reload;       // first: resets the counter, i.e. a running trigger can't fire anymore
+        regs->SR   = 0x3F;         // clear all interrupt flags
+        regs->IR   = GPT_IR_OF1IE; // enable OF1 interrupt
+        regs->CR   = CR_RUNNING;   // enable timer (counter reset by ENMOD if it was stopped)
+        // A previous trigger which expired just before may have left its interrupt pending. The ISR detects this
+        // (no OF1 flag) and doesn't stop the timer. Clearing the pending interrupt here would need a DSB, i.e.
+        // waiting until the writes above reached the GPT: trigger() would take 0.9 µs instead of 0.35 µs.
         return errorCode::OK;
     }
 
@@ -174,39 +159,11 @@ namespace TeensyTimerTool
         return (float)0xFFFF'FFFE / clock;
     }
 
-    errorCode GptChannel::setNextPeriod(float us) // takes effect at the next compare (ISR)
+    errorCode GptChannel::setPeriod(float us) // restart: in restart mode a write to OCR1 resets the counter (RM 52.5.1.1)
     {
         uint32_t reload;
         errorCode status = us2ticks(us, &reload);
-        nextTicks        = reload + 1;
-        return status;
-    }
-
-    errorCode GptChannel::setPeriodKeepElapsed(float us) // the elapsed time of the current period counts
-    {
-        uint32_t reload;
-        errorCode status = us2ticks(us, &reload);
-        nextTicks        = reload + 1;
-        if (!(regs->CR & GPT_CR_EN))
-        {
-            regs->OCR1 = reload; // not running: start() restarts
-            return status;
-        }
-        uint32_t start = regs->OCR1 - curTicks; // start of the current period
-        curTicks       = nextTicks;
-        setCompare(start + nextTicks); // already past: fires as soon as possible
-        return status;
-    }
-
-    errorCode GptChannel::setPeriod(float us) // restart: the new period starts now
-    {
-        uint32_t reload;
-        errorCode status = us2ticks(us, &reload);
-        nextTicks        = reload + 1;
-        if (regs->CR & GPT_CR_EN)
-            restart(reload);
-        else
-            regs->OCR1 = reload; // begin(..., false): start() restarts
+        regs->OCR1       = reload;
         return status;
     }
 
