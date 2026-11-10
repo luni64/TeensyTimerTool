@@ -25,7 +25,7 @@ namespace TeensyTimerTool
         inline errorCode start() override;
         inline errorCode stop() override;
 
-        inline uint16_t ticksFromMicros(float micros);
+        inline errorCode ticksFromMicros(float micros, uint32_t *ticks) const; // nearest tick, at least one
 
         // inline void setPeriod(uint32_t) {}
 
@@ -50,17 +50,19 @@ namespace TeensyTimerTool
     template <typename period_t>
     errorCode FTM_Channel::doBegin(callback_t callback, period_t period, bool periodic)
     {
+        stop(); // begin() on a running timer: BaseTimer::begin() restarts it
         ci->isPeriodic = periodic;
-        ci->reload     = ticksFromMicros(period);
         ci->callback   = callback;
-
-        return errorCode::OK;
+        return periodic ? ticksFromMicros(period, &ci->reload) : errorCode::OK;
     }
 
     errorCode FTM_Channel::start()
     {
-        ci->chRegs->CV = regs->CNT + ci->reload;     // compare value (current counter + pReload)
+        uint32_t cv = regs->CNT + ci->reload;        // compare value (current counter + reload)
         ci->chRegs->SC &= ~FTM_CSC_CHF;              // reset timer flag
+        regs->SC &= ~FTM_SC_CLKS_MASK;               // a CV written while the clock runs isn't used at once:
+        ci->chRegs->CV = cv;                         // the first callback came at the old compare value
+        regs->SC |= FTM_SC_CLKS(0b01);               // (as in triggerDirect)
         ci->chRegs->SC = FTM_CSC_MSA | FTM_CSC_CHIE; // enable interrupts
         return errorCode::OK;
     }
@@ -75,17 +77,20 @@ namespace TeensyTimerTool
 
     errorCode FTM_Channel::getTriggerReload(float delay, uint32_t *reload)
     {
-        *reload = ticksFromMicros(delay);
-        return errorCode::OK;
+        return ticksFromMicros(delay, reload);
     }
 
     errorCode FTM_Channel::trigger(float delay)
     {
-        return triggerDirect(ticksFromMicros(delay));
+        uint32_t reload;
+        errorCode status = ticksFromMicros(delay, &reload);
+        triggerDirect(reload);
+        return status;
     }
 
     errorCode FTM_Channel::triggerDirect(uint32_t reload)
     {
+        if (reload > 0xFFFF) reload = 0xFFFF;
         uint32_t cv = regs->CNT + reload + 1;        // calc early to minimize error
         ci->chRegs->SC &= ~FTM_CSC_CHF;              // Reset timer flag
                                                      //
@@ -103,19 +108,24 @@ namespace TeensyTimerTool
         return (0xFFFF * 1E-6f) / ci->ticksPerMicrosecond; // max period in seconds
     }
 
-    uint16_t FTM_Channel::ticksFromMicros(float micros)
+    // Doesn't post errors, callers return the status which the API layer posts.
+    errorCode FTM_Channel::ticksFromMicros(float micros, uint32_t *ticks) const
     {
-        uint32_t rl = ci->ticksPerMicrosecond * micros;
-        if (rl > 0xFFFF)
+        float t = ci->ticksPerMicrosecond * micros + 0.5f;
+        if (t >= 0x10000)
         {
-            postError(errorCode::periodOverflow); // warning only, continues with clipped value
-            rl = 0xFFFF;
+            *ticks = 0xFFFF; // warning only, continues with the max. period
+            return errorCode::periodOverflow;
         }
-        return rl;
+        *ticks = t < 1.0f ? 1 : (uint32_t)t;
+        return errorCode::OK;
     }
 
-    FTM_Channel::~FTM_Channel()
+    FTM_Channel::~FTM_Channel() // releases the channel: no more callbacks, free for the next getTimer()
     {
+        stop();
+        ci->callback   = nullptr;
+        ci->isReserved = false;
     }
 
 } // namespace TeensyTimerTool

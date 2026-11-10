@@ -72,8 +72,8 @@ namespace TeensyTimerTool
             {
                 if (ci->isPeriodic)
                 {
-                    cr->SC &= ~FTM_CSC_CHF;       // clear channel flag
-                    cr->CV = r->CNT + ci->reload; // set compare value to 'reload' counts ahead of counter
+                    cr->SC &= ~FTM_CSC_CHF;               // clear channel flag
+                    cr->CV = (cr->CV + ci->reload) & 0xFFFF; // next compare 'reload' counts after this one (no drift)
                 } else
                 {
                     cr->SC &= ~FTM_CSC_CHIE; //disable interrupt in on shot mode
