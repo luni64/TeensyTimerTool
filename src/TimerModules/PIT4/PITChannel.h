@@ -24,6 +24,11 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const override;
         double getPeriod() const override { return (IMXRT_PIT_CHANNELS[chNr].LDVAL + 1.0) / (clock * 1E6); } // period = LDVAL + 1 ticks
         double getResolution() const override { return 1.0 / (clock * 1E6); }
+        float getRemainingTime() const override // counts down CVAL..0; one-shots are disabled when they fire
+        {
+            if (!(IMXRT_PIT_CHANNELS[chNr].TCTRL & PIT_TCTRL_TEN)) return 0;
+            return (IMXRT_PIT_CHANNELS[chNr].CVAL + 1.0f) / (clock * 1E6f);
+        }
 
         inline void release() override; // channels are static members of PIT_t, stop and mark free instead of delete
 

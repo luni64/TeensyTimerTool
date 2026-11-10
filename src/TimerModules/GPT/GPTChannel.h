@@ -26,6 +26,11 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
         double getPeriod() const override { return (regs->OCR1 + 1.0) / (clock * 1E6); } // restart mode: OCR1 + 1 ticks
         double getResolution() const override { return 1.0 / (clock * 1E6); }
+        float getRemainingTime() const override // restart mode: counts up 0..OCR1; one-shots are disabled after firing
+        {
+            if (!(regs->CR & GPT_CR_EN)) return 0;
+            return (regs->OCR1 + 1.0f - regs->CNT) / (clock * 1E6f);
+        }
 
         inline errorCode setPrescaler(int psc) override; // psc 0..12 (PSC_1..PSC_4096) -> prescaler: 1..4096
 

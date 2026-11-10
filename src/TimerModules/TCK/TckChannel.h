@@ -29,6 +29,7 @@ namespace TeensyTimerTool
         float getMaxPeriod() const override { return tckCounter::getMaxMicros() / 1E6f; } // seconds
         float getRemainingTime() const override // seconds
         {
+            if (!triggered) return 0; // stopped, one-shot fired or never triggered
             counter_t elapsed = tckCounter::getCount() - startCnt;
             if (elapsed >= currentPeriod) return 0;
             return (currentPeriod - elapsed) / (float)tckCounter::us2ticks(1E6f); // ticks per second of the used counter (was F_CPU for all)

@@ -24,6 +24,11 @@ namespace TeensyTimerTool
         inline float getMaxPeriod() const override;
         double getPeriod() const override { return (regs->CMPLD1 + 1.0) * pscValue / 150E6; } // CMPLD1: latest period set, COMP1 + 1 ticks
         double getResolution() const override { return pscValue / 150E6; }
+        float getRemainingTime() const override // counts up 0..COMP1; TCF1EN: callback pending
+        {
+            if (!(regs->CSCTRL & TMR_CSCTRL_TCF1EN)) return 0;
+            return (regs->COMP1 + 1.0f - regs->CNTR) * pscValue / 150E6f;
+        }
 
         inline errorCode setPeriod(float us) override;
         inline errorCode setPeriodKeepElapsed(float us) override;
