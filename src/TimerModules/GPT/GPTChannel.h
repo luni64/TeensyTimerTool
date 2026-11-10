@@ -22,6 +22,7 @@ namespace TeensyTimerTool
 
         inline errorCode setNextPeriod(float us) override;
         inline errorCode setPeriod(float us) override;
+        inline errorCode setPeriodKeepElapsed(float us) override;
 
         inline float getMaxPeriod() const override { return getMaxMicros() / 1E6; }
         double getPeriod() const override { return nextTicks / (clock * 1E6); } // latest period set
@@ -43,15 +44,16 @@ namespace TeensyTimerTool
                 restart(0);
                 return;
             }
-            uint32_t ocr = regs->OCR1 + nextTicks;
-            regs->OCR1   = ocr;
-            if ((int32_t)(ocr - regs->CNT) <= 0) regs->OCR1 = regs->CNT + 2; // period shorter than the ISR latency:
-        }                                                                       // as soon as possible, not after a counter wrap
+            curTicks = nextTicks;
+            setCompare(regs->OCR1 + nextTicks);
+        }
 
      protected:
         inline errorCode us2ticks(float micros, uint32_t *reload) const;
         inline void restart(uint32_t reload); // counter -> 0, first compare after reload + 1 ticks
         uint32_t nextTicks = 1;               // length of the following periods in ticks
+        uint32_t curTicks  = 1;               // length of the current period in ticks (OCR1 - curTicks: its start)
+        inline void setCompare(uint32_t ocr); // compare at ocr, or as soon as possible if (almost) passed
         inline float getMaxMicros() const;
         inline static float perclkMHz();
 
@@ -87,8 +89,17 @@ namespace TeensyTimerTool
 
     // The GPT runs in free-run mode: the counter counts on after a compare and the ISR advances OCR1 by
     // the next period (exact periods, setNextPeriod). With ENMOD, enabling the timer resets the counter to 0.
+    // A compare value which the counter has (almost) passed would only match after a full counter wrap.
+    void GptChannel::setCompare(uint32_t ocr)
+    {
+        const int32_t margin = 1 + (int32_t)(clock * 0.5f); // ~0.5 µs, at least 1 tick
+        regs->OCR1           = ocr;
+        if ((int32_t)(ocr - regs->CNT) < margin) regs->OCR1 = regs->CNT + margin;
+    }
+
     void GptChannel::restart(uint32_t reload)
     {
+        curTicks = reload + 1;
         regs->CR   = CR_STOPPED;             // disable (no read-modify-write: saves a slow peripheral read)
         regs->OCR1 = reload;                 // first compare after reload + 1 ticks
         regs->SR   = 0x3F;                   // clear all interrupt flags
@@ -168,6 +179,22 @@ namespace TeensyTimerTool
         uint32_t reload;
         errorCode status = us2ticks(us, &reload);
         nextTicks        = reload + 1;
+        return status;
+    }
+
+    errorCode GptChannel::setPeriodKeepElapsed(float us) // the elapsed time of the current period counts
+    {
+        uint32_t reload;
+        errorCode status = us2ticks(us, &reload);
+        nextTicks        = reload + 1;
+        if (!(regs->CR & GPT_CR_EN))
+        {
+            regs->OCR1 = reload; // not running: start() restarts
+            return status;
+        }
+        uint32_t start = regs->OCR1 - curTicks; // start of the current period
+        curTicks       = nextTicks;
+        setCompare(start + nextTicks); // already past: fires as soon as possible
         return status;
     }
 

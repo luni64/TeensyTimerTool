@@ -20,6 +20,7 @@ namespace TeensyTimerTool
         inline errorCode trigger(float) override;
         inline errorCode setNextPeriod(float us) override;
         inline errorCode setPeriod(float us) override;
+        inline errorCode setPeriodKeepElapsed(float us) override;
 
         inline float getMaxPeriod() const override;
         double getPeriod() const override { return (IMXRT_PIT_CHANNELS[chNr].LDVAL + 1.0) / (clock * 1E6); } // period = LDVAL + 1 ticks
@@ -39,6 +40,7 @@ namespace TeensyTimerTool
 
         inline errorCode us2ticks(float micros, uint32_t *reload) const;
         float clock;
+        uint32_t curReload = 0; // LDVAL of the current period (LDVAL itself may already hold the next one)
 
         const unsigned chNr;
         callback_t callback = nullptr;
@@ -89,6 +91,7 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::start()
     {
+        curReload                      = IMXRT_PIT_CHANNELS[chNr].LDVAL;
         IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
         return errorCode::OK;
     }
@@ -115,6 +118,26 @@ namespace TeensyTimerTool
         return status;
     }
 
+    errorCode PITChannel::setPeriodKeepElapsed(float us) // the elapsed time of the current period counts
+    {
+        uint32_t reload;
+        errorCode status = us2ticks(us, &reload);
+        auto &ch         = IMXRT_PIT_CHANNELS[chNr];
+        if (!(ch.TCTRL & PIT_TCTRL_TEN))
+        {
+            ch.LDVAL = reload; // not running: start() starts the new period
+            return status;
+        }
+        uint32_t elapsed = curReload - ch.CVAL;                // ticks since the period started
+        uint32_t rest    = elapsed >= reload ? 0 : reload - elapsed; // already past: fire after one tick
+        ch.TCTRL         = 0;
+        ch.LDVAL         = rest;
+        ch.TCTRL         = PIT_TCTRL_TEN | PIT_TCTRL_TIE; // loads LDVAL (the remainder)
+        ch.LDVAL         = reload;                        // following periods
+        curReload        = reload;                        // CVAL counts down from rest: elapsed = reload - CVAL
+        return status;
+    }
+
     void PITChannel::isr()
     {
         if (callback != nullptr)
@@ -124,6 +147,8 @@ namespace TeensyTimerTool
                 IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
                 IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
             }
+            else
+                curReload = IMXRT_PIT_CHANNELS[chNr].LDVAL; // the hardware loaded LDVAL for the new period
             callback();
         }
     }
