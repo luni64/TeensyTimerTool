@@ -121,30 +121,36 @@ A `OneShotTimer` invokes its callback once. `begin()` sets the callback, `trigge
 timer: the callback is invoked when the delay has expired. `trigger()` returns immediately and the sketch
 continues; unlike `delay()`, the program is not paused while the timer runs in the background.
 
+The following sketch implements a timeout: every character received from the serial monitor switches the
+LED on, and the LED goes off 2 s after the last character. Each `trigger()` restarts the delay.
+
 ```cpp
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-OneShotTimer ledOff;
+OneShotTimer ledOff(TCK); // software timer, supports long delays on every Teensy
 
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
-    ledOff.begin([] { digitalWriteFast(LED_BUILTIN, LOW); });
+    ledOff.begin([] { digitalWriteFast(LED_BUILTIN, LOW); }); // callback as lambda, see Callbacks
 }
 
 void loop()
 {
-    digitalWriteFast(LED_BUILTIN, HIGH);
-    ledOff.trigger(10ms); // switch the LED off after 10 ms
-    delay(500);
+    if (Serial.available())
+    {
+        while (Serial.available()) Serial.read(); // discard the input
+        digitalWriteFast(LED_BUILTIN, HIGH);
+        ledOff.trigger(2s); // (re)start the 2 s timeout
+    }
 }
 ```
 
 Behaviour of one-shot timers:
 
-- Calling `trigger()` while a trigger is pending restarts the delay; the callback is invoked once. This is
-  the usual way to implement a timeout, e.g. switching a light off 30 s after the last button press.
+- Calling `trigger()` while a trigger is pending restarts the delay; the callback is invoked once, as in
+  the timeout example above.
 - `stop()` cancels a pending trigger; the callback is not invoked.
 - `trigger()` may be called from the callback itself to chain delays, e.g. to generate pulse sequences.
 - `trigger(0)` invokes the callback as soon as possible, i.e. after one timer tick.
@@ -197,13 +203,22 @@ details.
 
 ### Keeping the elapsed time
 
+By default, `setPeriod()` discards the time elapsed in the current period: the new period starts at the
+call. With the parameter `PeriodMode::keepElapsed`, the elapsed time counts towards the new period:
+
 ```cpp
 t1.setPeriod(5ms, PeriodMode::keepElapsed);
 ```
 
-takes the time already elapsed in the current period into account: if 2 ms have elapsed, the next
-callback occurs 3 ms after the call; if more than 5 ms have elapsed, immediately. Supported by the PIT,
-TMR and TCK timers; the other timers return `notImplemented`.
+If 2 ms of the current period have elapsed, the next callback occurs 3 ms after the call, i.e. 5 ms after
+the previous callback. If more than 5 ms have elapsed already, the callback occurs immediately. The
+following periods are 5 ms.
+
+This is useful when the period is adjusted frequently, e.g. the step rate of a stepper motor that is
+updated every millisecond during acceleration. With the default behaviour, every update would delay the
+next step by up to one period; with `keepElapsed`, the steps follow the new rate without gaps.
+
+Supported by the PIT, TMR and TCK timers; the other timers return `notImplemented`.
 
 ### Changing the period at the end of the current period
 
@@ -215,7 +230,7 @@ alternating between 300 µs and 700 µs:
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-PeriodicTimer t1(PIT); // PIT, TMR or TCK; the GPT timers don't support setNextPeriod()
+PeriodicTimer t1(PIT); // Teensy 4: PIT or TMR, Teensy 3: TCK (GPT and FTM don't support setNextPeriod())
 
 void toggle()
 {

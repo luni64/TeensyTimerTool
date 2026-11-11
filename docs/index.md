@@ -46,6 +46,12 @@ timer registers directly ([comparison](advanced/index.md#efficiency)).
 
 ## A first periodic timer
 
+!!! concept inline end "Namespace"
+    All classes of the library are declared in the *namespace* `TeensyTimerTool`, their full names
+    are `TeensyTimerTool::PeriodicTimer` and so on. This avoids name clashes with other libraries. The
+    line `using namespace TeensyTimerTool;` makes the classes available under their short names.
+    [More about namespaces](https://www.learncpp.com/cpp-tutorial/using-declarations-and-using-directives/)
+
 The following sketch takes a timer from the pool and toggles the built-in LED every 250 ms:
 
 ```cpp
@@ -66,8 +72,8 @@ A `OneShotTimer` invokes its callback once, after a delay. The delay is passed t
 starts the timer and returns immediately. Unlike `delay()`, the sketch is not paused: the program
 continues, and the callback is invoked in the background when the delay has expired.
 
-In the following sketch, `loop()` switches the LED on every 500 ms and triggers the timer, which switches
-the LED off again after 10 ms:
+In the following sketch, `setup()` switches the LED on and triggers the timer, which switches the LED
+off again after 3 s. In the meantime, `loop()` prints the time and the LED state to the serial monitor:
 
 ```cpp
 --8<-- "01_Basic/HelloOneShot/HelloOneShot.ino"
@@ -89,7 +95,7 @@ PeriodicTimer t2(PIT);  // PIT channel (Teensy 4)
 OneShotTimer  t3(GPT1); // GPT1 timer (Teensy 4)
 ```
 
-[Choosing a timer](choosing-a-timer.md) compares the properties of all timers.
+The chapter [Choosing a timer](choosing-a-timer.md) compares the properties of all timers.
 
 ## Further reading
 
