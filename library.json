@@ -19,7 +19,8 @@
     "exclude": [
       "docs",
       "mkdocs.yml",
-      ".github"
+      ".github",
+      "wip"
     ]
   }
 }

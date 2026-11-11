@@ -1,0 +1,8 @@
+- [TTT dev main.cpp is scratch](ttt-dev-main-is-scratch.md) — overwrite src/main.cpp with tests freely, no backups
+- [No new T3.x features](ttt-t3x-no-new-features.md) — T3.x/LC phased out; only T4.x features unless asked
+- [Docs rewrite](ttt-docs-rewrite-todo.md) — docs move from wiki to MkDocs/GitHub Pages in docs/ of the library repo; DOCS_TODO.md is the input
+- [TTT release policy](ttt-release-policy.md) — single v1.5 release after renovation; push branches ok, no tags/version bumps before
+- [TTT test system status](ttt-test-system-status.md) — tests in separate local repo TeensyTimerTool-TestSuite (harness/ + project.toml), board/LA setup
+- [TTT TDD + changelog](ttt-tdd-and-changelog.md) — tests first (red), plan in PLAN_API_v1.5.md, track user visible changes in CHANGELOG_DRAFT.md
+- [TTT efficiency is the USP](ttt-efficiency-usp.md) — no register reads in ISR/trigger, check with perf suite; GPT/PIT access ~100 cycles
+- [Docs style](ttt-docs-style.md) — professional technical-manual register, not chatty; beginner info first, details/advanced later
