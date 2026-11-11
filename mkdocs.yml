@@ -66,11 +66,12 @@ plugins:
   - search
 
 extra_css:
-  - stylesheets/extra.css   # "concept" boxes for short explanations
+  - stylesheets/extra.css   # question-mark icon of the annotations that explain terms
 
 markdown_extensions:
   - admonition
   - attr_list
+  - md_in_html   # needed by the annotations ("(1)" markers with { .annotate }) that explain terms
   - tables
   - toc:
       permalink: true

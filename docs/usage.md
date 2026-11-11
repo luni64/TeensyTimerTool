@@ -33,14 +33,16 @@ void loop()
 
 ### Specifying periods
 
-!!! concept inline end "std::chrono durations"
+A numeric period is interpreted in **microseconds**; floating point values are accepted. Alternatively,
+the period can be given as a `std::chrono` duration (1). The conversion to microseconds is evaluated by
+the compiler, so durations have no runtime cost compared to plain numbers.
+{ .annotate }
+
+1.  **std::chrono durations**
+
     `std::chrono` is the part of the C++ standard library that deals with time. A *duration* is a time
     span with a unit, written as a number with a suffix: `250ms`, `20us`, `1.5s`, `2min`. Durations can
     be added and compared like numbers. [Reference](https://en.cppreference.com/w/cpp/chrono/duration)
-
-A numeric period is interpreted in **microseconds**; floating point values are accepted. Alternatively,
-the period can be given as a `std::chrono` duration. The conversion to microseconds is evaluated by the
-compiler, so durations have no runtime cost compared to plain numbers.
 
 ```cpp
 t1.begin(toggleLED, 250'000); // 250 000 µs (' is the C++ digit separator)
@@ -52,15 +54,17 @@ t1.begin(toggleLED, 2s + 50ms);
 t1.begin(toggleLED, 10min);   // only if the timer supports periods of this length
 ```
 
-!!! concept inline end "Return codes"
+Each timer has a maximum period. If a longer period is requested, `begin()` returns the warning
+`errorCode::periodOverflow` (1) and the timer runs with its maximum period. The maximum periods of all
+timers are listed in [Choosing a timer](choosing-a-timer.md).
+{ .annotate }
+
+1.  **Return codes**
+
     Most functions of the library return an `errorCode`. `errorCode::OK` means success, negative values
     are warnings (the function did its job with a restriction), positive values are errors (the function
     could not do its job). The codes can be checked in the sketch, or reported automatically: see
     [Error handling](error-handling.md).
-
-Each timer has a maximum period. If a longer period is requested, `begin()` returns the warning
-`errorCode::periodOverflow` and the timer runs with its maximum period. The maximum periods of all
-timers are listed in [Choosing a timer](choosing-a-timer.md).
 
 ### Starting and stopping
 

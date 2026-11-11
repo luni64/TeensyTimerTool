@@ -30,12 +30,6 @@ void loop()
 }
 ```
 
-!!! concept inline end "Interrupt context"
-    The callbacks of the hardware timers are invoked from an interrupt handler: they interrupt the
-    sketch at an arbitrary point. Keep them short, and declare variables that are changed in a callback
-    and read in `loop()` as `volatile`. The callbacks of the TCK timers run in `yield()` instead, i.e.
-    between two `loop()` iterations or during `delay()`.
-
 ### Callbacks and the rest of the sketch
 
 A callback and `loop()` often share data, e.g. a counter incremented by the callback and printed in
@@ -61,18 +55,29 @@ void loop()
 }
 ```
 
-Callbacks of hardware timers should do their work quickly and return. Long operations, `delay()` or
-printing large amounts of text in a callback delay the rest of the sketch and other interrupts.
+Callbacks of hardware timers run in interrupt context (1) and should do their work quickly and return.
+Long operations, `delay()` or printing large amounts of text in a callback delay the rest of the sketch
+and other interrupts.
+{ .annotate }
+
+1.  **Interrupt context**
+
+    The callbacks of the hardware timers are invoked from an interrupt handler: they interrupt the
+    sketch at an arbitrary point. Keep them short, and declare variables that are changed in a callback
+    and read in `loop()` as `volatile`. The callbacks of the TCK timers run in `yield()` instead, i.e.
+    between two `loop()` iterations or during `delay()`.
 
 ## Lambda expressions
 
-!!! concept inline end "Lambda expression"
+For short callbacks, a separate function is not needed. A lambda expression (1) defines the callback
+directly in the call to `begin()`:
+{ .annotate }
+
+1.  **Lambda expression**
+
     A *lambda expression* is a function without a name, written directly where it is needed:
     `[] { digitalToggleFast(13); }`. The square brackets can list variables the function should
     *capture*, i.e. take along. [Introduction to lambdas](http://sandordargo.com/blog/2018/12/19/c++-lambda-expressions)
-
-For short callbacks, a separate function is not needed. A lambda expression defines the callback directly
-in the call to `begin()`:
 
 ```cpp
 #include "TeensyTimerTool.h"

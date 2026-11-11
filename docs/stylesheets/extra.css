@@ -1,23 +1,16 @@
-/* "concept" boxes: short explanations of a term, floating at the right of the main text.
-   Usage:   !!! concept inline end "Timer pool"
-   (indented body). On narrow screens Material shows them full width. */
+/* Explanations of terms are written as Material annotations, shown as a popup on click:
+
+     ... from the timer pool (1).
+     { .annotate }
+
+     1.  **Timer pool**
+
+         The library keeps a list of ...
+
+   Question-mark icon instead of Material's "+", not rotated when open. */
 :root {
-  --md-admonition-icon--concept: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"/></svg>');
+  --md-annotation-icon: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15.07 11.25l-.9.92C13.45 12.89 13 13.5 13 15h-2v-.5c0-1.11.45-2.11 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41a2 2 0 0 0-2-2 2 2 0 0 0-2 2H8a4 4 0 0 1 4-4 4 4 0 0 1 4 4c0 .88-.36 1.67-.93 2.25M13 19h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10c0-5.53-4.5-10-10-10"/></svg>');
 }
-.md-typeset .admonition.concept,
-.md-typeset details.concept {
-  border-color: #7e57c2;
-}
-.md-typeset .concept > .admonition-title,
-.md-typeset .concept > summary {
-  background-color: rgba(126, 87, 194, 0.1);
-}
-.md-typeset .concept > .admonition-title::before,
-.md-typeset .concept > summary::before {
-  background-color: #7e57c2;
-  -webkit-mask-image: var(--md-admonition-icon--concept);
-  mask-image: var(--md-admonition-icon--concept);
-}
-.md-typeset .admonition.concept.inline {
-  width: 14rem; /* a bit wider than Material's default 11.7rem */
+.md-typeset .md-tooltip--active + .md-annotation__index::after {
+  transform: none;
 }

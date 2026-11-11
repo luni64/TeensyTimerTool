@@ -1,15 +1,17 @@
 # Choosing a timer
 
-!!! concept inline end "Hardware and software timers"
+In most applications, the timer pool is the right choice: `PeriodicTimer t1;` takes the next free timer,
+and the period is limited only by the timer it gets. The hardware and software timers (1) differ in the
+longest possible period, the resolution, the number of channels and a few functions. The following
+sections help to choose a specific timer when these properties matter.
+{ .annotate }
+
+1.  **Hardware and software timers**
+
     A *hardware timer* is a counter in the processor that generates an interrupt when a period has
     expired; its callback runs with very low latency, independent of what the sketch does. A *software
     timer* (TCK) compares a time stamp with the current time whenever the sketch calls `yield()`; it
     needs no hardware, but its callbacks are delayed while the sketch is busy.
-
-In most applications, the timer pool is the right choice: `PeriodicTimer t1;` takes the next free timer,
-and the period is limited only by the timer it gets. The timers differ in the longest possible period, the
-resolution, the number of channels and a few functions. The following sections help to choose a specific
-timer when these properties matter.
 
 ## Recommendations
 

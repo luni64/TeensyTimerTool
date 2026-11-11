@@ -1,14 +1,16 @@
 # Getting started
 
-!!! concept inline end "Timer pool"
-    The library keeps a list of the timers it may use freely, the *timer pool*. A timer declared without
-    naming a specific hardware timer takes the next free one from this list. The content of the pool
-    can be changed in the [configuration](configuration.md).
-
 TeensyTimerTool provides a common interface to most timers of the Teensy boards: the hardware timers
 (GPT, TMR, PIT and RTC on Teensy 4, FTM on Teensy 3) and up to 20 software timers (TCK), which are
 available on every Teensy. Each timer can be used as periodic or as one-shot timer. A sketch can either
-request a specific timer or take the next free timer from a pool.
+request a specific timer or take the next free timer from the timer pool (1).
+{ .annotate }
+
+1.  **Timer pool**
+
+    The library keeps a list of the timers it may use freely, the *timer pool*. A timer declared without
+    naming a specific hardware timer takes the next free one from this list. The content of the pool
+    can be changed in the [configuration](configuration.md).
 
 In addition to the `IntervalTimer` of the Teensy core, TeensyTimerTool offers
 
@@ -42,12 +44,6 @@ timer registers directly ([comparison](advanced/performance.md)).
 
 ## A first periodic timer
 
-!!! concept inline end "Namespace"
-    All classes of the library are declared in the *namespace* `TeensyTimerTool`, their full names
-    are `TeensyTimerTool::PeriodicTimer` and so on. This avoids name clashes with other libraries. The
-    line `using namespace TeensyTimerTool;` makes the classes available under their short names.
-    [More about namespaces](https://www.learncpp.com/cpp-tutorial/using-declarations-and-using-directives/)
-
 The following sketch takes a timer from the pool and toggles the built-in LED every 250 ms:
 
 ```cpp
@@ -56,7 +52,16 @@ The following sketch takes a timer from the pool and toggles the built-in LED ev
 
 The sketch declares a `PeriodicTimer` and calls `begin()` in `setup()` with the function to be invoked
 (the *callback*) and the period in microseconds. The timer then runs in the background; `loop()` remains
-available for the application.
+available for the application. The line `using namespace TeensyTimerTool;` (1) makes the classes of the
+library available under their short names.
+{ .annotate }
+
+1.  **Namespace**
+
+    All classes of the library are declared in the *namespace* `TeensyTimerTool`, their full names
+    are `TeensyTimerTool::PeriodicTimer` and so on. This avoids name clashes with other libraries. The
+    line `using namespace TeensyTimerTool;` makes the classes available under their short names.
+    [More about namespaces](https://www.learncpp.com/cpp-tutorial/using-declarations-and-using-directives/)
 
 !!! tip
     The period can also be written as `250ms`. Units, starting and stopping, changing the period and
