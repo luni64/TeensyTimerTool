@@ -1,13 +1,13 @@
 # Basic usage
 
-This chapter shows the everyday functions: starting periodic and one-shot timers, stopping them, changing
-the period and reading back what the timer does. All examples run on every Teensy; they use the built-in
-LED, so you don't need any extra hardware.
+This chapter covers the functions needed in most applications: periodic and one-shot timers, starting
+and stopping, changing the period, and querying the timer state. The examples use the built-in LED and
+run on every Teensy without additional hardware.
 
 ## Periodic timers
 
-A `PeriodicTimer` calls its callback again and again. `begin()` sets the callback and the period and
-starts the timer:
+A `PeriodicTimer` invokes its callback function at a fixed interval. `begin()` sets the callback and the
+period and starts the timer:
 
 ```cpp
 #include "TeensyTimerTool.h"
@@ -31,29 +31,29 @@ void loop()
 }
 ```
 
-### Periods: numbers or units
+### Specifying periods
 
-A plain number is a period in **microseconds**, floats are fine as well. Or you use the time units of
-`std::chrono`, which are easier to read:
+A numeric period is interpreted in **microseconds**; floating point values are accepted. Alternatively,
+the period can be given as a `std::chrono` duration:
 
 ```cpp
-t1.begin(toggleLED, 250'000); // 250'000 µs (the ' is just a separator, like 250,000)
+t1.begin(toggleLED, 250'000); // 250 000 µs (' is the C++ digit separator)
 t1.begin(toggleLED, 12.5);    // 12.5 µs
 t1.begin(toggleLED, 250ms);   // 250 ms
 t1.begin(toggleLED, 20us);    // 20 µs
 t1.begin(toggleLED, 1.5s);    // 1.5 s
 t1.begin(toggleLED, 2s + 50ms);
-t1.begin(toggleLED, 10min);   // if the timer can do that long, see below
+t1.begin(toggleLED, 10min);   // only if the timer supports periods of this length
 ```
 
-Every timer has a maximum period. If you ask for more, `begin()` returns the warning
-`errorCode::periodOverflow` and the timer runs with its maximum period. Which timer can do how long is
-listed in [Choosing a timer](choosing-a-timer.md).
+Each timer has a maximum period. If a longer period is requested, `begin()` returns the warning
+`errorCode::periodOverflow` and the timer runs with its maximum period. The maximum periods of all
+timers are listed in [Choosing a timer](choosing-a-timer.md).
 
 ### Starting and stopping
 
-`stop()` pauses a timer, `start()` lets it run again. After `start()` the period starts from the
-beginning:
+`stop()` stops the callbacks, `start()` resumes them. The period restarts from the beginning at
+`start()`:
 
 ```cpp
 #include "TeensyTimerTool.h"
@@ -64,12 +64,12 @@ PeriodicTimer t1;
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
-    t1.begin([] { digitalToggleFast(LED_BUILTIN); }, 50ms); // fast blinking, the callback is a lambda (see Callbacks)
+    t1.begin([] { digitalToggleFast(LED_BUILTIN); }, 50ms); // callback as lambda, see Callbacks
 
     delay(2000);
-    t1.stop(); // pause for 2 s
+    t1.stop();  // stop for 2 s
     delay(2000);
-    t1.start(); // blink again
+    t1.start(); // resume
 }
 
 void loop()
@@ -77,19 +77,18 @@ void loop()
 }
 ```
 
-If you want to prepare a timer in `setup()` but start it later, pass `false` as third parameter of
-`begin()`:
+To configure a timer without starting it, pass `false` as third argument to `begin()`:
 
 ```cpp
-t1.begin(toggleLED, 50ms, false); // ready, but not running
+t1.begin(toggleLED, 50ms, false); // configured, not running
 // ...
-t1.start();                       // now it runs
+t1.start();                       // starts the timer
 ```
 
 ### Changing the period
 
-`setPeriod()` changes the period of a running timer. The new period starts right away, i.e. the next
-callback comes one new period after the call:
+`setPeriod()` changes the period of a running timer. The new period starts immediately, so the next
+callback occurs one new period after the call:
 
 ```cpp
 t1.begin(toggleLED, 500ms);
@@ -98,16 +97,16 @@ t1.setPeriod(100ms); // next callback in 100 ms, then every 100 ms
 ```
 
 !!! info "Changed in v1.5"
-    Up to v1.4 the TMR and TCK timers counted the time already elapsed in the current period. Now all
-    timers behave the same: the new period starts at the call. If you need the old behaviour, see
-    [Keeping the elapsed time](#keeping-the-elapsed-time) below.
+    Up to v1.4, the TMR and TCK timers included the time already elapsed in the current period. All
+    timers now behave identically: the new period starts at the call. The previous behaviour is
+    available as an option, see [Keeping the elapsed time](#keeping-the-elapsed-time).
 
-`begin()` on a running timer works as well: it restarts the timer with the new callback and period.
+Calling `begin()` on a running timer restarts it with the new callback and period.
 
 ## One-shot timers
 
-A `OneShotTimer` calls its callback only once, `delay` after you call `trigger(delay)`. `begin()` only
-sets the callback, it doesn't start anything:
+A `OneShotTimer` invokes its callback once, a given delay after `trigger(delay)` is called. `begin()`
+only sets the callback and does not start the timer:
 
 ```cpp
 #include "TeensyTimerTool.h"
@@ -124,69 +123,70 @@ void setup()
 void loop()
 {
     digitalWriteFast(LED_BUILTIN, HIGH);
-    ledOff.trigger(10ms); // switch the LED off in 10 ms
+    ledOff.trigger(10ms); // switch the LED off after 10 ms
     delay(500);
 }
 ```
 
-Good to know about one-shot timers:
+Behaviour of one-shot timers:
 
-- `trigger()` while the timer is still waiting starts the delay again; the callback is called only once.
-  This makes a nice timeout, e.g. "switch the light off 30 s after the last button press".
-- `stop()` cancels a pending trigger, the callback is not called.
-- You can call `trigger()` in the callback itself to chain delays, e.g. to generate a pulse pattern.
-- `trigger(0)` calls the callback as soon as possible (after one timer tick).
-- `start()` does nothing for one-shot timers (it returns `errorCode::notImplemented`), use `trigger()`.
+- Calling `trigger()` while a trigger is pending restarts the delay; the callback is invoked once. This is
+  the usual way to implement a timeout, e.g. switching a light off 30 s after the last button press.
+- `stop()` cancels a pending trigger; the callback is not invoked.
+- `trigger()` may be called from the callback itself to chain delays, e.g. to generate pulse sequences.
+- `trigger(0)` invokes the callback as soon as possible, i.e. after one timer tick.
+- `start()` has no function for one-shot timers and returns `errorCode::notImplemented`.
 
-## Reading back the timer
+## Querying the timer
 
 ```cpp
-float p   = t1.getPeriod();        // the period in seconds, as the timer actually runs it
-float res = t1.getResolution();    // one timer tick in seconds
-float mx  = t1.getMaxPeriod();     // the longest possible period in seconds
+float p   = t1.getPeriod();        // period in seconds, as used by the timer
+float res = t1.getResolution();    // duration of one timer tick in seconds
+float mx  = t1.getMaxPeriod();     // longest possible period in seconds
 float rem = t1.getRemainingTime(); // seconds until the next callback, 0 if none is pending
 ```
 
-All of them return **seconds**. If you prefer other units, ask for a `std::chrono` duration:
+All getters return **seconds** by default. For other units, specify a `std::chrono` duration as template
+argument:
 
 ```cpp
 auto p = t1.getPeriod<std::chrono::microseconds>();
 Serial.printf("period: %lld µs\n", p.count());
 ```
 
-`getPeriod()` and `getResolution()` exist for periodic timers on all Teensy 4 timers, `getRemainingTime()`
-on PIT, GPT, TMR and TCK timers. Where a function isn't supported, it returns `NAN` (and the error
-`notImplemented`).
+`getPeriod()` and `getResolution()` are available for all Teensy 4 timers, `getRemainingTime()` for the
+PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `errorCode::notImplemented`.
 
-## Freeing a timer
+## Releasing a timer
 
-A timer releases its hardware channel when the timer object is destroyed, e.g. a timer declared inside a
-function, or one removed from a `std::vector`. You can also release it explicitly with `end()`; a later
-`begin()` takes a new channel.
+A timer releases its channel when the timer object is destroyed, for example a timer declared locally in
+a function or an element removed from a `std::vector`. `end()` releases the channel explicitly; a
+subsequent `begin()` allocates a new one.
 
-Timer objects can't be copied (two objects would own the same hardware), but they can be moved. That's
-why you can keep them in containers: see the example
+Timer objects cannot be copied, since two objects would then control the same hardware channel. They can
+be moved, however, which allows storing them in standard containers; see the example
 [TimersInContainers](examples.md).
 
 ---
 
 ## Details
 
-The rest of this chapter is for when you need the exact behaviour.
+The following sections describe the exact behaviour of the functions above.
 
-### Periods are rounded to timer ticks
+### Rounding to timer ticks
 
-Every timer counts ticks of its clock, and a period is always a whole number of ticks: the requested
-period is rounded to the nearest tick, but at least one tick. Most of the time you won't notice. A TMR
-timer with its default prescaler has a tick of 0.853 µs, so `begin(cb, 100)` gives 117 ticks =
-99.84 µs. `getPeriod()` tells you the value actually used. The RTC timer can only do periods of
-2⁻ⁿ seconds and picks the next longer one (25 ms → 31.25 ms).
+Every timer counts ticks of its input clock, so a period is always an integer number of ticks. The
+requested period is rounded to the nearest tick, with a minimum of one tick. For example, a TMR timer
+with its default prescaler has a tick of 0.853 µs: `begin(cb, 100)` results in 117 ticks = 99.84 µs.
+`getPeriod()` returns the period actually used. The RTC timer supports only periods of 2⁻ⁿ s and selects
+the next longer one (25 ms → 31.25 ms).
 
-### Delay of the callbacks
+### Callback latency
 
-On the hardware timers the callback starts about 0.2 … 1.5 µs after the timer event. The software timers
-(TCK) are checked whenever `yield()` runs, i.e. after each `loop()` and inside `delay()`; their callbacks
-come a few µs late, more if your `loop()` blocks for a long time. Details: [Choosing a timer](choosing-a-timer.md).
+With the hardware timers, the callback starts about 0.2 … 1.5 µs after the timer event. The software
+timers (TCK) are evaluated in `yield()`, which runs after each `loop()` iteration and during `delay()`.
+Their callbacks are therefore delayed by a few µs, and by considerably more if `loop()` blocks for a long
+time. See [Choosing a timer](choosing-a-timer.md) for details.
 
 ### Keeping the elapsed time
 
@@ -194,25 +194,26 @@ come a few µs late, more if your `loop()` blocks for a long time. Details: [Cho
 t1.setPeriod(5ms, PeriodMode::keepElapsed);
 ```
 
-counts the time already elapsed in the current period: if 2 ms have passed, the next callback comes 3 ms
-later; if more than 5 ms have passed, right away. Supported by PIT, TMR and the TCK timers, the others
-return `notImplemented`.
+takes the time already elapsed in the current period into account: if 2 ms have elapsed, the next
+callback occurs 3 ms after the call; if more than 5 ms have elapsed, immediately. Supported by the PIT,
+TMR and TCK timers; the other timers return `notImplemented`.
 
-### Changing the period at the end of the current one
+### Changing the period at the end of the current period
 
 ```cpp
 t1.setNextPeriod(2ms);
 ```
 
-lets the current period finish and uses the new period from then on. Called in the callback, this gives
-exact period patterns, e.g. a pin that is 300 µs high and 700 µs low. Supported by PIT, TMR and the TCK
-timers, the others return `notImplemented`.
+completes the current period and uses the new period from then on. Called from the callback, it
+generates exact period sequences, for example a pin that is high for 300 µs and low for 700 µs. Supported
+by the PIT, TMR and TCK timers; the other timers return `notImplemented`.
 
-### Invalid values
+### Invalid arguments
 
 - Period 0: `begin()`, `setPeriod()` and `setNextPeriod()` return `errorCode::reload`.
-- Negative periods or delays return `errorCode::argument`.
-- `setPeriod()`, `setNextPeriod()` and `trigger()` before `begin()` return `errorCode::notInitialized`.
+- Negative periods or delays: `errorCode::argument`.
+- `setPeriod()`, `setNextPeriod()` or `trigger()` before `begin()`: `errorCode::notInitialized`.
 
-In all these cases the timer is not changed: a running timer keeps its period and callback. How to check
-the returned codes or get them reported automatically: [Error handling](error-handling.md).
+In all these cases the timer remains unchanged; a running timer keeps its period and callback. How to
+evaluate the returned codes or have them reported automatically is described in
+[Error handling](error-handling.md).
