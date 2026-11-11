@@ -33,6 +33,10 @@ nav:
   - Reference:
       - reference/index.md
       - PeriodicTimer: reference/periodic-timer.md
+      - OneShotTimer: reference/one-shot-timer.md
+      - Common functions: reference/common.md
+      - Timer types: reference/timer-types.md
+      - Errors and other functions: reference/errors.md
   - Upgrading from 1.4: upgrading.md
 
 theme:

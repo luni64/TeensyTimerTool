@@ -20,10 +20,6 @@ In addition to the `IntervalTimer` of the Teensy core, TeensyTimerTool offers
 The overhead is low: invoking a callback through TeensyTimerTool takes about as long as programming the
 timer registers directly ([comparison](advanced/performance.md)).
 
-!!! note "Work in progress"
-    The documentation is being moved here from the [wiki](https://github.com/luni64/TeensyTimerTool/wiki)
-    and updated for v1.5.
-
 ## Installation
 
 === "Arduino IDE"
