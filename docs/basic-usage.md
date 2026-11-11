@@ -115,6 +115,57 @@ t1.setPeriod(100ms); // next callback in 100 ms, then every 100 ms
 
 Calling `begin()` on a running timer restarts it with the new callback and period.
 
+#### Changing the period at the end of the current period
+
+`setNextPeriod()` completes the current period and uses the new period from then on. Called from the
+callback, it generates exact period sequences. The following sketch toggles pin 0 with periods
+alternating between 300 µs and 700 µs:
+
+```cpp
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+PeriodicTimer t1(PIT); // Teensy 4: PIT or TMR, Teensy 3: TCK (GPT and FTM don't support setNextPeriod())
+
+void toggle()
+{
+    static bool shortPeriod = false;
+    digitalToggleFast(0);
+    shortPeriod = !shortPeriod;
+    t1.setNextPeriod(shortPeriod ? 300 : 700); // the period after the current one
+}
+
+void setup()
+{
+    pinMode(0, OUTPUT);
+    t1.begin(toggle, 700);
+}
+
+void loop()
+{
+}
+```
+
+#### Keeping the elapsed time
+
+By default, `setPeriod()` discards the time elapsed in the current period: the new period starts at the
+call. With the parameter `PeriodMode::keepElapsed`, the elapsed time counts towards the new period:
+
+```cpp
+t1.setPeriod(5ms, PeriodMode::keepElapsed);
+```
+
+If 2 ms of the current period have elapsed, the next callback occurs 3 ms after the call, i.e. 5 ms after
+the previous callback. If more than 5 ms have elapsed already, the callback occurs immediately. The
+following periods are 5 ms.
+
+This is useful when the period is adjusted frequently, e.g. the step rate of a stepper motor that is
+updated every millisecond during acceleration. With the default behaviour, every update would delay the
+next step by up to one period; with `keepElapsed`, the steps follow the new rate without gaps.
+
+`setNextPeriod()` and `keepElapsed` are supported by the PIT, TMR and TCK timers. The other timers return
+`errorCode::notImplemented`; see [Choosing a timer](choosing-a-timer.md).
+
 ## One-shot timers
 
 A `OneShotTimer` invokes its callback once. `begin()` sets the callback, `trigger(delay)` starts the
@@ -165,121 +216,15 @@ float mx  = t1.getMaxPeriod();     // longest possible period in seconds
 float rem = t1.getRemainingTime(); // seconds until the next callback, 0 if none is pending
 ```
 
-All getters return **seconds**. `getPeriod()` and `getResolution()` are available for all Teensy 4
-timers, `getRemainingTime()` for the PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and
-report `errorCode::notImplemented`.
+All getters return **seconds**. `getPeriod()` returns the period the timer actually uses, which can
+differ slightly from the requested one: every timer counts ticks of its clock, so periods are rounded to
+whole ticks (see [Resolution and rounding](choosing-a-timer.md#resolution-and-rounding)).
+
+`getPeriod()` and `getResolution()` are available for all Teensy 4 timers, `getRemainingTime()` for the
+PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `errorCode::notImplemented`.
 
 ---
 
-## Details
-
-The following sections describe the exact behaviour of the functions above.
-
-### Rounding to timer ticks
-
-Every timer counts ticks of its input clock, so internally a period is always an integer number of
-ticks. The requested period is rounded to the nearest number of ticks, with a minimum of one tick.
-
-Example: the TMR timers run on the 150 MHz peripheral clock of the Teensy 4, divided by the default
-prescaler of 128. This gives a tick frequency of 150 MHz / 128 = 1.171875 MHz, i.e. a tick period of
-0.853 µs. A requested period of 100 µs corresponds to 100 / 0.853 = 117.2 ticks; the timer uses
-117 ticks = 99.84 µs. `getPeriod()` returns the period actually used.
-
-The RTC timer supports only periods of 2⁻ⁿ seconds, i.e. 1 s, 0.5 s, 0.25 s, 125 ms, 62.5 ms, … down to
-61 µs and 30.5 µs (2⁻¹⁵ s), and selects the next longer one (25 ms → 31.25 ms).
-
-### Callback latency
-
-A hardware timer signals the end of a period with an interrupt. Before the callback starts, the processor
-enters the interrupt handler, and the library's handler identifies the timer channel, resets its
-interrupt flag and calls the callback. On a Teensy 4.1 at 600 MHz this takes 140 ns for the TMR timers,
-160 ns for the GPT and 220 ns for the PIT timers, only slightly more than a hand-written interrupt
-handler needs; see the [comparison](advanced/index.md#efficiency).
-
-The software timers (TCK) don't use interrupts. They are evaluated in `yield()`, which runs after each
-`loop()` iteration and during `delay()`. Their callbacks are therefore delayed by a few µs, and by
-considerably more if `loop()` blocks for a long time. See [Choosing a timer](choosing-a-timer.md) for
-details.
-
-### Keeping the elapsed time
-
-By default, `setPeriod()` discards the time elapsed in the current period: the new period starts at the
-call. With the parameter `PeriodMode::keepElapsed`, the elapsed time counts towards the new period:
-
-```cpp
-t1.setPeriod(5ms, PeriodMode::keepElapsed);
-```
-
-If 2 ms of the current period have elapsed, the next callback occurs 3 ms after the call, i.e. 5 ms after
-the previous callback. If more than 5 ms have elapsed already, the callback occurs immediately. The
-following periods are 5 ms.
-
-This is useful when the period is adjusted frequently, e.g. the step rate of a stepper motor that is
-updated every millisecond during acceleration. With the default behaviour, every update would delay the
-next step by up to one period; with `keepElapsed`, the steps follow the new rate without gaps.
-
-Supported by the PIT, TMR and TCK timers; the other timers return `notImplemented`.
-
-### Changing the period at the end of the current period
-
-`setNextPeriod()` completes the current period and uses the new period from then on. Called from the
-callback, it generates exact period sequences. The following sketch toggles pin 0 with periods
-alternating between 300 µs and 700 µs:
-
-```cpp
-#include "TeensyTimerTool.h"
-using namespace TeensyTimerTool;
-
-PeriodicTimer t1(PIT); // Teensy 4: PIT or TMR, Teensy 3: TCK (GPT and FTM don't support setNextPeriod())
-
-void toggle()
-{
-    static bool shortPeriod = false;
-    digitalToggleFast(0);
-    shortPeriod = !shortPeriod;
-    t1.setNextPeriod(shortPeriod ? 300 : 700); // the period after the current one
-}
-
-void setup()
-{
-    pinMode(0, OUTPUT);
-    t1.begin(toggle, 700);
-}
-
-void loop()
-{
-}
-```
-
-Supported by the PIT, TMR and TCK timers; the other timers return `notImplemented`.
-
-### Getters with other units
-
-For other units than seconds, specify a `std::chrono` duration as template argument of the getter:
-
-```cpp
-auto p = t1.getPeriod<std::chrono::microseconds>();
-Serial.printf("period: %lld µs\n", p.count());
-```
-
-Integer durations are rounded to the nearest unit (99.84 µs → 100 µs).
-
-### Releasing a timer
-
-A timer releases its channel when the timer object is destroyed, for example a timer declared locally in
-a function or an element removed from a `std::vector`. `end()` releases the channel explicitly; a
-subsequent `begin()` allocates a new one.
-
-Timer objects cannot be copied, since two objects would then control the same hardware channel. They can
-be moved, however, which allows storing them in standard containers; see the example
-[TimersInContainers](examples.md).
-
-### Invalid arguments
-
-- Period 0: `begin()`, `setPeriod()` and `setNextPeriod()` return `errorCode::reload`.
-- Negative periods or delays: `errorCode::argument`.
-- `setPeriod()`, `setNextPeriod()` or `trigger()` before `begin()`: `errorCode::notInitialized`.
-
-In all these cases the timer remains unchanged; a running timer keeps its period and callback. How to
-evaluate the returned codes or have them reported automatically is described in
-[Error handling](error-handling.md).
+The exact behaviour of all functions, including their return codes for invalid arguments, is described
+in the [Reference](reference/index.md). Callback latency and CPU load are covered in
+[Performance](advanced/performance.md).

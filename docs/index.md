@@ -18,7 +18,7 @@ In addition to the `IntervalTimer` of the Teensy core, TeensyTimerTool offers
 - callbacks with state: lambdas, member functions, functors.
 
 The overhead is low: invoking a callback through TeensyTimerTool takes about as long as programming the
-timer registers directly ([comparison](advanced/index.md#efficiency)).
+timer registers directly ([comparison](advanced/performance.md)).
 
 !!! note "Work in progress"
     The documentation is being moved here from the [wiki](https://github.com/luni64/TeensyTimerTool/wiki)

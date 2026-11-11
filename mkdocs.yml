@@ -26,7 +26,11 @@ nav:
   - Examples: examples.md
   - Advanced:
       - advanced/index.md
+      - Performance: advanced/performance.md
       - Avoiding PWM timer clashes: advanced/pwm-timer-clashes.md
+  - Reference:
+      - reference/index.md
+      - PeriodicTimer: reference/periodic-timer.md
   - Upgrading from 1.4: upgrading.md
 
 theme:
