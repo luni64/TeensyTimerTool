@@ -217,7 +217,7 @@ void loop()
 }
 ```
 
-The example [Prescaler](examples.md) shows more details.
+The example [Prescaler](examples/index.md) shows more details.
 
 On a running timer, a new prescaler takes effect immediately; the period keeps its number of ticks until
 the next `setPeriod()`, i.e. it changes with the prescaler. The other timers have no prescaler and return

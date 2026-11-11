@@ -102,7 +102,7 @@ The chapter [Choosing a timer](choosing-a-timer.md) compares the properties of a
 - [Usage](usage.md): starting, stopping and changing timers.
 - [Callbacks](callbacks.md): lambdas, member functions, timers in classes.
 - [Error handling](error-handling.md): evaluating the codes returned by `begin()` and other functions.
-- [Examples](examples.md): the example sketches of the library.
+- [Examples](examples/index.md): the example sketches of the library.
 
 Questions, bug reports and feature requests are welcome in the [PJRC forum](https://forum.pjrc.com) or
 in the [issue tracker](https://github.com/luni64/TeensyTimerTool/issues).
