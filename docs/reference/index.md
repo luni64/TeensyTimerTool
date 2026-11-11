@@ -1,7 +1,7 @@
 # Reference
 
 This section describes every function of the library in a fixed format: signature, behaviour,
-parameters, return values and the timers that support it. The guide chapters ([Basic usage](../basic-usage.md),
+parameters, return values and the timers that support it. The guide chapters ([Usage](../usage.md),
 [Callbacks](../callbacks.md), …) explain how to use the functions; this section is the place to look up
 exact behaviour.
 

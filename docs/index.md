@@ -64,7 +64,7 @@ available for the application.
 
 !!! tip
     The period can also be written as `250ms`. Units, starting and stopping, changing the period and
-    further functions are described in [Basic usage](basic-usage.md).
+    further functions are described in [Usage](usage.md).
 
 ## A first one-shot timer
 
@@ -99,7 +99,7 @@ The chapter [Choosing a timer](choosing-a-timer.md) compares the properties of a
 
 ## Further reading
 
-- [Basic usage](basic-usage.md): starting, stopping and changing timers.
+- [Usage](usage.md): starting, stopping and changing timers.
 - [Callbacks](callbacks.md): lambdas, member functions, timers in classes.
 - [Error handling](error-handling.md): evaluating the codes returned by `begin()` and other functions.
 - [Examples](examples.md): the example sketches of the library.

@@ -56,7 +56,7 @@ Not supported: GPT1, GPT2, RTC (Teensy 4), FTM0 … FTM3 (Teensy 3).
   the new value depends on the timer; use `setPeriod()` to change the period of a stopped timer.
 - `setNextPeriod()` can be called from the timer's own callback.
 
-**See also:** `setPeriod()`, [Changing the period at the end of the current period](../basic-usage.md#changing-the-period-at-the-end-of-the-current-period)
+**See also:** `setPeriod()`, [Changing the period at the end of the current period](../usage.md#changing-the-period-at-the-end-of-the-current-period)
 (example: alternating periods).
 
 <!-- tests: api_set_next_period, la_next_period, api_period_zero, api_negative_values,

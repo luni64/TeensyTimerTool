@@ -1,4 +1,4 @@
-# Basic usage
+# Usage
 
 This chapter covers the functions needed in most applications: periodic and one-shot timers, starting
 and stopping, changing the period, and querying the timer state. The examples use the built-in LED and

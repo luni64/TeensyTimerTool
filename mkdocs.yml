@@ -18,7 +18,7 @@ validation:
 
 nav:
   - Getting started: index.md
-  - Basic usage: basic-usage.md
+  - Usage: usage.md
   - Choosing a timer: choosing-a-timer.md
   - Callbacks: callbacks.md
   - Error handling: error-handling.md
