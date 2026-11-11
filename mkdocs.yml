@@ -11,6 +11,11 @@ edit_uri: edit/master/docs/
 
 docs_dir: docs
 
+# broken links and anchors fail the --strict build
+validation:
+  links:
+    anchors: warn
+
 nav:
   - Getting started: index.md
   - Basic usage: basic-usage.md
@@ -49,6 +54,9 @@ theme:
 
 plugins:
   - search
+
+extra_css:
+  - stylesheets/extra.css   # "concept" boxes for short explanations
 
 markdown_extensions:
   - admonition

@@ -33,8 +33,14 @@ void loop()
 
 ### Specifying periods
 
+!!! concept inline end "std::chrono durations"
+    `std::chrono` is the part of the C++ standard library that deals with time. A *duration* is a time
+    span with a unit, written as a number with a suffix: `250ms`, `20us`, `1.5s`, `2min`. Durations can
+    be added and compared like numbers. [Reference](https://en.cppreference.com/w/cpp/chrono/duration)
+
 A numeric period is interpreted in **microseconds**; floating point values are accepted. Alternatively,
-the period can be given as a `std::chrono` duration:
+the period can be given as a `std::chrono` duration. The conversion to microseconds is evaluated by the
+compiler, so durations have no runtime cost compared to plain numbers.
 
 ```cpp
 t1.begin(toggleLED, 250'000); // 250 000 µs (' is the C++ digit separator)
@@ -45,6 +51,12 @@ t1.begin(toggleLED, 1.5s);    // 1.5 s
 t1.begin(toggleLED, 2s + 50ms);
 t1.begin(toggleLED, 10min);   // only if the timer supports periods of this length
 ```
+
+!!! concept inline end "Return codes"
+    Most functions of the library return an `errorCode`. `errorCode::OK` means success, negative values
+    are warnings (the function did its job with a restriction), positive values are errors (the function
+    could not do its job). The codes can be checked in the sketch, or reported automatically: see
+    [Error handling](error-handling.md).
 
 Each timer has a maximum period. If a longer period is requested, `begin()` returns the warning
 `errorCode::periodOverflow` and the timer runs with its maximum period. The maximum periods of all
@@ -105,8 +117,9 @@ Calling `begin()` on a running timer restarts it with the new callback and perio
 
 ## One-shot timers
 
-A `OneShotTimer` invokes its callback once, a given delay after `trigger(delay)` is called. `begin()`
-only sets the callback and does not start the timer:
+A `OneShotTimer` invokes its callback once. `begin()` sets the callback, `trigger(delay)` starts the
+timer: the callback is invoked when the delay has expired. `trigger()` returns immediately and the sketch
+continues; unlike `delay()`, the program is not paused while the timer runs in the background.
 
 ```cpp
 #include "TeensyTimerTool.h"
@@ -146,26 +159,9 @@ float mx  = t1.getMaxPeriod();     // longest possible period in seconds
 float rem = t1.getRemainingTime(); // seconds until the next callback, 0 if none is pending
 ```
 
-All getters return **seconds** by default. For other units, specify a `std::chrono` duration as template
-argument:
-
-```cpp
-auto p = t1.getPeriod<std::chrono::microseconds>();
-Serial.printf("period: %lld µs\n", p.count());
-```
-
-`getPeriod()` and `getResolution()` are available for all Teensy 4 timers, `getRemainingTime()` for the
-PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `errorCode::notImplemented`.
-
-## Releasing a timer
-
-A timer releases its channel when the timer object is destroyed, for example a timer declared locally in
-a function or an element removed from a `std::vector`. `end()` releases the channel explicitly; a
-subsequent `begin()` allocates a new one.
-
-Timer objects cannot be copied, since two objects would then control the same hardware channel. They can
-be moved, however, which allows storing them in standard containers; see the example
-[TimersInContainers](examples.md).
+All getters return **seconds**. `getPeriod()` and `getResolution()` are available for all Teensy 4
+timers, `getRemainingTime()` for the PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and
+report `errorCode::notImplemented`.
 
 ---
 
@@ -175,18 +171,29 @@ The following sections describe the exact behaviour of the functions above.
 
 ### Rounding to timer ticks
 
-Every timer counts ticks of its input clock, so a period is always an integer number of ticks. The
-requested period is rounded to the nearest tick, with a minimum of one tick. For example, a TMR timer
-with its default prescaler has a tick of 0.853 µs: `begin(cb, 100)` results in 117 ticks = 99.84 µs.
-`getPeriod()` returns the period actually used. The RTC timer supports only periods of 2⁻ⁿ s and selects
-the next longer one (25 ms → 31.25 ms).
+Every timer counts ticks of its input clock, so internally a period is always an integer number of
+ticks. The requested period is rounded to the nearest number of ticks, with a minimum of one tick.
+
+Example: the TMR timers run on the 150 MHz peripheral clock of the Teensy 4, divided by the default
+prescaler of 128. This gives a tick frequency of 150 MHz / 128 = 1.171875 MHz, i.e. a tick period of
+0.853 µs. A requested period of 100 µs corresponds to 100 / 0.853 = 117.2 ticks; the timer uses
+117 ticks = 99.84 µs. `getPeriod()` returns the period actually used.
+
+The RTC timer supports only periods of 2⁻ⁿ seconds, i.e. 1 s, 0.5 s, 0.25 s, 125 ms, 62.5 ms, … down to
+61 µs and 30.5 µs (2⁻¹⁵ s), and selects the next longer one (25 ms → 31.25 ms).
 
 ### Callback latency
 
-With the hardware timers, the callback starts about 0.2 … 1.5 µs after the timer event. The software
-timers (TCK) are evaluated in `yield()`, which runs after each `loop()` iteration and during `delay()`.
-Their callbacks are therefore delayed by a few µs, and by considerably more if `loop()` blocks for a long
-time. See [Choosing a timer](choosing-a-timer.md) for details.
+A hardware timer signals the end of a period with an interrupt. Before the callback starts, the processor
+enters the interrupt handler, and the library's handler identifies the timer channel, resets its
+interrupt flag and calls the callback. On a Teensy 4.1 at 600 MHz this takes 140 ns for the TMR timers,
+160 ns for the GPT and 220 ns for the PIT timers, only slightly more than a hand-written interrupt
+handler needs; see the [comparison](advanced/index.md#efficiency).
+
+The software timers (TCK) don't use interrupts. They are evaluated in `yield()`, which runs after each
+`loop()` iteration and during `delay()`. Their callbacks are therefore delayed by a few µs, and by
+considerably more if `loop()` blocks for a long time. See [Choosing a timer](choosing-a-timer.md) for
+details.
 
 ### Keeping the elapsed time
 
@@ -200,13 +207,57 @@ TMR and TCK timers; the other timers return `notImplemented`.
 
 ### Changing the period at the end of the current period
 
+`setNextPeriod()` completes the current period and uses the new period from then on. Called from the
+callback, it generates exact period sequences. The following sketch toggles pin 0 with periods
+alternating between 300 µs and 700 µs:
+
 ```cpp
-t1.setNextPeriod(2ms);
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+PeriodicTimer t1(PIT); // PIT, TMR or TCK; the GPT timers don't support setNextPeriod()
+
+void toggle()
+{
+    static bool shortPeriod = false;
+    digitalToggleFast(0);
+    shortPeriod = !shortPeriod;
+    t1.setNextPeriod(shortPeriod ? 300 : 700); // the period after the current one
+}
+
+void setup()
+{
+    pinMode(0, OUTPUT);
+    t1.begin(toggle, 700);
+}
+
+void loop()
+{
+}
 ```
 
-completes the current period and uses the new period from then on. Called from the callback, it
-generates exact period sequences, for example a pin that is high for 300 µs and low for 700 µs. Supported
-by the PIT, TMR and TCK timers; the other timers return `notImplemented`.
+Supported by the PIT, TMR and TCK timers; the other timers return `notImplemented`.
+
+### Getters with other units
+
+For other units than seconds, specify a `std::chrono` duration as template argument of the getter:
+
+```cpp
+auto p = t1.getPeriod<std::chrono::microseconds>();
+Serial.printf("period: %lld µs\n", p.count());
+```
+
+Integer durations are rounded to the nearest unit (99.84 µs → 100 µs).
+
+### Releasing a timer
+
+A timer releases its channel when the timer object is destroyed, for example a timer declared locally in
+a function or an element removed from a `std::vector`. `end()` releases the channel explicitly; a
+subsequent `begin()` allocates a new one.
+
+Timer objects cannot be copied, since two objects would then control the same hardware channel. They can
+be moved, however, which allows storing them in standard containers; see the example
+[TimersInContainers](examples.md).
 
 ### Invalid arguments
 

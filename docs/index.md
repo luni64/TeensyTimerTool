@@ -1,19 +1,24 @@
 # Getting started
 
-TeensyTimerTool provides a common interface to all timers of the Teensy boards: the hardware timers (GPT,
-TMR, PIT and RTC on Teensy 4, FTM on Teensy 3) and up to 20 software timers (TCK), which are available on
-every Teensy. Each timer can be used as periodic or as one-shot timer. A sketch can either request a
-specific timer or take the next free timer from a pool.
+!!! concept inline end "Timer pool"
+    The library keeps a list of the timers it may use freely, the *timer pool*. A timer declared without
+    naming a specific hardware timer takes the next free one from this list. The content of the pool
+    can be changed in the [configuration](configuration.md).
 
-Compared to the `IntervalTimer` of the Teensy core, TeensyTimerTool offers
+TeensyTimerTool provides a common interface to most timers of the Teensy boards: the hardware timers
+(GPT, TMR, PIT and RTC on Teensy 4, FTM on Teensy 3) and up to 20 software timers (TCK), which are
+available on every Teensy. Each timer can be used as periodic or as one-shot timer. A sketch can either
+request a specific timer or take the next free timer from a pool.
 
-- considerably more timers (more than 40 on Teensy 4),
+In addition to the `IntervalTimer` of the Teensy core, TeensyTimerTool offers
+
+- a large number of timers (more than 40 on Teensy 4),
 - one-shot timers, which invoke a function once after a delay,
-- periods and delays as numbers or with units: `250ms`, `20us`, `1.5s`,
+- periods and delays as numbers (microseconds) or with units: `250ms`, `20us`, `1.5s`,
 - callbacks with state: lambdas, member functions, functors.
 
 The overhead is low: invoking a callback through TeensyTimerTool takes about as long as programming the
-timer registers directly.
+timer registers directly ([comparison](advanced/index.md#efficiency)).
 
 !!! note "Work in progress"
     The documentation is being moved here from the [wiki](https://github.com/luni64/TeensyTimerTool/wiki)
@@ -23,8 +28,8 @@ timer registers directly.
 
 === "Arduino IDE"
 
-    Open the Library Manager (*Tools → Manage Libraries…*), search for **TeensyTimerTool** and click
-    *Install*.
+    Open the Library Manager (books icon in the left side bar, or *Tools → Manage Libraries…*), search
+    for **TeensyTimerTool** and click *Install*.
 
 === "PlatformIO"
 
@@ -37,8 +42,7 @@ timer registers directly.
 === "Manual"
 
     Download the [latest release](https://github.com/luni64/TeensyTimerTool/releases/latest) as zip
-    file and install it with *Sketch → Include Library → Add .ZIP Library…*, or extract it into the
-    libraries folder.
+    file and install it with *Sketch → Include Library → Add .ZIP Library…*.
 
 ## A first periodic timer
 
@@ -58,9 +62,12 @@ available for the application.
 
 ## A first one-shot timer
 
-A `OneShotTimer` invokes its callback once, after the delay passed to `trigger()`. In the following
-sketch, `loop()` switches the LED on every 500 ms and triggers the timer, which switches the LED off
-again after 10 ms:
+A `OneShotTimer` invokes its callback once, after a delay. The delay is passed to `trigger()`, which
+starts the timer and returns immediately. Unlike `delay()`, the sketch is not paused: the program
+continues, and the callback is invoked in the background when the delay has expired.
+
+In the following sketch, `loop()` switches the LED on every 500 ms and triggers the timer, which switches
+the LED off again after 10 ms:
 
 ```cpp
 --8<-- "01_Basic/HelloOneShot/HelloOneShot.ino"
@@ -68,9 +75,10 @@ again after 10 ms:
 
 ## Selecting a timer
 
-`PeriodicTimer t1;` takes the next free timer from the *timer pool*. On Teensy 4, the pool contains the
+`PeriodicTimer t1;` takes the next free timer from the timer pool. On Teensy 4, the pool contains the
 hardware timers GPT1, GPT2 and TMR1 … TMR4, followed by the software timers (TCK); on Teensy 3, it
-starts with the FTM timers. This is sufficient for most applications.
+starts with the FTM timers. This is sufficient for most applications. The pool can be changed in the
+[configuration](configuration.md).
 
 A specific timer, e.g. for very long periods or a particularly fine resolution, is selected by passing
 it to the constructor:
@@ -83,12 +91,6 @@ OneShotTimer  t3(GPT1); // GPT1 timer (Teensy 4)
 
 [Choosing a timer](choosing-a-timer.md) compares the properties of all timers.
 
-!!! warning "Teensy 3.x: long periods"
-    The FTM timers of Teensy 3 support periods of only about 35 … 45 ms. For longer periods, `begin()`
-    returns the warning `periodOverflow` and the timer runs with its maximum period; the LED in the first
-    example then blinks considerably faster than intended. For long periods, use a software timer:
-    `PeriodicTimer t1(TCK);`
-
 ## Further reading
 
 - [Basic usage](basic-usage.md): starting, stopping and changing timers.
@@ -96,5 +98,5 @@ OneShotTimer  t3(GPT1); // GPT1 timer (Teensy 4)
 - [Error handling](error-handling.md): evaluating the codes returned by `begin()` and other functions.
 - [Examples](examples.md): the example sketches of the library.
 
-Questions are best asked in the [PJRC forum](https://forum.pjrc.com); bug reports and feature requests
-go to the [issue tracker](https://github.com/luni64/TeensyTimerTool/issues).
+Questions, bug reports and feature requests are welcome in the [PJRC forum](https://forum.pjrc.com) or
+in the [issue tracker](https://github.com/luni64/TeensyTimerTool/issues).
