@@ -5,6 +5,7 @@ into one Word file for review. MkDocs specifics are converted for Word:
   !!! type "Title"     admonitions become a block quote with a bold title
   === "Tab"            content tabs become bold paragraphs
   { .annotate }        the annotation list below a paragraph becomes block quotes "(1) ..."
+  <pre><code>          a raw HTML code line becomes inline code, its <mark> part bold
 Each chapter starts with its source file name, so comments can be mapped back to the sources.
 
     python tools/docs_to_docx.py [chapter.md ...]     # default: all chapters in nav order
@@ -39,6 +40,12 @@ def convert(md: str) -> str:
     md = re.sub(r'^--8<--\s*"([^"]+)"\s*$',
                 lambda m: (LIB / "examples" / m.group(1)).read_text(encoding="utf-8").rstrip(),
                 md, flags=re.M)
+    # raw HTML code line with a highlighted part (<pre><code>...<mark>x</mark>...</code></pre>):
+    # pandoc drops raw HTML in docx, so make it inline code with the marked part in bold
+    def html_code(m):
+        parts = re.split(r"<mark>(.*?)</mark>", m.group(2))
+        return m.group(1) + "".join(f"**`{p}`**" if k % 2 else f"`{p}`" for k, p in enumerate(parts) if p)
+    md = re.sub(r"^(\s*)<pre><code>(.*?)</code></pre>\s*$", html_code, md, flags=re.M)
     out, lines, i = [], md.splitlines(), 0
     while i < len(lines):
         line = lines[i]

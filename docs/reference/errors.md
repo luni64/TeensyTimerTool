@@ -36,6 +36,10 @@ void attachErrFunc(errorFunc_t errorFunction);
 Sets a function which is called for every result other than `OK`, exactly once per failed call, also for
 getters that return `NAN`. Replaces a previously attached function; `nullptr` removes it.
 
+```cpp
+attachErrFunc([](errorCode e) { Serial.printf("TeensyTimerTool reported %d\n", (int)e); });
+```
+
 | Parameter | |
 |---|---|
 | `errorFunction` | a function, lambda or functor with the signature `void(errorCode)`, or `nullptr` |
@@ -75,6 +79,14 @@ void tick(); // namespace TeensyTimerTool
 Evaluates the TCK timers and invokes the callbacks that are due. With the default configuration, the
 library calls `tick()` from `yield()`; a sketch only calls it itself with the configuration option
 `YIELD_NONE`, then as often as possible.
+
+```cpp
+void loop()
+{
+    TeensyTimerTool::tick(); // only with YIELD_NONE
+    // ...
+}
+```
 
 ---
 

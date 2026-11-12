@@ -118,8 +118,10 @@ documentation rewrite. Commit references are from that branch.
   check feasibility per module (remaining ticks at stop(); PIT/GPT/TMR/TCK), possibly breaking.
 - Getters return seconds, the setters take microseconds: consider returning microseconds from the getters
   (luni64, docs review 2026-11-11). Breaking change → needs an entry under "Breaking" and a migration note.
-- Rename `errorCode::reload` (period 0) to something understandable for beginners, e.g.
-  `errorCode::invalidPeriod`; keep `reload` as deprecated alias (docs review 2026-11-11).
+- Go through the complete list of error codes and improve the names (luni64, docs review 2026-11-12,
+  comment on `errorCode::argument`). The old names can stay as aliases so that existing code keeps
+  compiling, but only the new names are documented. Known candidate: `errorCode::reload` (period 0) →
+  something understandable for beginners, e.g. `errorCode::invalidPeriod` (docs review 2026-11-11).
 - Frequency literals (`20Hz`, `frequency.h.deactivated`): were homebrew and didn't work reliably.
   Redo properly or drop; the wiki still uses them (Basic-Usage, start/stop example).
 - Keep the `Timer` class as deprecated (no removal in v1.5).

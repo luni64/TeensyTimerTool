@@ -81,16 +81,39 @@ returned code is still available to the sketch.
 ## The built-in error handler
 
 The library provides a ready-made error handler, which prints the code and a short description to a
-serial port:
+serial port. It is attached like any other error function:
 
 ```cpp
-attachErrFunc(ErrorHandler(Serial));
+#include "TeensyTimerTool.h"
+using namespace TeensyTimerTool;
+
+PeriodicTimer t1(TCK);
+OneShotTimer t2;
+
+void setup()
+{
+    while (!Serial) {}
+    attachErrFunc(ErrorHandler(Serial)); // print warnings and errors on Serial
+
+    t1.begin([] {}, 10s); // warning: a TCK timer supports up to 5 s
+    t2.trigger(10ms);     // error: trigger() before begin()
+}
+
+void loop()
+{
+}
 ```
 
-- For a **warning**, it prints e.g. `W-100: Period overflow. Period was set to maximum value` and
-  returns; the sketch continues.
-- For an **error**, it prints e.g. `E-106: Timer not initialized or available. Did you call begin?` and
-  stops the sketch: it blinks the built-in LED in a fast, endless loop.
+Output:
+
+```
+W-100: Period overflow. Period was set to maximum value
+E-106: Timer not initialized or available. Did you call begin?
+```
+
+- For a **warning** (`W-…`), the handler prints the message and returns; the sketch continues.
+- For an **error** (`E-…`), it prints the message and stops the sketch: it blinks the built-in LED in a
+  fast, endless loop.
 
 !!! warning "LED_BUILTIN"
     The built-in error handler sets `LED_BUILTIN` to output when it is created and uses it to signal

@@ -23,9 +23,7 @@ nav:
   - Callbacks: callbacks.md
   - Error handling: error-handling.md
   - Configuration: configuration.md
-  - Examples:
-      - examples/index.md
-      - Double exposure laser illuminator: examples/double-exposure.md
+  - Examples: examples/index.md
   - Advanced:
       - advanced/index.md
       - Performance: advanced/performance.md

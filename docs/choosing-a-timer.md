@@ -1,7 +1,6 @@
 # Choosing a timer
 
-In most applications, the timer pool is the right choice: `PeriodicTimer t1;` takes the next free timer,
-and the period is limited only by the timer it gets. The hardware and software timers (1) differ in the
+Often, the timer pool is the right choice: `PeriodicTimer t1;` takes the next free timer, and the period is limited only by the timer it gets. The hardware and software timers (1) differ in the
 longest possible period, the resolution, the number of channels and a few functions. The following
 sections help to choose a specific timer when these properties matter.
 { .annotate }
@@ -23,14 +22,14 @@ sections help to choose a specific timer when these properties matter.
 | Short periods, low latency | TMR, GPT, PIT |
 | Many timers | TCK (20 channels by default, the number is configurable) |
 | `setNextPeriod()`, `PeriodMode::keepElapsed` | PIT, TMR, TCK |
-| Callbacks in sync with the real time clock | RTC, TCK_RTC |
-| Teensy 3.x | FTM for periods up to 35 … 58 ms, TCK for longer periods |
+| Callbacks in sync with the real time clock | RTC, TCK_RTC (see [RTC and TCK_RTC](#rtc-and-tck_rtc)) |
+| Teensy 3.x | FTM for periods up to 35 … 58 ms; `IntervalTimer` or TCK for longer periods |
 | Teensy LC | TCK (the only timer available) |
 
 !!! tip "The pool on Teensy 4"
-    The first two timers taken from the pool are GPT1 and GPT2 (up to 179 s), the following ones are TMR
-    channels, which support periods of up to 55.9 ms only. For several timers with long periods, request
-    them explicitly, e.g. `PeriodicTimer t1(TCK);`
+    By default, the first two timers taken from the pool are GPT1 and GPT2 (up to 179 s), the following
+    ones are TMR channels, which support periods of up to 55.9 ms only. For several timers with long
+    periods, request them explicitly, e.g. `PeriodicTimer t1(TCK);`
 
 ## Teensy 4.0, 4.1 and MicroMod
 
@@ -65,8 +64,9 @@ The FTM timers support periodic and one-shot use and `triggerDirect()`, but not 
 !!! warning "Long periods on Teensy 3.x"
     The pool of a Teensy 3 starts with the FTM timers, which support periods of only 35 … 58 ms,
     depending on the board and its clock. For longer periods, `begin()` returns the warning
-    `periodOverflow` and the timer runs with its maximum period. Long periods require a software timer:
-    `PeriodicTimer t1(TCK);`
+    `periodOverflow` and the timer runs with its maximum period. For long periods on Teensy 3.x, the
+    `IntervalTimer` of the Teensy core is recommended: it is a hardware timer with periods of more than
+    a minute. Alternatively, use a software timer: `PeriodicTimer t1(TCK);`
 
 ## Teensy LC
 
@@ -122,7 +122,8 @@ OneShotTimer  t3(PIT);          // third PIT channel
 The RTC timer uses the real time clock to generate periodic callbacks. The periods are limited to
 2⁻ⁿ seconds (1 s, 0.5 s, 250 ms, … 30.5 µs), and the callbacks are synchronized with the clock: a 1 s
 callback occurs exactly at the second transitions of the RTC. There is one RTC timer; it supports
-periodic use only.
+periodic use only. For other periods, one-shot use or several timers in sync with the real time clock,
+see [RTC and TCK_RTC](#rtc-and-tck_rtc).
 
 ```cpp
 PeriodicTimer t1(RTC);
@@ -161,7 +162,8 @@ timers can be used at the same time (all TCK types together); the number can be 
 
 The callbacks are only invoked when `yield()` runs. They are delayed by a few µs in a sketch whose
 `loop()` runs freely, and by much more if `loop()` blocks for a long time without calling `yield()`.
-`delay()` and other functions that call `yield()` are no problem.
+`delay()` and other functions that call `yield()` are no problem. Code that blocks for a long time can
+call `yield()` itself, see [Performance](advanced/performance.md#software-timers-tck).
 
 ### TCK64 and TCK_RTC – 64 bit tick timers
 
@@ -169,23 +171,53 @@ The callbacks are only invoked when `yield()` runs. They are delayed by a few µ
 (634 years). `TCK_RTC` (Teensy 4) uses the real time clock as time base. Its callbacks are in sync with
 the RTC, and its resolution is one RTC tick (30.5 µs).
 
+### RTC and TCK_RTC
+
+Both timers are driven by the 32.768 kHz crystal of the real time clock instead of the main crystal of
+the board, so their callbacks don't drift against the time of the RTC. They differ in how the callbacks
+are generated:
+
+| | `RTC` | `TCK_RTC` |
+|---|---|---|
+| Kind | hardware timer: the periodic interrupt of the real time clock | software timer: a tick timer that reads the counter of the real time clock |
+| Periods | 2⁻ⁿ s only (1 s, 0.5 s, … 30.5 µs) | any multiple of 30.5 µs, practically unlimited |
+| Use | periodic | periodic and one-shot |
+| Number of timers | 1 | up to 20 (shared with the other TCK types) |
+| Callbacks | from the interrupt, exactly at the 2⁻ⁿ s transitions of the clock | from `yield()`, delayed while the sketch is busy |
+
+Use `RTC` for a single callback at one of its fixed periods with precise timing, e.g. once per second.
+Use `TCK_RTC` for other periods, for one-shot delays or for several timers that have to follow the real
+time clock.
+
 ## Resolution and rounding
 
-Every timer counts ticks of its input clock, so internally a period is always an integer number of
-ticks. The requested period is rounded to the nearest number of ticks, with a minimum of one tick.
+Every timer counts the periods of its input clock, the *ticks*. Internally, a period is therefore always
+a whole number of ticks. The requested period is rounded to the nearest number of ticks, with a minimum
+of one tick.
 
-Example: the TMR timers run on the 150 MHz peripheral clock of the Teensy 4, divided by the default
-prescaler of 128. This gives a tick frequency of 150 MHz / 128 = 1.171875 MHz, i.e. a tick period of
-0.853 µs. A requested period of 100 µs corresponds to 100 / 0.853 = 117.2 ticks; the timer uses
-117 ticks = 99.84 µs. `getPeriod()` returns the period actually used, `getResolution()` the tick period.
+Example: the PIT timers are clocked with 24 MHz, so one tick takes 1 / 24 MHz = 41.67 ns. A requested
+period of 10.1 µs corresponds to 10.1 µs / 41.67 ns = 242.4 ticks; the timer uses 242 ticks = 10.083 µs.
+`getPeriod()` returns the period actually used, `getResolution()` the tick period.
 
 The RTC timer supports only periods of 2⁻ⁿ seconds, i.e. 1 s, 0.5 s, 0.25 s, 125 ms, 62.5 ms, … down to
-61 µs and 30.5 µs (2⁻¹⁵ s), and selects the next longer one (25 ms → 31.25 ms).
+30.5 µs (2⁻¹⁵ s), and selects the next longer one (25 ms → 31.25 ms).
 
 ## Prescaler
 
-The TMR and GPT timers have a *prescaler*, which divides the timer clock by a power of two. A larger
-prescaler gives longer maximum periods and a coarser resolution:
+The counter of a timer has a limited size, which limits the longest possible period. The counter of a
+TMR timer has 16 bit, i.e. it counts up to 65 535 ticks. Clocked directly with the 150 MHz peripheral
+clock of the Teensy 4, one tick takes 6.67 ns, and the longest period is 65 535 × 6.67 ns = 437 µs.
+
+For longer periods, the TMR and GPT timers have a *prescaler*, which divides the timer clock by a power
+of two before it reaches the counter. The ticks get longer by this factor, and with them the maximum
+period; the resolution gets coarser by the same factor.
+
+Example: with the default prescaler of 128, a TMR timer counts with 150 MHz / 128 = 1.171875 MHz, i.e.
+one tick takes 0.853 µs. The longest period is 65 535 × 0.853 µs = 55.9 ms. A requested period of 100 µs
+corresponds to 100 µs / 0.853 µs = 117.2 ticks; the timer uses 117 ticks = 99.84 µs. With a prescaler of
+1, the same period is 15 000 ticks, exactly 100 µs.
+
+The best resolution is obtained with the smallest prescaler whose maximum period is still long enough:
 
 | Timer | Prescaler | Resolution | Max. period |
 |---|---|---|---|

@@ -14,6 +14,11 @@ errorCode start();
 Starts a stopped periodic timer, or a timer configured with `begin(callback, period, false)`. The period
 starts from the beginning. For one-shot timers, see [`OneShotTimer::start()`](one-shot-timer.md#start).
 
+```cpp
+t1.begin(onTimer, 100ms, false); // configured, not running
+t1.start();                      // first callback 100 ms from now
+```
+
 | Return value | Condition |
 |---|---|
 | `OK` | the timer runs |
@@ -34,6 +39,11 @@ errorCode stop();
 Stops the timer: no further callbacks are invoked. On a one-shot timer, a pending trigger is cancelled.
 The timer keeps its channel and settings; `start()` (periodic) or `trigger()` (one-shot) use it again.
 
+```cpp
+t1.stop(); // no more callbacks until start()
+t2.stop(); // cancels a pending trigger of the one-shot timer
+```
+
 | Return value | Condition |
 |---|---|
 | `OK` | the timer is stopped, also if it wasn't running |
@@ -53,6 +63,11 @@ errorCode end();
 
 Stops the timer and releases its channel. The channel is free for other timers; a later `begin()`
 allocates a new channel.
+
+```cpp
+t1.end();                // the channel is free for other timers
+t1.begin(onTimer, 10ms); // takes a channel again
+```
 
 | Return value | Condition |
 |---|---|
@@ -77,6 +92,12 @@ prescaler. Called on a running timer, the new prescaler takes effect immediately
 number of ticks and therefore changes with the prescaler, until the next `setPeriod()` or
 `setNextPeriod()`.
 
+```cpp
+PeriodicTimer t1(GPT1);
+t1.setPrescaler(PSC_4096); // maximum period 8.5 days
+t1.begin(onTimer, 24h);
+```
+
 | Parameter | |
 |---|---|
 | `prescaler` | `PSC_1`, `PSC_2`, `PSC_4` … `PSC_128` (TMR), … `PSC_4096` (GPT) |
@@ -93,6 +114,25 @@ number of ticks and therefore changes with the prescaler, until the next `setPer
 
 ---
 
+### Getters with units
+
+The getters described below (`getMaxPeriod()`, `getResolution()`, `getRemainingTime()`) and
+[`getPeriod()`](periodic-timer.md#getperiod) take an optional template parameter, which selects the
+unit of the result. Without it, they return seconds as `float`; with a `std::chrono` duration, they
+return the value in this unit:
+
+```cpp
+float s = t1.getPeriod();                           // seconds, e.g. 0.00009984
+auto  p = t1.getPeriod<std::chrono::microseconds>(); // e.g. 100 µs for 99.84 µs
+auto  r = t1.getRemainingTime<std::chrono::duration<double, std::micro>>(); // µs with fraction
+```
+
+Integer durations are rounded to the nearest unit; values too large for the duration type return
+`T::max()`. On errors, the getters return `T::zero()` and report the error. Requires the configuration
+option `USE_TIME_LITERALS` (default).
+
+---
+
 ### getMaxPeriod()
 
 ```cpp
@@ -101,6 +141,10 @@ T getMaxPeriod() const;
 ```
 
 Returns the longest period or delay the timer supports, with its current prescaler.
+
+```cpp
+float maxSeconds = t1.getMaxPeriod(); // e.g. 178.96 for a GPT timer
+```
 
 | Template parameter | |
 |---|---|
@@ -127,6 +171,10 @@ T getResolution() const;
 Returns the duration of one timer tick with the current prescaler, e.g. 41.7 ns for the PIT, 853 ns for a
 TMR timer with `PSC_128`, 30.5 µs for TCK_RTC and RTC.
 
+```cpp
+float tick = t1.getResolution(); // seconds, e.g. 0.0000000417 for the PIT
+```
+
 | Return value | Condition |
 |---|---|
 | the tick period | |
@@ -149,6 +197,10 @@ T getRemainingTime() const;
 Returns the time until the next callback. Returns 0 if no callback is pending: the timer is stopped, or
 a one-shot timer was never triggered, has fired or was stopped.
 
+```cpp
+float remaining = t2.getRemainingTime(); // seconds until the callback of the one-shot timer
+```
+
 | Return value | Condition |
 |---|---|
 | the remaining time | |
@@ -158,22 +210,6 @@ a one-shot timer was never triggered, has fired or was stopped.
 **Supported timers:** PIT, GPT1, GPT2, TMR1 … TMR4, TCK, TCK64, TCK_RTC. Not supported: RTC, FTM0 … FTM3.
 
 <!-- tests: api_remaining_time, api_remaining_time_idle -->
-
----
-
-### Getters with units
-
-All getters take an optional template parameter. Without it, they return seconds as `float`; with a
-`std::chrono` duration, they return the value in this unit:
-
-```cpp
-auto p = t1.getPeriod<std::chrono::microseconds>(); // e.g. 100 µs for 99.84 µs
-auto r = t1.getRemainingTime<std::chrono::duration<double, std::micro>>();
-```
-
-Integer durations are rounded to the nearest unit; values too large for the duration type return
-`T::max()`. On errors, the getters return `T::zero()` and report the error. Requires the configuration
-option `USE_TIME_LITERALS` (default).
 
 ---
 

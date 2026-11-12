@@ -1,7 +1,7 @@
 # Usage
 
 This chapter covers the functions needed in most applications: periodic and one-shot timers, starting
-and stopping, changing the period, and querying the timer state. The examples use the built-in LED and
+and stopping, changing the period, querying the timer state, and arrays of timers. The examples use the built-in LED and
 run on every Teensy without additional hardware.
 
 ## Periodic timers
@@ -226,6 +226,60 @@ whole ticks (see [Resolution and rounding](choosing-a-timer.md#resolution-and-ro
 
 `getPeriod()` and `getResolution()` are available for all Teensy 4 timers, `getRemainingTime()` for the
 PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `errorCode::notImplemented`.
+
+## Arrays and containers of timers
+
+Timers can be kept in arrays, which is convenient for a number of similar tasks. The timer type of each
+element is given in the braces; the types can be mixed:
+
+```cpp
+--8<-- "01_Basic/ArrayOfTimers/ArrayOfTimers.ino"
+```
+
+Timers can also be stored in standard containers like `std::vector`, and added or removed while the
+sketch runs. A timer that is removed from the container stops automatically and releases its channel;
+the other timers keep running. The following sketch starts three timers and removes the second one
+after 5 s:
+
+```cpp
+#include "TeensyTimerTool.h"
+#include <vector>
+using namespace TeensyTimerTool;
+
+std::vector<PeriodicTimer> timers;
+
+void setup()
+{
+    for (int i = 0; i < 3; i++)
+    {
+        timers.emplace_back(TCK); // add a software timer to the container
+        timers.back().begin([i] { Serial.printf("timer %d\n", i); }, 1s);
+    }
+
+    delay(5000);
+    timers.erase(timers.begin() + 1); // remove the second timer: it stops
+    Serial.println("timer 1 removed");
+}
+
+void loop()
+{
+}
+```
+
+Output:
+
+```
+timer 0
+timer 1
+timer 2
+...
+timer 1 removed
+timer 0
+timer 2
+```
+
+The example `TimersInContainers` shows a larger application: a set of blinking pins which are added and
+removed from the serial monitor.
 
 ---
 

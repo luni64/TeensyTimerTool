@@ -18,8 +18,14 @@ Claude Code conversation. Nothing here is part of the library; `library.json` ex
 
 ## Current task: documentation (branch `docs`)
 
-- **Status:** all chapters written. luni64's thorough review of the complete manual is pending. The terms are
-  explained in click popups (Material annotations, `term (1)` + `{ .annotate }`); the floating boxes were removed.
+- **Status:** all chapters written. luni64's thorough review of the complete manual is in progress: the 38
+  comments of the first round (`wip/review/TeensyTimerTool-docs-2026-11-12.docx`) are worked in
+  (2026-11-12). `wip/review/TeensyTimerTool-docs-2026-11-12-2.docx` is the export after this round; it lacks
+  only the capture-by-reference example added to Callbacks afterwards. luni64: "the rest is good now". The terms are explained in click popups (Material annotations, `term (1)` + `{ .annotate }`);
+  the floating boxes were removed.
+- **Changed in this round, to be checked on the original machine:** the DoubleExposure walkthrough page was
+  removed from the manual (the example sketch stays); the example `ArrayOfTimers` now mixes timer types
+  (GPT1, TMR1, TCK) and is Teensy 4 only, so the TestSuite build matrix must not build it for T3.x / LC.
 - **Preview:** `pip install mkdocs-material`, then `mkdocs serve` in the repo root
   → http://127.0.0.1:8000/TeensyTimerTool/. Check with `mkdocs build --strict`.
 - **Review in Word:**
@@ -29,9 +35,9 @@ Claude Code conversation. Nothing here is part of the library; `library.json` ex
     drops comments anchored in code blocks.
   - `wip/review/TeensyTimerTool-docs-2026-11-11-6.docx` is the complete manual without comments. It still
     shows the old boxes instead of the popups.
+  - Pandoc and mkdocs-material are installed on the second machine too (2026-11-12).
 - **Backlog:** `wip/DOCS_TODO.md`. Style rules: `wip/memory/ttt-docs-style.md`.
 - **Later:**
-  - Reduce the DoubleExposure image sizes.
   - Point the wiki pages to the new site.
   - Enable GitHub Pages (Settings → Pages → Source: GitHub Actions). The workflow deploys on push to master.
 

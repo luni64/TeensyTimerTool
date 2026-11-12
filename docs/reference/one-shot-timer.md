@@ -23,6 +23,11 @@ or, without a timer type, the next free timer from the [timer pool](../configura
 |---|---|
 | `timerType` | the timer type, e.g. `TMR1`, `GPT1`, `TCK`; see [Timer types](timer-types.md). `nullptr` (default): timer pool |
 
+```cpp
+OneShotTimer t1;       // timer pool
+OneShotTimer t2(TMR1); // a channel of TMR1
+```
+
 ---
 
 ### begin()
@@ -33,6 +38,11 @@ errorCode begin(callback_t callback);
 
 Allocates a timer channel (on the first call) and sets the callback. The timer is not started; the
 callback is not invoked until `trigger()` is called.
+
+```cpp
+t2.begin(onTimer);
+t2.begin([] { digitalWriteFast(LED_BUILTIN, LOW); }); // lambda expression as callback
+```
 
 | Parameter | |
 |---|---|
@@ -64,6 +74,15 @@ errorCode trigger(period_t delay);
 Starts the timer: the callback is invoked once, `delay` after the call. `trigger()` returns immediately.
 Called while a trigger is pending, it restarts the delay; the callback is invoked once. Called from the
 callback, it re-triggers the timer, which allows chaining delays.
+
+`trigger()` is a template so that the delay can be passed in different types: as integer or floating
+point number (microseconds) or as `std::chrono` duration. The compiler deduces `period_t` from the
+argument.
+
+```cpp
+t2.trigger(500);   // callback in 500 µs
+t2.trigger(1.5s);  // callback in 1.5 s
+```
 
 | Parameter | |
 |---|---|
@@ -100,7 +119,14 @@ errorCode triggerDirect(T reload);
 ```
 
 Like `trigger()`, but the delay is given in timer ticks, as returned by `getTriggerReload()`. Saves the
-conversion of the delay, e.g. for timers that are re-triggered with the same delay many times.
+conversion of the delay, e.g. for timers that are re-triggered with the same delay many times. The
+template parameter `T` is the type of the reload value; the compiler deduces it from the argument.
+
+```cpp
+uint32_t reload;
+t2.getTriggerReload(20, &reload); // 20 µs in timer ticks, calculated once
+t2.triggerDirect(reload);         // callback in 20 µs
+```
 
 | Parameter | |
 |---|---|
@@ -129,6 +155,11 @@ errorCode getTriggerReload(float delay, T* reload);
 ```
 
 Converts a delay into the reload value for `triggerDirect()`, with the same rounding as `trigger()`.
+
+```cpp
+uint32_t reload;                  // uint64_t for TCK64 and TCK_RTC
+t2.getTriggerReload(20, &reload); // 20 µs in timer ticks
+```
 
 | Parameter | |
 |---|---|

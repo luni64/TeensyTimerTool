@@ -31,7 +31,8 @@ Whether the library finds a `userConfig.h` in the sketch folder depends on the b
 === "Arduino IDE"
 
     The Arduino IDE compiles libraries without the sketch folder in the include path, so the library
-    doesn't find `userConfig.h`. A `platform.local.txt` file can add the sketch folder:
+    doesn't find `userConfig.h`. The sketch folder can be added to the include path with a
+    `platform.local.txt` file:
 
     1. Locate the folder containing `platform.txt` of the Teensy package, e.g. on Windows
        `%LOCALAPPDATA%\Arduino15\packages\teensy\hardware\avr\<version>\`.
@@ -39,11 +40,9 @@ Whether the library finds a `userConfig.h` in the sketch folder depends on the b
     3. Copy the line starting with `recipe.cpp.o.pattern=` from `platform.txt` into it, and insert
        `-I{build.path}/sketch` before `"{source_file}"`.
 
-    For Teensyduino 1.62, the line reads:
+    For Teensyduino 1.62, the line reads as follows; the inserted part is highlighted:
 
-    ```
-    recipe.cpp.o.pattern="{compiler.path}{build.toolchain}{build.command.g++}" -c {build.flags.optimize} {build.flags.common} {build.flags.dep} {build.flags.cpp} {build.flags.cpu} {build.flags.defs} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DF_CPU={build.fcpu} -D{build.usbtype} -DLAYOUT_{build.keylayout} "-I{build.path}/pch" {includes} -I{build.path}/sketch "{source_file}" -o "{object_file}"
-    ```
+    <pre><code>recipe.cpp.o.pattern="{compiler.path}{build.toolchain}{build.command.g++}" -c {build.flags.optimize} {build.flags.common} {build.flags.dep} {build.flags.cpp} {build.flags.cpu} {build.flags.defs} -DARDUINO={runtime.ide.version} -DARDUINO_{build.board} -DF_CPU={build.fcpu} -D{build.usbtype} -DLAYOUT_{build.keylayout} "-I{build.path}/pch" {includes} <mark>-I{build.path}/sketch</mark> "{source_file}" -o "{object_file}"</code></pre>
 
     Restart the IDE afterwards. `platform.local.txt` affects all sketches, but has no effect on
     sketches without a `userConfig.h`. After an update of Teensyduino, the file has to be created
@@ -114,7 +113,10 @@ The maximum number of tick timers (TCK, TCK64 and TCK_RTC together) in use at th
 ```
 
 The software timers are evaluated by the function `TeensyTimerTool::tick()`, which has to be called as
-often as possible. This setting selects how this happens:
+often as possible. This setting selects how this happens. The default `YIELD_STANDARD` works for the
+majority of sketches. The other settings are only needed in special cases: if the latency of the
+software timers has to be as low as possible, or if the sketch has to control itself when the software
+timers are evaluated.
 
 - `YIELD_STANDARD` (default): the library adds the call to the standard `yield()` function of the
   Teensy core, which also handles `serialEvent()` and the `EventResponder`.

@@ -1,11 +1,9 @@
 #include "TeensyTimerTool.h"
 using namespace TeensyTimerTool;
 
-
-
-//Timer t[]{FTM0, FTM0, FTM2};             // two channels from FTM0, one from FTM2
-//Timer t[3];                              // use 3 timers from the pool
-OneShotTimer t[]{TCK, TCK, TCK, TCK, TCK}; // 5 software timers
+// Each element of the array gets its own timer type, the types can be mixed (here: Teensy 4)
+OneShotTimer t[]{GPT1, TMR1, TMR1, TCK, TCK}; // GPT1, two channels of TMR1 and two software timers
+//OneShotTimer t[5];                          // alternative: 5 timers from the pool (all boards)
 
 constexpr unsigned nrOfTimers = sizeof(t) / sizeof(t[0]);
 
@@ -18,7 +16,6 @@ void setup()
         t[i].begin([i] { digitalWriteFast(i, LOW); }); // callback resets pin to LOW
     }
 }
-
 
 void loop()
 {

@@ -41,6 +41,17 @@ Allocates a timer channel (on the first call), sets the callback and the period 
 Called on a running timer, `begin()` restarts it with the new callback and period; the previous callback
 is no longer invoked.
 
+`begin()` is a template so that the period can be passed in different types: as integer or floating
+point number (microseconds) or as `std::chrono` duration. The compiler deduces `period_t` from the
+argument.
+
+```cpp
+t1.begin(onTimer, 1000);                                 // every 1000 µs
+t1.begin(onTimer, 2.5ms);                                // every 2.5 ms
+t1.begin([] { digitalToggleFast(LED_BUILTIN); }, 250ms); // lambda expression as callback
+t1.begin(onTimer, 1s, false);                            // configured, started later with start()
+```
+
 | Parameter | |
 |---|---|
 | `callback` | the function to invoke, see [Callbacks](../callbacks.md) |
@@ -84,6 +95,15 @@ Changes the period of the timer.
   length.
 
 A stopped timer stays stopped; `start()` starts it with the new period.
+
+As in `begin()`, the template parameter `period_t` allows passing the period as integer or floating
+point number (microseconds) or as `std::chrono` duration.
+
+```cpp
+t1.setPeriod(100);                            // 100 µs, starting now
+t1.setPeriod(5ms);                            // 5 ms, starting now
+t1.setPeriod(5ms, PeriodMode::keepElapsed);   // 5 ms, counted from the previous callback
+```
 
 | Parameter | |
 |---|---|
@@ -129,7 +149,12 @@ callback occurs as scheduled, the callbacks after it at the new interval.
 
 Called from the callback, `setNextPeriod()` generates exact period sequences, since the new value is in
 place long before the current period ends. If it is called several times during one period, the last
-value is used.
+value is used. The template parameter `period_t` has the same purpose as in `begin()`.
+
+```cpp
+t1.setNextPeriod(300);   // 300 µs, after the current period has ended
+t1.setNextPeriod(0.7ms);
+```
 
 | Parameter | |
 |---|---|
@@ -173,6 +198,13 @@ T getPeriod() const;
 Returns the period set by the latest `begin()`, `setPeriod()` or `setNextPeriod()`, rounded as the
 timer uses it: e.g. 99.84 µs for a TMR timer started with 100 µs, the maximum period after an overflow.
 After `setPrescaler()` on a running timer, it returns the period resulting from the new prescaler.
+The template parameter selects the unit of the result, see
+[Getters with units](common.md#getters-with-units).
+
+```cpp
+float seconds = t1.getPeriod();                           // e.g. 0.00009984
+auto  micros  = t1.getPeriod<std::chrono::microseconds>(); // e.g. 100 µs
+```
 
 | Template parameter | |
 |---|---|

@@ -7,8 +7,14 @@ implementation would use.
 
 ## Comparison with hand-written code
 
-The following values were measured on a Teensy 4.1 at 600 MHz, compared to hand-written register code
-doing the same job in the same firmware (reference values in brackets):
+*Hand-written register code* means the minimal code for one fixed timer channel, programmed directly
+with the registers of the processor: an interrupt handler that resets the interrupt flag and calls the
+callback through a function pointer. It serves exactly one channel, so it needs neither the common
+interface nor a search for the channel that fired, and it supports plain function callbacks only. It is
+the lower limit of what a timer interrupt costs.
+
+The following values were measured on a Teensy 4.1 at 600 MHz, compared to such hand-written code doing
+the same job in the same firmware (reference values in brackets):
 
 | Timer | Latency (timer event → callback) | CPU time per interrupt | Duration of `trigger()` | `trigger()` → callback, minus the delay |
 |---|---|---|---|---|
@@ -28,13 +34,13 @@ latency, since their registers are accessed considerably faster than those of th
 
 ### Measurement method
 
-The values were measured with the `perf` suite of the
-[TeensyTimerTool-TestSuite](https://github.com/luni64/TeensyTimerTool-TestSuite). The hand-written
-reference uses a second module of the same timer type (GPT2, PIT channel 3, TMR2) in the same firmware:
-an interrupt handler that resets the flag, calls the callback through a function pointer and ends with a
-`dsb` instruction, as the library does. The latency is read from the counter of the timer at the start of
-the callback; for this measurement, GPT and PIT run with 150 MHz to get a resolution of 6.7 ns. The CPU
-time per interrupt is measured by the loss of iterations of a busy loop at a 10 µs period.
+The values were measured on the board itself, with the counters of the timers and the cycle counter of
+the processor. The hand-written reference uses a second module of the same timer type (GPT2, PIT
+channel 3, TMR2) in the same firmware: an interrupt handler that resets the flag, calls the callback
+through a function pointer and ends with a `dsb` instruction, as the library does. The latency is read
+from the counter of the timer at the start of the callback; for this measurement, GPT and PIT run with
+150 MHz to get a resolution of 6.7 ns. The CPU time per interrupt is measured by the loss of iterations
+of a busy loop at a 10 µs period.
 
 ## Software timers (TCK)
 
@@ -43,6 +49,18 @@ often `yield()` runs: a few µs if `loop()` runs freely, more if the sketch bloc
 `yield()` while waiting. With the default setting `YIELD_STANDARD`, `yield()` also handles the serial
 events of the Teensy core; `YIELD_OPTIMIZED` reduces the latency of the TCK timers
 (see [Configuration](../configuration.md#how-the-software-timers-are-called)).
+
+If the sketch contains code that blocks for a long time, e.g. a loop working through a large amount of
+data, the TCK callbacks are delayed until this code has finished. A call to `yield()` in the body of
+such a loop keeps the TCK timers responsive:
+
+```cpp
+for (unsigned i = 0; i < nrOfSamples; i++)
+{
+    process(samples[i]); // long calculation
+    yield();             // gives the TCK timers the chance to invoke their callbacks
+}
+```
 
 ## Precomputed reload values
 
@@ -92,8 +110,7 @@ invoked twice or three times per period.
 The interrupt handlers of TeensyTimerTool end with a `dsb` (data synchronization barrier) instruction,
 which waits until all pending writes have reached the peripherals. On a Teensy 4 at 600 MHz, the flag
 reset of a GPT or PIT timer needs 75 … 90 CPU cycles to arrive, depending on the phase of the 24 MHz
-timer clock; the `dsb` waits exactly as long as necessary. The `perf` suite counts the callbacks with
-empty callbacks and varying phases to verify that every period invokes the callback exactly once.
+timer clock; the `dsb` waits exactly as long as necessary.
 
 The same applies to sketches with their own interrupt handlers (`attachInterruptVector()`): reset the
 flag, and end the handler with `asm volatile("dsb");`.

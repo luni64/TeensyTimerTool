@@ -70,7 +70,3 @@ a stopped TMR channel still invoked its callback when another channel of the sam
 destroyed FTM timers (Teensy 3) kept running; PIT periods longer than about 179 µs were limited to 179 µs
 in 1.4.2 and 1.4.3. The complete list is in the
 [changelog](https://github.com/luni64/TeensyTimerTool/releases).
-
-## Not available
-
-Frequency literals (`20Hz`) are still disabled; use the period instead (`50ms`).
