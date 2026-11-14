@@ -128,12 +128,12 @@ E-106: Timer not initialized or available. Did you call begin?
 | `periodOverflow` | -100 | the period or delay is longer than the timer supports; the maximum is used |
 | `prescalerIgnored` | -103 | `setPrescaler()` was called before `begin()` on a timer without prescaler; the timer runs without |
 | **Errors** | | the function could not do its job |
-| `argument` | 100 | invalid argument, e.g. a negative period or an unsupported prescaler value |
-| `callback` | 101 | `begin()` without a valid callback (`nullptr`) |
-| `reload` | 102 | period 0 |
-| `noFreeModule` | 103 | the timer pool has no free timer left |
+| `invalidArgument` | 100 | invalid argument, e.g. a negative period or an unsupported prescaler value |
+| `noCallback` | 101 | `begin()` without a valid callback (`nullptr`) |
+| `zeroPeriod` | 102 | period 0 |
+| `poolExhausted` | 103 | the timer pool has no free timer left |
 | `noFreeChannel` | 104 | the requested timer type has no free channel left |
-| `notImplemented` | 105 | the timer doesn't support this function |
+| `notSupported` | 105 | the timer doesn't support this function |
 | `notInitialized` | 106 | the function needs a timer, but `begin()` wasn't called (or failed) |
 
 Which function returns which code under which condition is listed for every function in the
@@ -149,5 +149,8 @@ Which function returns which code under which condition is listed for every func
   fail, they return `NAN` (or `zero()` for `std::chrono` durations) and report the code to the error
   function.
 - `attachErrFunc()` replaces a previously attached function. `attachErrFunc(nullptr)` removes it.
-- The codes `wrongType` (-101) and `triggeredLate` (-102) are currently not used. Values of 200 and
-  above are reserved for internal errors of the timer modules.
+- Up to version 1.4, some codes had other names: `argument`, `callback`, `reload`, `noFreeModule` and
+  `notImplemented`. These names still compile, with a deprecation warning; see
+  [Upgrading from 1.4](upgrading.md#new-names-of-the-error-codes).
+- The codes -101 and -102 are not used. Values of 200 and above are reserved for internal errors of the
+  timer modules.

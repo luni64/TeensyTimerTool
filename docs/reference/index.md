@@ -28,7 +28,7 @@ exact behaviour.
   not do its job. Every result other than `OK` is also passed to the error function, if one is attached
   (see [Error handling](../error-handling.md)).
 - **Supported timers** lists the timers on which a function works. On the others it returns
-  `errorCode::notImplemented` and doesn't change the timer.
+  `errorCode::notSupported` and doesn't change the timer.
 - **Getters** return seconds as `float`, or the value in the `std::chrono` duration given as template
   parameter.
 - **Examples:** the short examples assume a `PeriodicTimer t1`, a `OneShotTimer t2` and a callback

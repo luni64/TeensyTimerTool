@@ -63,11 +63,11 @@ t1.begin(onTimer, 1s, false);                            // configured, started 
 | `OK` | the timer runs (or is configured, with `start = false`) |
 | `periodOverflow` (warning) | `period` is longer than `getMaxPeriod()`; the timer runs with the maximum period |
 | `prescalerIgnored` (warning) | `setPrescaler()` was called before `begin()` on a timer type without prescaler; the timer runs |
-| `argument` | `period` is negative; or `setPrescaler()` was called before with an invalid value, in this case the timer runs with the default prescaler |
-| `callback` | `callback` is empty (`nullptr`) |
-| `reload` | `period` is 0 |
+| `invalidArgument` | `period` is negative; or `setPrescaler()` was called before with an invalid value, in this case the timer runs with the default prescaler |
+| `noCallback` | `callback` is empty (`nullptr`) |
+| `zeroPeriod` | `period` is 0 |
 | `noFreeChannel` | all channels of the requested timer type are in use |
-| `noFreeModule` | timer pool: no free timer left |
+| `poolExhausted` | timer pool: no free timer left |
 
 Except where noted, the timer is unchanged after an error; a running timer keeps its callback and period.
 
@@ -114,10 +114,10 @@ t1.setPeriod(5ms, PeriodMode::keepElapsed);   // 5 ms, counted from the previous
 |---|---|
 | `OK` | the new period is set |
 | `periodOverflow` (warning) | `period` is longer than `getMaxPeriod()`; the maximum period is used |
-| `argument` | `period` is negative; the timer is unchanged |
-| `reload` | `period` is 0; the timer is unchanged |
+| `invalidArgument` | `period` is negative; the timer is unchanged |
+| `zeroPeriod` | `period` is 0; the timer is unchanged |
 | `notInitialized` | called before `begin()` |
-| `notImplemented` | the timer doesn't support `setPeriod()` or the given mode; the timer is unchanged |
+| `notSupported` | the timer doesn't support `setPeriod()` or the given mode; the timer is unchanged |
 
 **Supported timers:** `restart`: all Teensy 4 timers and the TCK timers. `keepElapsed`: PIT, TMR1 … TMR4,
 TCK, TCK64, TCK_RTC. Not supported: FTM0 … FTM3 (Teensy 3); `keepElapsed` on GPT1, GPT2, RTC.
@@ -164,10 +164,10 @@ t1.setNextPeriod(0.7ms);
 |---|---|
 | `OK` | the new period is set |
 | `periodOverflow` (warning) | `period` is longer than `getMaxPeriod()`; the maximum period is used |
-| `argument` | `period` is negative; the timer is unchanged |
-| `reload` | `period` is 0; the timer is unchanged |
+| `invalidArgument` | `period` is negative; the timer is unchanged |
+| `zeroPeriod` | `period` is 0; the timer is unchanged |
 | `notInitialized` | called before `begin()` |
-| `notImplemented` | the timer doesn't support `setNextPeriod()`; the timer is unchanged |
+| `notSupported` | the timer doesn't support `setNextPeriod()`; the timer is unchanged |
 
 **Supported timers:** PIT, TMR1 … TMR4, TCK, TCK64, TCK_RTC.
 Not supported: GPT1, GPT2, RTC (Teensy 4), FTM0 … FTM3 (Teensy 3).
@@ -186,6 +186,45 @@ Not supported: GPT1, GPT2, RTC (Teensy 4), FTM0 … FTM3 (Teensy 3).
 <!-- tests: api_set_next_period, la_next_period, api_period_zero, api_negative_values,
      api_set_period_before_begin, api_get_period, api_error_posted_once, api_max_period_and_overflow,
      api_period_change_while_stopped -->
+
+---
+
+### resume()
+
+```cpp
+errorCode resume();
+```
+
+Continues a timer stopped with `stop()` with the rest of the interrupted period, as if it had not been
+stopped: the time while stopped doesn't count. The following periods are unchanged. In contrast,
+[`start()`](common.md#start) restarts the period.
+
+```cpp
+t1.begin(onTimer, 10ms);
+// ...
+t1.stop();   // e.g. 3 ms into the period
+// ...
+t1.resume(); // next callback 7 ms from now, then every 10 ms
+```
+
+| Return value | Condition |
+|---|---|
+| `OK` | the timer runs |
+| `notInitialized` | called before `begin()` |
+| `notSupported` | the timer doesn't support `resume()`; the timer is unchanged |
+
+**Supported timers:** PIT, GPT1, GPT2, TMR1 … TMR4, TCK, TCK64, TCK_RTC.
+Not supported: RTC (Teensy 4), FTM0 … FTM3 (Teensy 3).
+
+**Notes**
+
+- Without an interrupted period, `resume()` works like `start()`: after `begin(callback, period, false)`,
+  or if `start()` or `begin()` was called after `stop()`. On a running timer, it has no effect.
+- Period changes while the timer is stopped take effect as on a running timer: after `setPeriod()`,
+  `resume()` starts the new period; after `setNextPeriod()`, the new period follows the rest of the
+  interrupted period.
+
+<!-- tests: api_resume -->
 
 ---
 
@@ -215,7 +254,7 @@ auto  micros  = t1.getPeriod<std::chrono::microseconds>(); // e.g. 100 µs
 |---|---|
 | the period | |
 | `NAN` / `T::zero()`, reports `notInitialized` | called before `begin()` |
-| `NAN` / `T::zero()`, reports `notImplemented` | the timer doesn't support `getPeriod()` |
+| `NAN` / `T::zero()`, reports `notSupported` | the timer doesn't support `getPeriod()` |
 
 **Supported timers:** all Teensy 4 timers, TCK, TCK64. Not supported: FTM0 … FTM3 (Teensy 3).
 

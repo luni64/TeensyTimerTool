@@ -68,7 +68,7 @@ timers are listed in [Choosing a timer](choosing-a-timer.md).
 
 ### Starting and stopping
 
-`stop()` stops the callbacks, `start()` resumes them. The period restarts from the beginning at
+`stop()` stops the callbacks, `start()` starts them again. The period restarts from the beginning at
 `start()`:
 
 ```cpp
@@ -85,13 +85,17 @@ void setup()
     delay(2000);
     t1.stop();  // stop for 2 s
     delay(2000);
-    t1.start(); // resume
+    t1.start(); // start again, with a full period
 }
 
 void loop()
 {
 }
 ```
+
+`resume()` instead continues the interrupted period, as if the timer had not been stopped: a timer
+stopped 30 ms into a 50 ms period invokes its callback 20 ms after `resume()`
+(see [`resume()`](reference/periodic-timer.md#resume); not available for the RTC timer).
 
 To configure a timer without starting it, pass `false` as third argument to `begin()`:
 
@@ -168,7 +172,7 @@ updated every millisecond during acceleration. With the default behaviour, every
 next step by up to one period; with `keepElapsed`, the steps follow the new rate without gaps.
 
 `setNextPeriod()` and `keepElapsed` are supported by the PIT, TMR and TCK timers. The other timers return
-`errorCode::notImplemented`; see [Choosing a timer](choosing-a-timer.md).
+`errorCode::notSupported`; see [Choosing a timer](choosing-a-timer.md).
 
 ## One-shot timers
 
@@ -209,7 +213,7 @@ Behaviour of one-shot timers:
 - `stop()` cancels a pending trigger; the callback is not invoked.
 - `trigger()` may be called from the callback itself to chain delays, e.g. to generate pulse sequences.
 - `trigger(0)` invokes the callback as soon as possible, i.e. after one timer tick.
-- `start()` has no function for one-shot timers and returns `errorCode::notImplemented`.
+- `start()` has no function for one-shot timers and returns `errorCode::notSupported`.
 
 ## Querying the timer
 
@@ -225,7 +229,7 @@ differ slightly from the requested one: every timer counts ticks of its clock, s
 whole ticks (see [Resolution and rounding](choosing-a-timer.md#resolution-and-rounding)).
 
 `getPeriod()` and `getResolution()` are available for all Teensy 4 timers, `getRemainingTime()` for the
-PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `errorCode::notImplemented`.
+PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `errorCode::notSupported`.
 
 ## Arrays and containers of timers
 

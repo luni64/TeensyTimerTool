@@ -14,16 +14,18 @@ job with a restriction), positive values are errors (the function could not do i
 | `OK` | 0 | success | all |
 | `periodOverflow` | -100 | period or delay too long, the maximum is used | `begin()`, `setPeriod()`, `setNextPeriod()`, `trigger()`, `triggerDirect()`, `getTriggerReload()` |
 | `prescalerIgnored` | -103 | `setPrescaler()` before `begin()` on a timer without prescaler | `begin()` |
-| `argument` | 100 | invalid argument (negative period or delay, invalid prescaler) | `begin()`, `setPeriod()`, `setNextPeriod()`, `trigger()`, `setPrescaler()` |
-| `callback` | 101 | empty callback (`nullptr`) | `begin()` |
-| `reload` | 102 | period 0 | `begin()` (periodic), `setPeriod()`, `setNextPeriod()` |
-| `noFreeModule` | 103 | the timer pool has no free timer | `begin()` |
+| `invalidArgument` | 100 | invalid argument (negative period or delay, invalid prescaler) | `begin()`, `setPeriod()`, `setNextPeriod()`, `trigger()`, `setPrescaler()` |
+| `noCallback` | 101 | empty callback (`nullptr`) | `begin()` |
+| `zeroPeriod` | 102 | period 0 | `begin()` (periodic), `setPeriod()`, `setNextPeriod()` |
+| `poolExhausted` | 103 | the timer pool has no free timer | `begin()` |
 | `noFreeChannel` | 104 | the requested timer type has no free channel | `begin()` |
-| `notImplemented` | 105 | the timer doesn't support the function | see [Timer types](timer-types.md#supported-functions) |
+| `notSupported` | 105 | the timer doesn't support the function | see [Timer types](timer-types.md#supported-functions) |
 | `notInitialized` | 106 | called before `begin()` | all functions except `begin()`, `end()`, `setPrescaler()`, `OneShotTimer::start()` |
 
-`wrongType` (-101) and `triggeredLate` (-102) are currently not used; values of 200 and above are reserved
-for internal errors of the timer modules.
+The names of version 1.4 (`argument`, `callback`, `reload`, `noFreeModule`, `notImplemented`) are
+deprecated aliases of `invalidArgument`, `noCallback`, `zeroPeriod`, `poolExhausted` and `notSupported`.
+The codes -101 and -102 are not used; values of 200 and above are reserved for internal errors of the
+timer modules.
 
 ---
 

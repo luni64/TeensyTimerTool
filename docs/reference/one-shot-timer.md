@@ -52,11 +52,11 @@ t2.begin([] { digitalWriteFast(LED_BUILTIN, LOW); }); // lambda expression as ca
 |---|---|
 | `OK` | the timer is ready |
 | `prescalerIgnored` (warning) | `setPrescaler()` was called before `begin()` on a timer type without prescaler |
-| `argument` | `setPrescaler()` was called before with an invalid value; the default prescaler is used |
-| `callback` | `callback` is empty (`nullptr`) |
+| `invalidArgument` | `setPrescaler()` was called before with an invalid value; the default prescaler is used |
+| `noCallback` | `callback` is empty (`nullptr`) |
 | `noFreeChannel` | all channels of the requested timer type are in use |
-| `noFreeModule` | timer pool: no free timer left |
-| `notImplemented` | the timer type doesn't support one-shot use (RTC) |
+| `poolExhausted` | timer pool: no free timer left |
+| `notSupported` | the timer type doesn't support one-shot use (RTC) |
 
 **Supported timers:** all except RTC.
 
@@ -92,7 +92,7 @@ t2.trigger(1.5s);  // callback in 1.5 s
 |---|---|
 | `OK` | the timer runs |
 | `periodOverflow` (warning) | `delay` is longer than `getMaxPeriod()`; the maximum delay is used |
-| `argument` | `delay` is negative; no callback |
+| `invalidArgument` | `delay` is negative; no callback |
 | `notInitialized` | called before `begin()` |
 
 **Supported timers:** all except RTC.
@@ -137,7 +137,7 @@ t2.triggerDirect(reload);         // callback in 20 µs
 | `OK` | the timer runs |
 | `periodOverflow` (warning) | `reload` exceeds the counter of the timer (TMR: 0xFFFE); the maximum is used |
 | `notInitialized` | called before `begin()` |
-| `notImplemented` | the timer doesn't support `triggerDirect()` with this type of `reload` |
+| `notSupported` | the timer doesn't support `triggerDirect()` with this type of `reload` |
 
 **Supported timers:** PIT, GPT1, GPT2, TMR1 … TMR4, TCK (`uint32_t`), TCK64, TCK_RTC (`uint64_t`), FTM0 … FTM3.
 
@@ -171,7 +171,7 @@ t2.getTriggerReload(20, &reload); // 20 µs in timer ticks
 | `OK` | `*reload` is set |
 | `periodOverflow` (warning) | `delay` is longer than `getMaxPeriod()`; `*reload` is the maximum |
 | `notInitialized` | called before `begin()` |
-| `notImplemented` | the timer doesn't support it with this type of `reload` |
+| `notSupported` | the timer doesn't support it with this type of `reload` |
 
 **Supported timers:** as `triggerDirect()`.
 
@@ -185,7 +185,7 @@ t2.getTriggerReload(20, &reload); // 20 µs in timer ticks
 errorCode start();
 ```
 
-Has no function for one-shot timers; use `trigger()`. Always returns `notImplemented`; the timer is not
+Has no function for one-shot timers; use `trigger()`. Always returns `notSupported`; the timer is not
 changed.
 
 <!-- tests: api_one_shot_start -->

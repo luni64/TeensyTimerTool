@@ -12,7 +12,9 @@ errorCode start();
 ```
 
 Starts a stopped periodic timer, or a timer configured with `begin(callback, period, false)`. The period
-starts from the beginning. For one-shot timers, see [`OneShotTimer::start()`](one-shot-timer.md#start).
+starts from the beginning; to continue the interrupted period instead, use
+[`resume()`](periodic-timer.md#resume). For one-shot timers, see
+[`OneShotTimer::start()`](one-shot-timer.md#start).
 
 ```cpp
 t1.begin(onTimer, 100ms, false); // configured, not running
@@ -105,8 +107,8 @@ t1.begin(onTimer, 24h);
 | Return value | Condition |
 |---|---|
 | `OK` | the prescaler is set; before `begin()`: the value is stored |
-| `argument` | invalid value for this timer, e.g. `PSC_256` on a TMR timer or `PSC_AUTO`; the prescaler is unchanged |
-| `notImplemented` | the timer has no prescaler |
+| `invalidArgument` | invalid value for this timer, e.g. `PSC_256` on a TMR timer or `PSC_AUTO`; the prescaler is unchanged |
+| `notSupported` | the timer has no prescaler |
 
 **Supported timers:** TMR1 … TMR4 (`PSC_1` … `PSC_128`), GPT1, GPT2 (`PSC_1` … `PSC_4096`).
 
@@ -179,7 +181,7 @@ float tick = t1.getResolution(); // seconds, e.g. 0.0000000417 for the PIT
 |---|---|
 | the tick period | |
 | `NAN` / `T::zero()`, reports `notInitialized` | called before `begin()` |
-| `NAN` / `T::zero()`, reports `notImplemented` | the timer doesn't support it |
+| `NAN` / `T::zero()`, reports `notSupported` | the timer doesn't support it |
 
 **Supported timers:** all Teensy 4 timers, TCK, TCK64. Not supported: FTM0 … FTM3 (Teensy 3).
 
@@ -205,7 +207,7 @@ float remaining = t2.getRemainingTime(); // seconds until the callback of the on
 |---|---|
 | the remaining time | |
 | `NAN` / `T::zero()`, reports `notInitialized` | called before `begin()` |
-| `NAN` / `T::zero()`, reports `notImplemented` | the timer doesn't support it |
+| `NAN` / `T::zero()`, reports `notSupported` | the timer doesn't support it |
 
 **Supported timers:** PIT, GPT1, GPT2, TMR1 … TMR4, TCK, TCK64, TCK_RTC. Not supported: RTC, FTM0 … FTM3.
 

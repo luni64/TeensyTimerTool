@@ -255,6 +255,6 @@ The example [Prescaler](examples/index.md) shows more details.
 
 On a running timer, a new prescaler takes effect immediately; the period keeps its number of ticks until
 the next `setPeriod()`, i.e. it changes with the prescaler. The other timers have no prescaler and return
-`errorCode::notImplemented`. The default prescaler of all TMR timers can be changed in the
+`errorCode::notSupported`. The default prescaler of all TMR timers can be changed in the
 [configuration](configuration.md); the FTM prescalers of Teensy 3 are set there as well.
 

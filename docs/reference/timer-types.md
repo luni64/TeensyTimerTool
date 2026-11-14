@@ -31,12 +31,13 @@ changed in the [configuration](../configuration.md#number-of-software-timers).
 | `setPeriod()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – |
 | `setPeriod(…, keepElapsed)` | – | ✓ | ✓ | – | ✓ | ✓ | – |
 | `setNextPeriod()` | – | ✓ | ✓ | – | ✓ | ✓ | – |
+| `resume()` | ✓ | ✓ | ✓ | – | ✓ | ✓ | – |
 | `setPrescaler()` | ✓ | ✓ | – | – | – | – | – |
 | `triggerDirect()`, `getTriggerReload()` | ✓ | ✓ | ✓ | – | ✓ | ✓ | ✓ |
 | `getPeriod()`, `getResolution()` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | – |
 | `getRemainingTime()` | ✓ | ✓ | ✓ | – | ✓ | ✓ | – |
 
-Unsupported functions return `errorCode::notImplemented` (getters: `NAN`) and don't change the timer.
+Unsupported functions return `errorCode::notSupported` (getters: `NAN`) and don't change the timer.
 `begin()`, `start()`, `stop()`, `end()` and `getMaxPeriod()` are supported by all timers.
 
 ## Timer pool

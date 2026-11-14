@@ -36,16 +36,29 @@ rounded up to the next 2⁻ⁿ s as documented (1 ms gives 1.95 ms; 1.4 gave 976
 
 ### Defined return codes for invalid arguments
 
-- Negative periods and delays return `errorCode::argument`, period 0 returns `errorCode::reload`. The
+- Negative periods and delays return `errorCode::invalidArgument`, period 0 returns `errorCode::zeroPeriod`. The
   timer is unchanged in both cases.
-- `OneShotTimer::start()` returns `errorCode::notImplemented` and doesn't invoke the callback (in 1.4,
+- `OneShotTimer::start()` returns `errorCode::notSupported` and doesn't invoke the callback (in 1.4,
   it invoked the callback).
 - Too long periods return the warning `errorCode::periodOverflow` on all timers (in 1.4 only TMR); the
   timer runs with its maximum period.
 - `begin()` after `setPrescaler()` on a timer without prescaler returns the warning
-  `errorCode::prescalerIgnored` instead of the error `notImplemented`; the timer runs in both cases.
+  `errorCode::prescalerIgnored` instead of the error `notSupported`; the timer runs in both cases.
 - The error function attached with `attachErrFunc()` is called exactly once per failed call (some calls
   invoked it twice).
+
+### New names of the error codes
+
+Some error codes have new, more descriptive names. The values are unchanged, and the old names still
+compile, with a deprecation warning:
+
+| Name up to 1.4 | Name from 1.5 |
+|---|---|
+| `errorCode::argument` | `errorCode::invalidArgument` |
+| `errorCode::callback` | `errorCode::noCallback` |
+| `errorCode::reload` | `errorCode::zeroPeriod` |
+| `errorCode::noFreeModule` | `errorCode::poolExhausted` |
+| `errorCode::notImplemented` | `errorCode::notSupported` |
 
 ### `TMR_DEFAULT_PSC`
 
@@ -58,6 +71,8 @@ A value outside `PSC_1` … `PSC_128` in the configuration is a compile error; i
 - `getPeriod()`, `getResolution()`: the period and tick actually used. `getRemainingTime()` for PIT,
   GPT and TMR timers (TCK only in 1.4).
 - All getters optionally return `std::chrono` durations: `t1.getPeriod<std::chrono::microseconds>()`.
+- `resume()`: continues a stopped periodic timer with the rest of the interrupted period (`start()`
+  restarts the period).
 - `end()`: stops a timer and releases its channel.
 - Timers can be moved and kept in containers.
 - `OneShotTimer::stop()` cancels a pending trigger.
