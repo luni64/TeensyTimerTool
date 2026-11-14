@@ -16,7 +16,7 @@ void callback()
     digitalWriteFast(LED_BUILTIN, !digitalReadFast(LED_BUILTIN));
 }
 
-PeriodicTimer t1; // generate a timer from the pool (Pool: 2xGPT, 16xTMR(QUAD), 20xTCK)
+PeriodicTimer t1; // takes the next free timer from the timer pool (see defaultConfig.h)
 
 void setup()
 {

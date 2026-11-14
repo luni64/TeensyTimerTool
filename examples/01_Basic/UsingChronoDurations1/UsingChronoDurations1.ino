@@ -14,13 +14,6 @@ void isr2()
     digitalToggleFast(LED_BUILTIN);
 }
 
-void isr3()
-{
-    digitalWriteFast(0,HIGH);
-    delayMicroseconds(10);
-    digitalWriteFast(0, LOW);
-}
-
 void setup()
 {
     pinMode(LED_BUILTIN, OUTPUT);
