@@ -30,7 +30,7 @@ void loop()
 - **[Manual](https://luni64.github.io/TeensyTimerTool/)**: getting started, usage, choosing a timer,
   callbacks, configuration, complete API reference
 - **[Upgrading from 1.4](https://luni64.github.io/TeensyTimerTool/upgrading/)**: changes in version 1.5
-- **[Change history](https://github.com/luni64/TeensyTimerTool/releases)**: release notes of all versions
+- **[Changelog](https://luni64.github.io/TeensyTimerTool/changelog/)**: the changes of all versions since 0.1.0
 - **[Examples](examples)**: every example folder contains a README explaining what the example shows
 - **[Forum thread](https://forum.pjrc.com/threads/59112-TeensyTimerTool)** on the PJRC forum
 

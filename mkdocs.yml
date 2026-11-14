@@ -36,6 +36,7 @@ nav:
       - Timer types: reference/timer-types.md
       - Errors and other functions: reference/errors.md
   - Upgrading from 1.4: upgrading.md
+  - Changelog: changelog.md
 
 theme:
   name: material
