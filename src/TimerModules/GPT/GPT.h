@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GPTChannel.h"
-//#include "Arduino.h"
 
 namespace TeensyTimerTool
 {

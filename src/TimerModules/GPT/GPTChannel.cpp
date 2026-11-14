@@ -2,7 +2,6 @@
 
 #include "GPTChannel.h"
 #include "GPT.h"
-//#include "Arduino.h"
 
 namespace TeensyTimerTool
 {

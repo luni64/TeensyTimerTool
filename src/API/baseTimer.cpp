@@ -1,5 +1,4 @@
 #include "baseTimer.h"
-//#include "Arduino.h"
 #include "types.h"
 
 namespace TeensyTimerTool

@@ -144,11 +144,3 @@ and functors don't compile. See [Callbacks](callbacks.md#the-callback-type).
 
 Enables periods and delays as `std::chrono` durations (`250ms`, `1.5s` …) and the getters with units.
 When removed, periods and delays are given in microseconds only.
-
-### Advanced features
-
-```cpp
-//   #define ENABLE_ADVANCED_FEATURES
-```
-
-Reserved; currently without effect.

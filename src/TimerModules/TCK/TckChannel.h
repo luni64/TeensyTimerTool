@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "TckChannelBase.h"
 

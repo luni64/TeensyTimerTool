@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "Arduino.h"
 #include "TckChannel.h"
 #include "core_pins.h"
 

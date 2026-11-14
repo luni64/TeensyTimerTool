@@ -1,6 +1,5 @@
 #pragma once
 #include "../../ITimerChannel.h"
-//#include "Arduino.h"
 #include "ErrorHandling/error_codes.h"
 #include "config.h"
 #include "imxrt.h"
@@ -54,7 +53,6 @@ namespace TeensyTimerTool
 
         inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
         inline void startTrigger(uint16_t reload);
-        inline float_t counterToMicrosecond(const float_t cnt) const;
     };
 
     // IMPLEMENTATION ==============================================
@@ -205,27 +203,6 @@ namespace TeensyTimerTool
         return status;
     }
 
-    // errorCode TMRChannel::_setCurrentPeriod(const uint16_t cnt)
-    // {
-
-    //     regs->COMP1 = cnt;
-
-    //     //Do we need to wait some cycle for IP bus to update here / cache flush?
-    //     //asm volatile("dsb");
-
-    //     if (regs->CNTR > cnt)
-    //     {
-    //         //if counter alrready went over setted value force a triggering
-    //         regs->CNTR = cnt;
-    //         return errorCode::triggeredLate;
-    //     }
-
-    //     else
-    //     {
-    //         return errorCode::OK;
-    //     }
-    // }
-
     errorCode TMRChannel::setPeriod(float us) // restart: the new period starts now
     {
         uint16_t newReload;
@@ -273,11 +250,6 @@ namespace TeensyTimerTool
         }
         *reload = ticks < 2.0f ? 0 : (uint16_t)ticks - 1;
         return errorCode::OK;
-    }
-
-    float_t TMRChannel::counterToMicrosecond(const float_t cnt) const
-    {
-        return cnt / ticksPerUs;
     }
 
 } // namespace TeensyTimerTool

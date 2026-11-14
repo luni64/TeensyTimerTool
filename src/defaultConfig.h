@@ -86,9 +86,4 @@ namespace TeensyTimerTool
     #define USE_TIME_LITERALS
 
 
-//--------------------------------------------------------------------------------------------
-// Advanced Features
-// Uncomment if you need access to advanced features
-
-//   #define ENABLE_ADVANCED_FEATURES
 }
