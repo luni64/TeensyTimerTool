@@ -11,22 +11,23 @@ namespace TeensyTimerTool
     {
      public:
         virtual errorCode begin(callback_t callback, float period, bool oneShot) = 0;
-        virtual errorCode trigger(float delay)    {return errorCode::notImplemented;} 
-        virtual errorCode triggerDirect(uint32_t reload) { return errorCode::notImplemented; };
-        virtual errorCode triggerDirect(uint64_t reload) { return errorCode::notImplemented; };
-        virtual errorCode getTriggerReload(float delay, uint32_t *reload) { return errorCode::notImplemented; };
-        virtual errorCode getTriggerReload(float delay, uint64_t *reload) { return errorCode::notImplemented; };
+        virtual errorCode trigger(float delay)    {return errorCode::notSupported;} 
+        virtual errorCode triggerDirect(uint32_t reload) { return errorCode::notSupported; };
+        virtual errorCode triggerDirect(uint64_t reload) { return errorCode::notSupported; };
+        virtual errorCode getTriggerReload(float delay, uint32_t *reload) { return errorCode::notSupported; };
+        virtual errorCode getTriggerReload(float delay, uint64_t *reload) { return errorCode::notSupported; };
 
         virtual errorCode start() = 0;
         virtual errorCode stop()  = 0;
+        virtual errorCode resume() { return errorCode::notSupported; } // periodic: continue the period interrupted by stop()
 
-        virtual errorCode setPrescaler(int psc) { return errorCode::notImplemented; }
+        virtual errorCode setPrescaler(int psc) { return errorCode::notSupported; }
 
         virtual float getMaxPeriod() const = 0;
         virtual float getRemainingTime() const { return NAN; } // NAN: not implemented
-        virtual errorCode setPeriod(float microSeconds) { return errorCode::notImplemented; };     // restarts the current period
-        virtual errorCode setPeriodKeepElapsed(float microSeconds) { return errorCode::notImplemented; }; // elapsed time counts (fires at once if already past)
-        virtual errorCode setNextPeriod(float microSeconds) { return errorCode::notImplemented; };
+        virtual errorCode setPeriod(float microSeconds) { return errorCode::notSupported; };     // restarts the current period
+        virtual errorCode setPeriodKeepElapsed(float microSeconds) { return errorCode::notSupported; }; // elapsed time counts (fires at once if already past)
+        virtual errorCode setNextPeriod(float microSeconds) { return errorCode::notSupported; };
         virtual double getPeriod() const { return NAN; }     // seconds, latest period set (rounded to ticks); NAN: not implemented
         virtual double getResolution() const { return NAN; } // seconds, one timer tick (current prescaler); NAN: not implemented
 

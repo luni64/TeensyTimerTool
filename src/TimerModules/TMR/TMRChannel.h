@@ -19,6 +19,7 @@ namespace TeensyTimerTool
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
+        inline errorCode resume() override;
 
         inline errorCode trigger(float tcnt) override;
         inline errorCode triggerDirect(uint32_t reload) override; // reload 0..0xFFFE (compare value, period = reload + 1 ticks)
@@ -46,6 +47,10 @@ namespace TeensyTimerTool
         inline void updateClock() { ticksPerUs = F_BUS_ACTUAL / 1E6f / pscValue; } // begin(), setPrescaler(): F_BUS follows F_CPU
         uint32_t pscBits;
         uint16_t nextReload = 0; // RAM copy of CMPLD1, the latest period set; start() makes it the current one
+        bool running        = false; // periodic timer started
+        bool resumable      = false; // stop() froze the counter in a period, resume() continues it
+        inline uint16_t ctrlPeriodic() const { return TMR_CTRL_CM(1) | TMR_CTRL_PCS(pscBits) | TMR_CTRL_LENGTH; }
+        inline uint16_t ctrlFrozen() const { return TMR_CTRL_PCS(pscBits) | TMR_CTRL_LENGTH; } // CM = 0: no counting; != 0: channel in use
 
         inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
         inline void startTrigger(uint16_t reload);
@@ -71,12 +76,32 @@ namespace TeensyTimerTool
         regs->COMP1  = nextReload;
         regs->CNTR   = 0x0000;
         regs->CSCTRL = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1, no read-modify-write (slow peripheral reads)
+        regs->CTRL   = ctrlPeriodic();                        // counting (stop() froze the counter)
+        running      = true;
+        resumable    = false;
         return errorCode::OK;
     }
 
     errorCode TMRChannel::stop()
     {
+        if (running)
+        {
+            regs->CTRL = ctrlFrozen(); // freeze the counter in the current period for resume()
+            resumable  = true;
+            running    = false;
+        }
         regs->CSCTRL = TMR_CSCTRL_CL1(1); // disable the interrupt, clear TCF1
+        return errorCode::OK;
+    }
+
+    errorCode TMRChannel::resume() // the counter continues where stop() froze it, COMP1 / CMPLD1 as set meanwhile
+    {
+        if (running) return errorCode::OK;
+        if (!resumable) return start();
+        regs->CSCTRL = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN;
+        regs->CTRL   = ctrlPeriodic();
+        running      = true;
+        resumable    = false;
         return errorCode::OK;
     }
 
@@ -91,6 +116,8 @@ namespace TeensyTimerTool
         regs->COMP1  = reload;
         regs->CMPLD1 = reload;
         nextReload   = reload;
+        running      = false;
+        resumable    = false;
         regs->CNTR   = 0x0000;
         regs->CSCTRL = TMR_CSCTRL_CL1(1);
         *pOneShot    = !periodic;
@@ -149,7 +176,7 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::setPrescaler(int psc) // psc 0..7 -> prescaler: 1..128
     {
-        if (psc < PSC_1 || psc > PSC_128) return errorCode::argument; // PSC_AUTO not supported for TMR
+        if (psc < PSC_1 || psc > PSC_128) return errorCode::invalidArgument; // PSC_AUTO not supported for TMR
 
         pscValue   = 1 << psc;
         updateClock();

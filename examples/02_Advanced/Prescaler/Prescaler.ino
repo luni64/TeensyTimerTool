@@ -9,7 +9,7 @@
 //        default: PSC_1
 //
 // Periods are rounded to the nearest tick. PIT, TCK and RTC timers have no prescaler
-// (setPrescaler() returns errorCode::notImplemented).
+// (setPrescaler() returns errorCode::notSupported).
 //
 // Pin 0: 10 µs period with PSC_1   -> exactly 10 µs (pin toggles every 10 µs, i.e. 50 kHz)
 // Pin 1: 10 µs period with PSC_128 -> 10.24 µs (12 ticks of 0.853 µs)
@@ -48,7 +48,7 @@ void setup()
 
     // invalid prescaler values are rejected, the timer keeps its prescaler
     errorCode err = coarse.setPrescaler(PSC_256); // TMR: PSC_128 max
-    Serial.printf("TMR setPrescaler(PSC_256): %s\n", err == errorCode::argument ? "errorCode::argument" : "?");
+    Serial.printf("TMR setPrescaler(PSC_256): %s\n", err == errorCode::invalidArgument ? "errorCode::invalidArgument" : "?");
 }
 
 void loop()

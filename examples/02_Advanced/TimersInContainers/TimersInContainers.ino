@@ -11,7 +11,7 @@
 //
 // No hardware needed: every second the sketch prints how often each pin toggled. With an LED or a scope
 // on the pins you see the same. Each 'a' takes a timer from the timer pool (see defaultConfig.h);
-// when the pool is empty, begin() returns errorCode::noFreeModule. A period longer than the timer allows
+// when the pool is empty, begin() returns errorCode::poolExhausted. A period longer than the timer allows
 // gives the warning errorCode::periodOverflow, the timer then runs with its max. period (T3.x: the pool
 // starts with the FTM timers, max. ~35 ms, so already the 250 ms LED at startup is clipped).
 
@@ -51,7 +51,7 @@ void addBlinker(unsigned pin, float ms)
     // invalid as soon as the vector reallocates or an element in front of it is erased.
     errorCode err = blinkers.back().timer.begin([pin] { digitalWriteFast(pin, !digitalReadFast(pin)); toggles[pin]++; }, ms * 1000);
 
-    if (err == errorCode::noFreeModule)
+    if (err == errorCode::poolExhausted)
     {
         blinkers.pop_back();
         Serial.println("no free timer left in the pool");

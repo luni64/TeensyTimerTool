@@ -17,6 +17,7 @@ namespace TeensyTimerTool
         inline errorCode begin(callback_t cb, float period, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
+        inline errorCode resume() override;
 
         inline errorCode trigger(float delay_us) override;
         inline errorCode triggerDirect(counter_t reload) override;
@@ -43,9 +44,11 @@ namespace TeensyTimerTool
         inline errorCode us2ticks(float us, counter_t *ticks) const; // clamps to the max period, at least one tick
         callback_t callback;
         counter_t startCnt, currentPeriod, nextPeriod;
+        counter_t elapsedAtStop = 0; // part of the current period elapsed before stop(), for resume()
 
         bool periodic;
         bool triggered;
+        bool resumable = false;
     };
 
     // IMPLEMENTATION ==============================================
@@ -60,6 +63,7 @@ namespace TeensyTimerTool
     errorCode TckChannel<tckCounter>::begin(callback_t cb, float period, bool periodic)
     {
         this->triggered = false;
+        this->resumable = false;
 
         this->periodic   = periodic;
         errorCode status = errorCode::OK;
@@ -77,15 +81,32 @@ namespace TeensyTimerTool
     errorCode TckChannel<tckCounter>::start() // the first period is the latest one set
     {
         this->currentPeriod = this->nextPeriod;
-        this->startCnt  = tckCounter::getCount();
-        this->triggered = true;
+        this->startCnt      = tckCounter::getCount();
+        this->triggered     = true;
+        this->resumable     = false;
         return errorCode::OK;
     }
 
     template <typename tckCounter>
     errorCode TckChannel<tckCounter>::stop()
     {
+        if (this->triggered && this->periodic)
+        {
+            this->elapsedAtStop = tckCounter::getCount() - this->startCnt;
+            this->resumable     = true;
+        }
         this->triggered = false;
+        return errorCode::OK;
+    }
+
+    template <typename tckCounter>
+    errorCode TckChannel<tckCounter>::resume() // the time while stopped doesn't count
+    {
+        if (this->triggered) return errorCode::OK;
+        if (!this->resumable) return start();
+        this->startCnt  = tckCounter::getCount() - this->elapsedAtStop;
+        this->triggered = true;
+        this->resumable = false;
         return errorCode::OK;
     }
 
@@ -128,6 +149,7 @@ namespace TeensyTimerTool
         startCnt         = tckCounter::getCount();
         currentPeriod    = newPeriod;
         nextPeriod       = newPeriod;
+        elapsedAtStop    = 0; // stopped: resume() starts the new period
         return status;
     }
 

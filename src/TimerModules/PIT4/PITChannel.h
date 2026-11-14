@@ -16,6 +16,7 @@ namespace TeensyTimerTool
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
+        inline errorCode resume() override;
 
         inline errorCode trigger(float) override;
         inline errorCode triggerDirect(uint32_t reload) override;
@@ -51,6 +52,8 @@ namespace TeensyTimerTool
         uint32_t ldval     = 0; // LDVAL, i.e. reload of the following periods
         uint32_t curReload = 0; // reload of the current period (LDVAL itself may already hold the next one)
         bool running       = false; // periodic timer started (TCTRL.TEN), avoids reading TCTRL
+        bool resumable     = false; // stop() interrupted a period, resume() continues it
+        uint32_t rest      = 0;     // CVAL at stop(): the interrupted period has rest + 1 ticks left
 
         const unsigned chNr;
         callback_t callback = nullptr;
@@ -80,6 +83,7 @@ namespace TeensyTimerTool
             IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
             IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
             running                        = false;
+            resumable                      = false;
             status                         = setNextPeriod(micros);
         }
         return status;
@@ -105,14 +109,34 @@ namespace TeensyTimerTool
         curReload                      = ldval;
         IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE; // TEN loads LDVAL: the first period is the latest one set
         running                        = true;
+        resumable                      = false;
         return errorCode::OK;
     }
 
     errorCode PITChannel::stop()
     {
-        IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
-        IMXRT_PIT_CHANNELS[chNr].TFLG  = 1; // a flag set just before would call this callback when another channel fires
-        running                        = false;
+        auto &ch = IMXRT_PIT_CHANNELS[chNr];
+        if (running && isPeriodic) // remember the rest of the period for resume(); CVAL is undefined once disabled
+        {
+            rest      = ch.CVAL;
+            resumable = true;
+        }
+        ch.TCTRL = 0;
+        ch.TFLG  = 1; // a flag set just before would call this callback when another channel fires
+        running  = false;
+        return errorCode::OK;
+    }
+
+    errorCode PITChannel::resume() // same mechanism as setPeriodKeepElapsed(): LDVAL = rest, start, LDVAL = period
+    {
+        if (running) return errorCode::OK;
+        if (!resumable) return start();
+        auto &ch  = IMXRT_PIT_CHANNELS[chNr];
+        ch.LDVAL  = rest;
+        ch.TCTRL  = PIT_TCTRL_TEN | PIT_TCTRL_TIE; // loads LDVAL (the rest)
+        ch.LDVAL  = ldval;                         // following periods
+        running   = true;                          // curReload stays: the interrupted period continues
+        resumable = false;
         return errorCode::OK;
     }
 
@@ -127,7 +151,11 @@ namespace TeensyTimerTool
 
     errorCode PITChannel::setPeriod(float us) // a stopped timer stays stopped, start() uses the new period
     {
-        if (!running) return setNextPeriod(us);
+        if (!running)
+        {
+            resumable = false; // the new period starts with resume() / start()
+            return setNextPeriod(us);
+        }
         stop(); // need to stop/start timer to change current period (see ch 53.9.5.4)
         errorCode status = setNextPeriod(us);
         start();
@@ -141,8 +169,14 @@ namespace TeensyTimerTool
         auto &ch         = IMXRT_PIT_CHANNELS[chNr];
         if (!running)
         {
+            if (resumable) // the elapsed part of the interrupted period counts for resume()
+            {
+                uint32_t elapsed = curReload - rest;
+                rest             = elapsed >= reload ? 0 : reload - elapsed;
+                curReload        = reload;
+            }
             ldval    = reload;
-            ch.LDVAL = reload; // not running: start() starts the new period
+            ch.LDVAL = reload; // start() starts the new period
             return status;
         }
         uint32_t elapsed = curReload - ch.CVAL;                // ticks since the period started

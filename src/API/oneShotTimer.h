@@ -32,7 +32,7 @@ namespace TeensyTimerTool
 
     errorCode OneShotTimer::start()
     {
-        return postError(errorCode::notImplemented);
+        return postError(errorCode::notSupported);
     }
 
     template <typename period_t>
@@ -40,7 +40,7 @@ namespace TeensyTimerTool
     {
         if (timerChannel == nullptr) return postError(errorCode::notInitialized);
         float us = period2us(delay);
-        if (us < 0) return postError(errorCode::argument);
+        if (us < 0) return postError(errorCode::invalidArgument);
         return postError(timerChannel->trigger(us));
     }
 
