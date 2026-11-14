@@ -19,19 +19,51 @@ namespace TeensyTimerTool
     class BaseTimer
     {
      public:
+        /// @brief PeriodicTimer: allocates a timer channel (first call), sets the callback and the period and starts the timer.
+        /// @details Called on a running timer, it restarts it with the new callback and period.
+        /// @param callback function to invoke: plain function, lambda expression or functor, e.g. `[] { digitalToggleFast(13); }`
+        /// @param period period in µs (e.g. 500, 12.5) or as std::chrono duration (e.g. 250ms, 1.5s)
+        /// @param start true (default): start now; false: start later with start()
+        /// @return OK; periodOverflow (warning, max. period used); invalidArgument; noCallback; zeroPeriod;
+        ///         noFreeChannel (timer type in use); poolExhausted (no free timer in the pool)
         template <typename period_t>
         inline errorCode begin(callback_t callback, period_t period, bool start = true);
-        errorCode setPrescaler(int psc); // TMR (PSC_1..PSC_128) and GPT (PSC_1..PSC_4096), others: notImplemented; applied at begin() if called before
+        /// @brief Sets the prescaler, which divides the timer clock: longer max. period, coarser resolution.
+        /// @details Before begin(): stored and applied by begin(). On a running timer: takes effect immediately,
+        /// the period keeps its number of ticks until the next setPeriod().
+        /// @param psc PSC_1, PSC_2 … PSC_128 (TMR), … PSC_4096 (GPT)
+        /// @return OK; invalidArgument (value not valid for this timer); notSupported (timer without prescaler)
+        errorCode setPrescaler(int psc);
+
+        /// @brief Stops the timer and releases its channel for other timers; a later begin() allocates a new one.
+        /// @return OK (always)
         inline errorCode end();
+
+        /// @brief Starts a stopped periodic timer (or one set up with begin(…, false)); the period starts from the beginning.
+        /// @details To continue the interrupted period instead, use PeriodicTimer::resume().
+        /// OneShotTimer: use trigger() instead.
+        /// @return OK; notInitialized (before begin()); OneShotTimer: notSupported
         inline errorCode start();
+
+        /// @brief Stops the timer: no further callbacks. On a one-shot timer, a pending trigger is cancelled.
+        /// @details The timer keeps its channel and settings; start(), resume() or trigger() use it again.
+        /// @return OK (also if not running); notInitialized (before begin())
         inline errorCode stop();
 
-        // Getters return seconds as float by default, or any std::chrono::duration, e.g.
-        // getMaxPeriod<std::chrono::microseconds>() (integer durations are rounded to the nearest unit).
-        // On errors: NAN for float/double, zero() for durations; the error is posted.
+        /// @brief Returns the longest period or delay the timer supports with its current prescaler.
+        /// @tparam T float (default, seconds), double, or a std::chrono duration, e.g. getMaxPeriod<std::chrono::milliseconds>()
+        /// @return the max. period; NAN / zero() if called before begin()
         template <typename T = float> T getMaxPeriod() const;
-        template <typename T = float> T getRemainingTime() const; // time to the next callback, 0 if due / none pending
-        template <typename T = float> T getResolution() const;    // one timer tick (with the current prescaler)
+
+        /// @brief Returns the time until the next callback; 0 if none is pending (stopped, one-shot fired).
+        /// @tparam T float (default, seconds), double, or a std::chrono duration
+        /// @return the remaining time; NAN / zero() before begin() or if not supported (RTC, FTM)
+        template <typename T = float> T getRemainingTime() const;
+
+        /// @brief Returns the duration of one timer tick with the current prescaler, e.g. 41.7 ns for the PIT.
+        /// @tparam T float (default, seconds), double, or a std::chrono duration, e.g. getResolution<std::chrono::duration<double, std::nano>>()
+        /// @return the tick duration; NAN / zero() before begin() or if not supported (FTM)
+        template <typename T = float> T getResolution() const;
 
         // A timer owns its channel: no copies (the channel would be released twice), but timers can be
         // moved (e.g. stored in a std::vector). The moved-from timer is empty, begin() allocates a new channel.

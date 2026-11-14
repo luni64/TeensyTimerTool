@@ -11,16 +11,24 @@
 namespace TeensyTimerTool
 {
     #if defined(USE_MODERN_CALLBACKS)
+        /// Callback of the timers: function, lambda expression (captures up to 32 bytes) or functor, signature void()
         using callback_t  = stdext::inplace_function<void(void)>;
+        /// Error function for attachErrFunc(): function, lambda expression or functor, signature void(errorCode)
         using errorFunc_t = stdext::inplace_function<void(errorCode)>;
 
-        extern void attachErrFunc(errorFunc_t);
+        /// @brief Sets a function that is called for every result other than OK, once per failed call.
+        /// @param errorFunction e.g. `ErrorHandler(Serial)` or `[](errorCode e) { ... }`; nullptr removes it
+        extern void attachErrFunc(errorFunc_t errorFunction);
         extern errorCode postError(errorCode);
     #else
+        /// Callback of the timers (PLAIN_VANILLA_CALLBACKS): plain function or captureless lambda, void()
         using callback_t  = void (*)();
+        /// Error function for attachErrFunc() (PLAIN_VANILLA_CALLBACKS): plain function, void(errorCode)
         using errorFunc_t = void (*)(errorCode);
 
-        extern void attachErrFunc(errorFunc_t);
+        /// @brief Sets a function that is called for every result other than OK, once per failed call.
+        /// @param errorFunction a function void(errorCode); nullptr removes it
+        extern void attachErrFunc(errorFunc_t errorFunction);
         extern errorCode postError(errorCode);
     #endif
 
