@@ -19,6 +19,7 @@ namespace TeensyTimerTool
 
         virtual errorCode start() = 0;
         virtual errorCode stop()  = 0;
+        virtual errorCode resume() { return errorCode::notSupported; } // periodic: continue the period interrupted by stop()
 
         virtual errorCode setPrescaler(int psc) { return errorCode::notSupported; }
 

@@ -26,6 +26,7 @@ namespace TeensyTimerTool
         inline errorCode begin(callback_t cb, float tcnt, bool periodic) override;
         inline errorCode start() override;
         inline errorCode stop() override;
+        inline errorCode resume() override;
 
         inline errorCode trigger(float delay) override;
         inline errorCode triggerDirect(uint32_t delay) override;
@@ -55,8 +56,10 @@ namespace TeensyTimerTool
 
         IMXRT_GPT_t *regs;
         IRQ_NUMBER_t irq;
-        float clock;         // counter clock in MHz (perclk / prescaler)
-        uint32_t pscDiv = 1; // prescaler divider 1..4096
+        float clock;            // counter clock in MHz (perclk / prescaler)
+        uint32_t pscDiv = 1;    // prescaler divider 1..4096
+        bool running    = false; // periodic timer started
+        bool resumable  = false; // stop() froze the counter in a period (EN = 0 keeps CNT), resume() continues it
     };
 
     // IMPLEMENTATION ==============================================
@@ -70,6 +73,8 @@ namespace TeensyTimerTool
     {
         clock            = perclkMHz() / pscDiv;
         isPeriodic       = periodic;
+        running          = false;
+        resumable        = false;
         errorCode status = errorCode::OK;
         if (isPeriodic)
         {
@@ -85,12 +90,29 @@ namespace TeensyTimerTool
         regs->SR = 0x3F;         // clear all interrupt flags
         regs->IR = GPT_IR_OF1IE; // enable OF1 interrupt
         regs->CR = CR_RUNNING;   // enable timer, counter starts at 0 (ENMOD)
+        running   = isPeriodic;
+        resumable = false;
+        return errorCode::OK;
+    }
+
+    errorCode GptChannel::resume() // EN with ENMOD = 0: the counter continues where stop() froze it
+    {
+        if (running) return errorCode::OK;
+        if (!resumable) return start();
+        regs->SR  = 0x3F;
+        regs->IR  = GPT_IR_OF1IE;
+        regs->CR  = CR_STOPPED & ~GPT_CR_ENMOD; // ENMOD = 0 must be in place before EN is set
+        regs->CR  = (CR_STOPPED & ~GPT_CR_ENMOD) | GPT_CR_EN;
+        running   = true;
+        resumable = false;
         return errorCode::OK;
     }
 
     errorCode GptChannel::stop()
     {
-        regs->CR = CR_STOPPED;
+        resumable = running; // EN = 0 freezes the counter; a write to OCR1 (setPeriod) resets it
+        running   = false;
+        regs->CR  = CR_STOPPED;
         regs->IR = 0;
         regs->SR = 0x3F;
         // A compare just before the IR write may have left the interrupt pending: wait until the writes reached
@@ -165,6 +187,7 @@ namespace TeensyTimerTool
         uint32_t reload;
         errorCode status = us2ticks(us, &reload);
         regs->OCR1       = reload;
+        resumable        = false; // stopped: resume() starts the new period (counter reset by start())
         return status;
     }
 
