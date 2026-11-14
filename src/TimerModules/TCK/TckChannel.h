@@ -74,8 +74,9 @@ namespace TeensyTimerTool
     }
 
     template <typename tckCounter>
-    errorCode TckChannel<tckCounter>::start()
+    errorCode TckChannel<tckCounter>::start() // the first period is the latest one set
     {
+        this->currentPeriod = this->nextPeriod;
         this->startCnt  = tckCounter::getCount();
         this->triggered = true;
         return errorCode::OK;
@@ -135,7 +136,13 @@ namespace TeensyTimerTool
     {
         counter_t newPeriod;
         errorCode status = us2ticks(us, &newPeriod);
-        counter_t now    = tckCounter::getCount();
+        if (!triggered) // stopped: nothing elapsed, start() uses the new period
+        {
+            currentPeriod = newPeriod;
+            nextPeriod    = newPeriod;
+            return status;
+        }
+        counter_t now = tckCounter::getCount();
 
         if (now - startCnt >= newPeriod) // new period already expired
         {                                //

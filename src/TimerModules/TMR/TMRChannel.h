@@ -45,6 +45,7 @@ namespace TeensyTimerTool
         float ticksPerUs; // F_BUS [MHz] / pscValue, avoids a float division in trigger() / setPeriod()
         inline void updateClock() { ticksPerUs = F_BUS_ACTUAL / 1E6f / pscValue; } // begin(), setPrescaler(): F_BUS follows F_CPU
         uint32_t pscBits;
+        uint16_t nextReload = 0; // RAM copy of CMPLD1, the latest period set; start() makes it the current one
 
         inline errorCode us2Ticks(const float us, uint16_t *ticks) const;
         inline void startTrigger(uint16_t reload);
@@ -65,8 +66,9 @@ namespace TeensyTimerTool
         regs->CTRL = 0x0000; // stop timer and mark it free
     }
 
-    errorCode TMRChannel::start()
+    errorCode TMRChannel::start() // the first period is the latest one set (COMP1 may still hold an older one)
     {
+        regs->COMP1  = nextReload;
         regs->CNTR   = 0x0000;
         regs->CSCTRL = TMR_CSCTRL_CL1(1) | TMR_CSCTRL_TCF1EN; // clears TCF1, no read-modify-write (slow peripheral reads)
         return errorCode::OK;
@@ -88,6 +90,7 @@ namespace TeensyTimerTool
         regs->LOAD   = 0x0000;
         regs->COMP1  = reload;
         regs->CMPLD1 = reload;
+        nextReload   = reload;
         regs->CNTR   = 0x0000;
         regs->CSCTRL = TMR_CSCTRL_CL1(1);
         *pOneShot    = !periodic;
@@ -171,6 +174,7 @@ namespace TeensyTimerTool
         uint16_t reload;
         errorCode status = us2Ticks(us, &reload);
         regs->CMPLD1     = reload;
+        nextReload       = reload;
         return status;
     }
 
@@ -203,6 +207,7 @@ namespace TeensyTimerTool
         noInterrupts();
         regs->CMPLD1 = newReload;
         regs->COMP1  = newReload;
+        nextReload   = newReload;
         regs->CNTR   = 0x0000;
         regs->CSCTRL &= ~TMR_CSCTRL_TCF1; // discard a compare event of the old period
         interrupts();
@@ -216,7 +221,7 @@ namespace TeensyTimerTool
         errorCode status = us2Ticks(us, &newReload);
 
         regs->CMPLD1 = newReload;     // counter will load this value to COMP1 at next trigger
-                                      //
+        nextReload   = newReload;     //
         noInterrupts();               // interrupting this code could lead to wrong cntr settings
         if (regs->CNTR > newReload)   // already too late for new period
             regs->CNTR = regs->COMP1; //   -> force trigger;  will also load COMP1 with value from CMPLD1
