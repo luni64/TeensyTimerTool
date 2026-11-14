@@ -132,8 +132,8 @@ TCK, TCK64, TCK_RTC. Not supported: FTM0 … FTM3 (Teensy 3); `keepElapsed` on G
 **See also:** [`setNextPeriod()`](#setnextperiod), [Changing the period](../usage.md#changing-the-period).
 
 <!-- tests: api_set_period, api_set_period_restarts, api_set_period_keep_elapsed, api_period_zero,
-     api_negative_values, api_set_period_before_begin, api_max_period_and_overflow
-     open finding (PLAN_API_v1.5.md): PIT setPeriod() currently starts a stopped timer, fix before release -->
+     api_negative_values, api_set_period_before_begin, api_max_period_and_overflow,
+     api_period_change_while_stopped -->
 
 ---
 
@@ -176,15 +176,16 @@ Not supported: GPT1, GPT2, RTC (Teensy 4), FTM0 … FTM3 (Teensy 3).
 
 - `getPeriod()` returns the new period immediately after the call, i.e. the latest period set, not the
   period currently running.
-- Intended for running timers. To change the period of a stopped timer, use `setPeriod()`.
+- On a stopped timer, `setNextPeriod()` works like `setPeriod()`: the timer stays stopped, and `start()`
+  starts it with the new period.
 - `setNextPeriod()` can be called from the timer's own callback.
 
 **See also:** [`setPeriod()`](#setperiod), [Changing the period at the end of the current period](../usage.md#changing-the-period-at-the-end-of-the-current-period)
 (example: alternating periods).
 
 <!-- tests: api_set_next_period, la_next_period, api_period_zero, api_negative_values,
-     api_set_period_before_begin, api_get_period, api_error_posted_once, api_max_period_and_overflow
-     open finding (PLAN_API_v1.5.md): behaviour on a stopped timer differs between PIT and TMR/TCK -->
+     api_set_period_before_begin, api_get_period, api_error_posted_once, api_max_period_and_overflow,
+     api_period_change_while_stopped -->
 
 ---
 

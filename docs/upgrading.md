@@ -67,6 +67,7 @@ A value outside `PSC_1` … `PSC_128` in the configuration is a compile error; i
 
 Version 1.5 fixes a number of bugs, among them: destroying a PIT or RTC timer object crashed the sketch;
 a stopped TMR channel still invoked its callback when another channel of the same module fired;
-destroyed FTM timers (Teensy 3) kept running; PIT periods longer than about 179 µs were limited to 179 µs
+destroyed FTM timers (Teensy 3) kept running; starting the RTC timer stopped the real time clock, and
+with it all TCK_RTC timers; `setPeriod()` on a stopped PIT or RTC timer started it; PIT periods longer than about 179 µs were limited to 179 µs
 in 1.4.2 and 1.4.3. The complete list is in the
 [changelog](https://github.com/luni64/TeensyTimerTool/releases).
