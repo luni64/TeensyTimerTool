@@ -33,6 +33,7 @@ namespace TeensyTimerTool
         inline errorCode setPeriodNoStart(float us);
         inline unsigned piFreq() const; // periodic interrupt: 2^piFreq() RTC ticks
         float period;
+        bool running = false;
     };
 
     // IMPLEMENTATION ==============================================
@@ -70,12 +71,16 @@ namespace TeensyTimerTool
         return ticks <= 1 ? 0 : 32 - __builtin_clz(ticks - 1);
     }
 
+    // SNVS_HPCR also holds RTC_EN and the other settings of the real time clock: only change the PI bits
+    // (writing the whole register cleared RTC_EN and stopped the clock). PI_FREQ may only change while PI_EN = 0.
     errorCode RtcChannel::start()
     {
-        SNVS_HPCR = SNVS_HPCR_PI_FREQ(piFreq());
-
-        SNVS_HPCR |= SNVS_HPCR_PI_EN; // enable periodic interrupt
+        stop();
+        uint32_t hpcr = (SNVS_HPCR & ~SNVS_HPCR_PI_FREQ(0xF)) | SNVS_HPCR_PI_FREQ(piFreq());
+        SNVS_HPCR     = hpcr;
+        SNVS_HPCR     = hpcr | SNVS_HPCR_PI_EN; // enable periodic interrupt
         while (!(SNVS_HPCR & SNVS_HPCR_PI_EN)) {}
+        running = true;
         return errorCode::OK;
     }
 
@@ -83,14 +88,14 @@ namespace TeensyTimerTool
     {
         SNVS_HPCR &= ~SNVS_HPCR_PI_EN;
         while ((SNVS_HPCR & SNVS_HPCR_PI_EN)) {}
+        running = false;
         return errorCode::OK;
     }
 
-    errorCode RtcChannel::setPeriod(float _us)
+    errorCode RtcChannel::setPeriod(float _us) // a stopped timer stays stopped, start() uses the new period
     {
-        stop();
         errorCode status = setPeriodNoStart(_us);
-        start();
+        if (running) start();
         return status;
     }
 

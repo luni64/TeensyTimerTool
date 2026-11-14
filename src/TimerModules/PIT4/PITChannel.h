@@ -50,6 +50,7 @@ namespace TeensyTimerTool
         // LDVAL. Interrupt flags are never copied: they are always cleared by a register write (see PIT_t::isr).
         uint32_t ldval     = 0; // LDVAL, i.e. reload of the following periods
         uint32_t curReload = 0; // reload of the current period (LDVAL itself may already hold the next one)
+        bool running       = false; // periodic timer started (TCTRL.TEN), avoids reading TCTRL
 
         const unsigned chNr;
         callback_t callback = nullptr;
@@ -78,6 +79,7 @@ namespace TeensyTimerTool
         {
             IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
             IMXRT_PIT_CHANNELS[chNr].TFLG  = 1;
+            running                        = false;
             status                         = setNextPeriod(micros);
         }
         return status;
@@ -101,7 +103,8 @@ namespace TeensyTimerTool
     errorCode PITChannel::start()
     {
         curReload                      = ldval;
-        IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE;
+        IMXRT_PIT_CHANNELS[chNr].TCTRL = PIT_TCTRL_TEN | PIT_TCTRL_TIE; // TEN loads LDVAL: the first period is the latest one set
+        running                        = true;
         return errorCode::OK;
     }
 
@@ -109,6 +112,7 @@ namespace TeensyTimerTool
     {
         IMXRT_PIT_CHANNELS[chNr].TCTRL = 0;
         IMXRT_PIT_CHANNELS[chNr].TFLG  = 1; // a flag set just before would call this callback when another channel fires
+        running                        = false;
         return errorCode::OK;
     }
 
@@ -121,8 +125,9 @@ namespace TeensyTimerTool
         return status;
     }
 
-    errorCode PITChannel::setPeriod(float us)
+    errorCode PITChannel::setPeriod(float us) // a stopped timer stays stopped, start() uses the new period
     {
+        if (!running) return setNextPeriod(us);
         stop(); // need to stop/start timer to change current period (see ch 53.9.5.4)
         errorCode status = setNextPeriod(us);
         start();
@@ -134,7 +139,7 @@ namespace TeensyTimerTool
         uint32_t reload;
         errorCode status = us2ticks(us, &reload);
         auto &ch         = IMXRT_PIT_CHANNELS[chNr];
-        if (!(ch.TCTRL & PIT_TCTRL_TEN))
+        if (!running)
         {
             ldval    = reload;
             ch.LDVAL = reload; // not running: start() starts the new period
