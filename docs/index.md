@@ -22,6 +22,11 @@ In addition to the `IntervalTimer` of the Teensy core, TeensyTimerTool offers
 The overhead is low: invoking a callback through TeensyTimerTool takes about as long as programming the
 timer registers directly ([comparison](advanced/performance.md)).
 
+!!! info "Version 1.5"
+    Sketches written for version 1.4 compile without changes in most cases; the exceptions are listed in
+    [Upgrading from 1.4](upgrading.md). All changes of this and earlier versions are listed in the
+    [Changelog](changelog.md).
+
 ## Installation
 
 === "Arduino IDE"
@@ -104,6 +109,7 @@ The chapter [Choosing a timer](choosing-a-timer.md) compares the properties of a
 - [Callbacks](callbacks.md): lambdas, member functions, timers in classes.
 - [Error handling](error-handling.md): evaluating the codes returned by `begin()` and other functions.
 - [Examples](examples/index.md): the example sketches of the library.
+- [Changelog](changelog.md): the changes of all versions.
 
 Questions, bug reports and feature requests are welcome in the [PJRC forum](https://forum.pjrc.com) or
 in the [issue tracker](https://github.com/luni64/TeensyTimerTool/issues).
