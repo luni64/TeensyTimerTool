@@ -1,5 +1,8 @@
 [![PlatformIO Registry](https://badges.registry.platformio.org/packages/luni64/library/TeensyTimerTool.svg)](https://registry.platformio.org/libraries/luni64/TeensyTimerTool)
 [![arduino-library-badge](https://www.ardu-badge.com/badge/TeensyTimerTool.svg?)](https://www.ardu-badge.com/TeensyTimerTool)
+[![GitHub release](https://img.shields.io/github/v/release/luni64/TeensyTimerTool)](https://github.com/luni64/TeensyTimerTool/releases/latest)
+[![Documentation](https://github.com/luni64/TeensyTimerTool/actions/workflows/docs.yml/badge.svg)](https://luni64.github.io/TeensyTimerTool/)
+[![License: MIT](https://img.shields.io/github/license/luni64/TeensyTimerTool)](LICENSE)
 
 # TeensyTimerTool
 

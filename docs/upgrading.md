@@ -3,7 +3,7 @@
 Version 1.5 keeps the interface of 1.4: existing sketches and configuration files (`userConfig.h`)
 compile without changes, apart from the cases listed below. Some behaviour, which was undefined or
 differed between the timer types, is now defined; sketches relying on the previous behaviour may need
-small adaptations. The complete list of changes is in the [Changelog](changelog.md#v150-unreleased).
+small adaptations. The complete list of changes is in the [Changelog](changelog.md#v150-2026-11-14).
 
 ## Changes that may need adaptations
 

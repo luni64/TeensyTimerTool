@@ -5,7 +5,7 @@ All notable changes to TeensyTimerTool are documented on this page. The format f
 [GitHub releases](https://github.com/luni64/TeensyTimerTool/releases). How to adapt sketches written for
 1.4 is described in [Upgrading from 1.4](upgrading.md).
 
-## v1.5.0 - unreleased
+## v1.5.0 - 2026-11-14
 
 **Changes that may need adaptations**
 
