@@ -230,7 +230,27 @@ PIT, GPT, TMR and TCK timers. Unsupported getters return `NAN` and report `error
 ## Arrays and containers of timers
 
 Timers can be kept in arrays, which is convenient for a number of similar tasks. The timer type of each
-element is given in the braces; the types can be mixed:
+element is given in the braces. The following sketch uses three software timers with different periods:
+
+```cpp
+--8<-- "01_Basic/ArrayOfTimersSimple/ArrayOfTimersSimple.ino"
+```
+
+Output:
+
+```
+ 1396 ms: timer 0
+ 2396 ms: timer 0
+ 2396 ms: timer 1
+ 3396 ms: timer 0
+ 3396 ms: timer 2
+ 4396 ms: timer 0
+ 4396 ms: timer 1
+...
+```
+
+The timer types in an array can be mixed. The following sketch (Teensy 4) generates pulses of
+different lengths with a GPT, two TMR and two software timers:
 
 ```cpp
 --8<-- "01_Basic/ArrayOfTimers/ArrayOfTimers.ino"

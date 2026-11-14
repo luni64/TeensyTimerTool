@@ -11,6 +11,7 @@ The library comes with the following example sketches. In the Arduino IDE they a
 | [`HelloPeriodic`][HelloPeriodic] | a periodic timer from the pool blinks the LED | all |
 | [`HelloOneShot`][HelloOneShot] | a one-shot timer switches the LED off after 3 s while `loop()` keeps running | all |
 | [`MoreTimers`][MoreTimers] | TCK, TMR and GPT timers side by side, a periodic timer triggering a one-shot timer | Teensy 4 |
+| [`ArrayOfTimersSimple`][ArrayOfTimersSimple] | an array of three software timers printing to the serial monitor | all |
 | [`ArrayOfTimers`][ArrayOfTimers] | an array of one-shot timers of different types generating pulses of different lengths | Teensy 4 |
 | [`UsingChronoDurations1`][UsingChronoDurations1], [`UsingChronoDurations2`][UsingChronoDurations2] | periods and delays as `std::chrono` durations (`25ms`, `0.5s + 10ms` …) | all |
 | [`RTC`][RTC] | the RTC timer: periods of 2⁻ⁿ s in sync with the real time clock, `stop()` and `start()` | Teensy 4 |
@@ -41,6 +42,7 @@ The library comes with the following example sketches. In the Arduino IDE they a
 [HelloPeriodic]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/HelloPeriodic
 [HelloOneShot]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/HelloOneShot
 [MoreTimers]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/MoreTimers
+[ArrayOfTimersSimple]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/ArrayOfTimersSimple
 [ArrayOfTimers]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/ArrayOfTimers
 [UsingChronoDurations1]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/UsingChronoDurations1
 [UsingChronoDurations2]: https://github.com/luni64/TeensyTimerTool/tree/master/examples/01_Basic/UsingChronoDurations2
