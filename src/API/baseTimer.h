@@ -61,9 +61,9 @@ namespace TeensyTimerTool
     {
         float period = period2us(p); // transform from any period type to microseconds (float)
 
-        if (callback == nullptr) return postError(errorCode::callback);
-        if (period < 0) return postError(errorCode::argument);
-        if (isPeriodic && period == 0) return postError(errorCode::reload);
+        if (callback == nullptr) return postError(errorCode::noCallback);
+        if (period < 0) return postError(errorCode::invalidArgument);
+        if (isPeriodic && period == 0) return postError(errorCode::zeroPeriod);
 
         errorCode pscResult = errorCode::OK;
 
@@ -80,12 +80,12 @@ namespace TeensyTimerTool
                     timerChannel = timerPool[i]();
                 }
             }
-            if (timerChannel == nullptr) return postError(errorCode::noFreeModule);
+            if (timerChannel == nullptr) return postError(errorCode::poolExhausted);
 
             if (hasPrescaler) // prescaler requested before a channel was available
             {
                 pscResult = timerChannel->setPrescaler(prescaler);
-                if (pscResult == errorCode::notImplemented) pscResult = errorCode::prescalerIgnored; // warning, timer runs
+                if (pscResult == errorCode::notSupported) pscResult = errorCode::prescalerIgnored; // warning, timer runs
             }
         }
 
@@ -159,7 +159,7 @@ namespace TeensyTimerTool
             return fromSeconds<T>(NAN);
         }
         double s = (timerChannel->*getter)();
-        if (std::isnan(s)) postError(errorCode::notImplemented);
+        if (std::isnan(s)) postError(errorCode::notSupported);
         return fromSeconds<T>(s);
     }
 
@@ -183,7 +183,7 @@ namespace TeensyTimerTool
             return fromSeconds<T>(NAN);
         }
         double s = timerChannel->getRemainingTime();
-        if (std::isnan(s)) postError(errorCode::notImplemented);
+        if (std::isnan(s)) postError(errorCode::notSupported);
         return fromSeconds<T>(s);
     }
 

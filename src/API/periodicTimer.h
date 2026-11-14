@@ -21,8 +21,8 @@ namespace TeensyTimerTool
         {
             if (timerChannel == nullptr) return postError(errorCode::notInitialized);
             float us = period2us(p);
-            if (us < 0) return postError(errorCode::argument);
-            if (us == 0) return postError(errorCode::reload);
+            if (us < 0) return postError(errorCode::invalidArgument);
+            if (us == 0) return postError(errorCode::zeroPeriod);
             return postError(mode == PeriodMode::restart ? timerChannel->setPeriod(us) : timerChannel->setPeriodKeepElapsed(us));
         }
 
@@ -36,8 +36,8 @@ namespace TeensyTimerTool
         {
             if (timerChannel == nullptr) return postError(errorCode::notInitialized);
             float us = period2us(p);
-            if (us < 0) return postError(errorCode::argument);
-            if (us == 0) return postError(errorCode::reload);
+            if (us < 0) return postError(errorCode::invalidArgument);
+            if (us == 0) return postError(errorCode::zeroPeriod);
             return postError(timerChannel->setNextPeriod(us));
         }
     };

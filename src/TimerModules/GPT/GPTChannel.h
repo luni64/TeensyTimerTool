@@ -147,7 +147,7 @@ namespace TeensyTimerTool
 
     errorCode GptChannel::setPrescaler(int psc)
     {
-        if (psc < PSC_1 || psc > PSC_4096) return errorCode::argument; // PSC_AUTO not supported for GPT
+        if (psc < PSC_1 || psc > PSC_4096) return errorCode::invalidArgument; // PSC_AUTO not supported for GPT
 
         pscDiv   = 1u << psc;
         regs->PR = pscDiv - 1; // takes effect immediately, prescaler counter restarts (RM 52.7.1.3)

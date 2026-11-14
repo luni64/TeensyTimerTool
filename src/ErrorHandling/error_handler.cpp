@@ -31,19 +31,19 @@ namespace TeensyTimerTool
                 break;
 
             // general errors
-            case errorCode::argument:
+            case errorCode::invalidArgument:
                 txt = "Invalid argument";
                 break;
-            case errorCode::reload:
+            case errorCode::zeroPeriod:
                 txt = "Period must not be zero";
                 break;
             case errorCode::noFreeChannel:
                 txt = "Timer module has no free channel";
                 break;
-            case errorCode::noFreeModule:
+            case errorCode::poolExhausted:
                 txt = "Timer pool contains no free timer";
                 break;
-            case errorCode::notImplemented:
+            case errorCode::notSupported:
                 txt = "Function not implemented for this timer";
                 break;
             case errorCode::notInitialized:

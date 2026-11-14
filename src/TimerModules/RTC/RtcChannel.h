@@ -50,7 +50,7 @@ namespace TeensyTimerTool
 
     errorCode RtcChannel::begin(callback_t cb, float period, bool periodic)
     {
-        if (!periodic) return errorCode::notImplemented;
+        if (!periodic) return errorCode::notSupported;
 
         stop();
         *pCallback = cb;

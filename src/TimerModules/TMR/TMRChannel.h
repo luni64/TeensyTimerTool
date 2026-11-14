@@ -149,7 +149,7 @@ namespace TeensyTimerTool
 
     errorCode TMRChannel::setPrescaler(int psc) // psc 0..7 -> prescaler: 1..128
     {
-        if (psc < PSC_1 || psc > PSC_128) return errorCode::argument; // PSC_AUTO not supported for TMR
+        if (psc < PSC_1 || psc > PSC_128) return errorCode::invalidArgument; // PSC_AUTO not supported for TMR
 
         pscValue   = 1 << psc;
         updateClock();
