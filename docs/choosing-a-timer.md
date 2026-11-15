@@ -165,6 +165,12 @@ The callbacks are only invoked when `yield()` runs. They are delayed by a few µ
 `delay()` and other functions that call `yield()` are no problem. Code that blocks for a long time can
 call `yield()` itself, see [Performance](advanced/performance.md#software-timers-tck).
 
+A periodic tick timer keeps its schedule: each due time is the previous due time plus the period, not
+the time the callback actually ran. A late callback therefore does not shift the following ones. The
+individual periods jitter, but the mean period is exact and the callbacks do not drift. If the sketch
+blocks for longer than one period, the missed callbacks are caught up as soon as the timers are checked again,
+one callback per check (by default, per `yield()` call), until the timer is back on schedule.
+
 ### TCK64 and TCK_RTC – 64 bit tick timers
 
 `TCK64` works like `TCK`, but with a 64 bit counter: the maximum period is practically unlimited
